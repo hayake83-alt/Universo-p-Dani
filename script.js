@@ -2046,7 +2046,42 @@ function updatePlanets(){
     );
 
 }
+/* ===========================================================
+   ANIMACIÓN DEL HALO DE PLANETAS
+   =========================================================== */
 
+function updatePlanetGlow(){
+
+    planets.forEach((planet)=>{
+
+
+        if(
+            planet.children.length > 0
+        ){
+
+            const glow =
+            planet.children[0];
+
+
+            const pulse =
+            1 +
+            Math.sin(
+                elapsedTime * 2
+            ) * 0.03;
+
+
+            glow.scale.set(
+                pulse,
+                pulse,
+                pulse
+            );
+
+        }
+
+
+    });
+
+}
 
 
 /* ===========================================================
