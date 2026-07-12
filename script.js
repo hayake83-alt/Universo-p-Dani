@@ -693,6 +693,275 @@ console.log(
 );
 /* ===========================================================
    UNIVERSO PARA DANI ❤️
+   MÓDULO 2
+   SISTEMA DE ESTRELLAS
+   =========================================================== */
+
+
+/* ===========================================================
+   CREACIÓN DEL CAMPO ESTELAR
+   =========================================================== */
+
+function createStars(){
+
+    const geometry =
+    new THREE.BufferGeometry();
+
+
+    const positions = [];
+
+    const colors = [];
+
+    const sizes = [];
+
+
+    const colorPalette = [
+
+        new THREE.Color(0xffffff),
+
+        new THREE.Color(0x9ecbff),
+
+        new THREE.Color(0xffc7d8),
+
+        new THREE.Color(0xd8c5ff),
+
+        new THREE.Color(0xff8fa3)
+
+    ];
+
+
+
+    for(
+        let i = 0;
+        i < SETTINGS.stars;
+        i++
+    ){
+
+        /*
+          Distribución esférica:
+          crea profundidad en todas
+          las direcciones.
+        */
+
+
+        const radius =
+        Math.pow(
+            Math.random(),
+            0.55
+        ) *
+        SETTINGS.galaxyRadius;
+
+
+
+        const theta =
+        Math.random()
+        *
+        Math.PI
+        *
+        2;
+
+
+
+        const phi =
+        Math.acos(
+            random(-1,1)
+        );
+
+
+
+        const x =
+        radius *
+        Math.sin(phi)
+        *
+        Math.cos(theta);
+
+
+
+        const y =
+        radius *
+        Math.sin(phi)
+        *
+        Math.sin(theta);
+
+
+
+        const z =
+        radius *
+        Math.cos(phi);
+
+
+
+        positions.push(
+            x,
+            y,
+            z
+        );
+
+
+
+        const starColor =
+        colorPalette[
+            randomInt(
+                0,
+                colorPalette.length-1
+            )
+        ];
+
+
+
+        colors.push(
+            starColor.r,
+            starColor.g,
+            starColor.b
+        );
+
+
+
+        /*
+          Variación de tamaño.
+          Algunas estrellas destacan.
+        */
+
+        sizes.push(
+            random(
+                0.4,
+                2.8
+            )
+        );
+
+
+    }
+
+
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
+
+    );
+
+
+    geometry.setAttribute(
+
+        "color",
+
+        new THREE.Float32BufferAttribute(
+            colors,
+            3
+        )
+
+    );
+
+
+    geometry.setAttribute(
+
+        "size",
+
+        new THREE.Float32BufferAttribute(
+            sizes,
+            1
+        )
+
+    );
+
+
+
+    const material =
+    new THREE.PointsMaterial({
+
+        size:1.5,
+
+        vertexColors:true,
+
+        transparent:true,
+
+        opacity:0.9,
+
+        depthWrite:false,
+
+        blending:
+        THREE.AdditiveBlending
+
+    });
+
+
+
+    const starField =
+    new THREE.Points(
+        geometry,
+        material
+    );
+
+
+    starsGroup.add(
+        starField
+    );
+
+
+    stars.push(
+        starField
+    );
+
+
+}
+
+
+
+/* ===========================================================
+   ESTRELLAS DESTACADAS
+   (Preparación para interacción)
+   =========================================================== */
+
+function createInteractiveStarPoints(){
+
+    for(
+        let i = 0;
+        i < SETTINGS.interactiveStars;
+        i++
+    ){
+
+        interactiveStars.push({
+
+            id:i,
+
+            active:false,
+
+            intensity:
+            random(
+                0.8,
+                2
+            )
+
+        });
+
+    }
+
+}
+
+
+
+/* ===========================================================
+   INICIALIZAR ESTRELLAS
+   =========================================================== */
+
+createStars();
+
+createInteractiveStarPoints();
+
+
+console.log(
+    "⭐ Campo estelar creado:"
+    ,
+    SETTINGS.stars,
+    "estrellas"
+);
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
    MÓDULO 3
    NEBULOSAS CÓSMICAS
    =========================================================== */
