@@ -530,9 +530,7 @@ function init(){
     createComets();
 
 
-    renderer.render(
-        scene,
-        camera
+    composer.render(
     );
 
 }
