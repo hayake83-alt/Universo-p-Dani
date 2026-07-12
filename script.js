@@ -2769,6 +2769,8 @@ function animatePlanets(){
    =========================================================== */
 
 function updateWorld(){
+   
+    updatePlanetGlow();
 
     updateUniverse();
 
