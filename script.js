@@ -2417,5 +2417,248 @@ function updateStarBursts(){
 console.log(
     "✨ Interacción estelar preparada."
 );
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 8
+   INTEGRACIÓN FINAL · ANIMACIÓN COMPLETA
+   =========================================================== */
 
+
+/* ===========================================================
+   ACTUALIZACIÓN DE ESTRELLAS
+   =========================================================== */
+
+function updateStars(){
+
+    stars.forEach((star)=>{
+
+        star.rotation.y += 0.00005;
+
+    });
+
+}
+
+
+
+/* ===========================================================
+   MOVIMIENTO SUAVE DEL UNIVERSO
+   =========================================================== */
+
+function updateUniverse(){
+
+    universe.rotation.y += 0.00003;
+
+    universe.rotation.x =
+    Math.sin(elapsedTime * 0.05)
+    * 0.002;
+
+}
+
+
+
+/* ===========================================================
+   EFECTO DE PARPADEO DE ESTRELLAS
+   =========================================================== */
+
+function twinkleStars(){
+
+    stars.forEach((field)=>{
+
+        if(field.material){
+
+            field.material.opacity =
+            0.75 +
+            Math.sin(elapsedTime * 2)
+            * 0.15;
+
+        }
+
+    });
+
+}
+
+
+
+/* ===========================================================
+   ANIMACIÓN DE PLANETAS
+   =========================================================== */
+
+function animatePlanets(){
+
+    updatePlanets();
+
+}
+
+
+
+/* ===========================================================
+   ANIMACIÓN GENERAL
+   =========================================================== */
+
+function updateWorld(){
+
+    updateUniverse();
+
+    updateStars();
+
+    updateNebulas();
+
+    updateParticles();
+
+    updateComets();
+
+    updateShootingStars();
+
+    animatePlanets();
+
+    updateStarBursts();
+
+    twinkleStars();
+
+}
+
+
+
+/* ===========================================================
+   NUEVO LOOP PRINCIPAL
+   =========================================================== */
+
+function animateUniverse(){
+
+    requestAnimationFrame(
+        animateUniverse
+    );
+
+
+    elapsedTime =
+    clock.getElapsedTime();
+
+
+
+    controls.update();
+
+
+    updateCamera();
+
+
+    updateWorld();
+
+
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+}
+
+
+
+/* ===========================================================
+   INTRO CINEMÁTICA
+   =========================================================== */
+
+function cinematicStart(){
+
+    camera.position.set(
+        0,
+        20,
+        220
+    );
+
+
+    const startPosition =
+    new THREE.Vector3(
+        0,
+        8,
+        140
+    );
+
+
+
+    const duration = 5000;
+
+    const startTime =
+    performance.now();
+
+
+
+    function cameraIntro(){
+
+        const progress =
+        Math.min(
+            (performance.now()
+            - startTime)
+            / duration,
+            1
+        );
+
+
+
+        camera.position.lerpVectors(
+
+            new THREE.Vector3(
+                0,
+                20,
+                220
+            ),
+
+            startPosition,
+
+            progress
+
+        );
+
+
+
+        if(progress < 1){
+
+            requestAnimationFrame(
+                cameraIntro
+            );
+
+        }
+
+    }
+
+
+    cameraIntro();
+
+}
+
+
+
+/* ===========================================================
+   INICIO FINAL
+   =========================================================== */
+
+function launchUniverse(){
+
+    cinematicStart();
+
+    animateUniverse();
+
+
+    setTimeout(()=>{
+
+        finishLoading();
+
+    },2500);
+
+
+}
+
+
+
+launchUniverse();
+
+
+
+console.log(
+    "🌌 Universo completamente integrado."
+);
+
+console.log(
+    "✨ Sistema listo."
+);
 
