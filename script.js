@@ -104,6 +104,76 @@ renderer.shadowMap.type =
 THREE.PCFSoftShadowMap;
 
 /* ===========================================================
+   ILUMINACIÓN
+   =========================================================== */
+
+const ambientLight = new THREE.AmbientLight(
+    0xffffff,
+    0.35
+);
+
+scene.add(ambientLight);
+
+
+const blueLight = new THREE.PointLight(
+    COLORS.blue,
+    45,
+    1800
+);
+
+blueLight.position.set(
+    -250,
+    140,
+    180
+);
+
+scene.add(blueLight);
+
+
+const redLight = new THREE.PointLight(
+    COLORS.red,
+    38,
+    1800
+);
+
+redLight.position.set(
+    260,
+    -120,
+    -200
+);
+
+scene.add(redLight);
+
+
+const violetLight = new THREE.PointLight(
+    COLORS.violet,
+    40,
+    1800
+);
+
+violetLight.position.set(
+    -120,
+    -220,
+    -420
+);
+
+scene.add(violetLight);
+
+
+const moonLight = new THREE.DirectionalLight(
+    COLORS.moon,
+    1.4
+);
+
+moonLight.position.set(
+    150,
+    240,
+    90
+);
+
+scene.add(moonLight);
+
+/* ===========================================================
    CONTROLES
    =========================================================== */
 
@@ -261,75 +331,7 @@ console.log("🌌 Universo inicializado");
    =========================================================== */
 
 
-/* ===========================================================
-   ILUMINACIÓN
-   =========================================================== */
 
-const ambientLight = new THREE.AmbientLight(
-    0xffffff,
-    0.35
-);
-
-scene.add(ambientLight);
-
-
-const blueLight = new THREE.PointLight(
-    COLORS.blue,
-    45,
-    1800
-);
-
-blueLight.position.set(
-    -250,
-    140,
-    180
-);
-
-scene.add(blueLight);
-
-
-const redLight = new THREE.PointLight(
-    COLORS.red,
-    38,
-    1800
-);
-
-redLight.position.set(
-    260,
-    -120,
-    -200
-);
-
-scene.add(redLight);
-
-
-const violetLight = new THREE.PointLight(
-    COLORS.violet,
-    40,
-    1800
-);
-
-violetLight.position.set(
-    -120,
-    -220,
-    -420
-);
-
-scene.add(violetLight);
-
-
-const moonLight = new THREE.DirectionalLight(
-    COLORS.moon,
-    1.4
-);
-
-moonLight.position.set(
-    150,
-    240,
-    90
-);
-
-scene.add(moonLight);
 
 
 /* ===========================================================
