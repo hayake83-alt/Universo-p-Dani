@@ -1145,8 +1145,58 @@ function createGalaxySpiral(){
 
 
 }
+function createGalaxyCore(){
+
+    const geometry =
+    new THREE.SphereGeometry(
+        60,
+        64,
+        64
+    );
 
 
+    const material =
+    new THREE.MeshBasicMaterial({
+
+        color:0xffb6ff,
+
+        transparent:true,
+
+        opacity:0.25,
+
+        blending:
+        THREE.AdditiveBlending
+
+    });
+
+
+    const core =
+    new THREE.Mesh(
+        geometry,
+        material
+    );
+
+
+    galaxyGroup.add(
+        core
+    );
+
+}
+createGalaxySpiral();
+
+createGalaxyCore();
+function updateGalaxy(){
+
+    galaxies.forEach(
+        (galaxy)=>{
+
+            galaxy.rotation.y +=
+            0.0002;
+
+        }
+    );
+
+}
 /*
  ===========================================================
    UNIVERSO PARA DANI ❤️
@@ -3045,6 +3095,8 @@ function animatePlanets(){
 function updateWorld(){
    
     updatePlanetGlow();
+    
+    updateGalaxy();
 
     updateUniverse();
 
