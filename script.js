@@ -2707,30 +2707,7 @@ function finishLoading(){
 }
 
 
-/* ===========================================================
-   FUNCIÓN INIT
-   =========================================================== */
 
-function init(){
-
-    console.log(
-        "🌌 Iniciando universo..."
-    );
-
-
-    createStars();
-
-    createNebulas();
-
-    createPlanets();
-
-    createComets();
-
-
-    composer.render(
-    );
-
-}
 
 
 /* ===========================================================
@@ -3442,7 +3419,30 @@ function cinematicStart(){
 
 }
 
+/* ===========================================================
+   FUNCIÓN INIT
+   =========================================================== */
 
+function init(){
+
+    console.log(
+        "🌌 Iniciando universo..."
+    );
+
+
+    createStars();
+
+    createNebulas();
+
+    createPlanets();
+
+    createComets();
+
+
+    composer.render(
+    );
+
+}
 
 /* ===========================================================
    INICIO FINAL
