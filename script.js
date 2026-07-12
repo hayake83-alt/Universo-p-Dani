@@ -173,65 +173,7 @@ moonLight.position.set(
 
 scene.add(moonLight);
 
-/* ===========================================================
-   CONTROLES
-   =========================================================== */
-
-const controls = new OrbitControls(
-
-    camera,
-
-    renderer.domElement
-
-);
-
-controls.enablePan = false;
-
-controls.enableZoom = false;
-
-controls.enableDamping = true;
-
-controls.dampingFactor = 0.04;
-
-controls.autoRotate = true;
-
-controls.autoRotateSpeed = 0.05;
-
-controls.minPolarAngle = Math.PI * 0.35;
-
-controls.maxPolarAngle = Math.PI * 0.65;
-
-/* ===========================================================
-   RELOJ
-   =========================================================== */
-
-const clock = new THREE.Clock();
-
-/* ===========================================================
-   RAYCASTER
-   =========================================================== */
-
-const raycaster = new THREE.Raycaster();
-
-const mouse = new THREE.Vector2();
-
-/* ===========================================================
-   CURSOR
-   =========================================================== */
-
-const cursor = {
-
-    x:0,
-
-    y:0,
-
-    targetX:0,
-
-    targetY:0
-
-};
-
-/* ===========================================================
+ ===========================================================
    GRUPOS PRINCIPALES
    =========================================================== */
 
@@ -300,6 +242,66 @@ const particles=[];
 const comets=[];
 
 const shootingStars=[];
+
+/* ===========================================================
+   CONTROLES
+   =========================================================== */
+
+const controls = new OrbitControls(
+
+    camera,
+
+    renderer.domElement
+
+);
+
+controls.enablePan = false;
+
+controls.enableZoom = false;
+
+controls.enableDamping = true;
+
+controls.dampingFactor = 0.04;
+
+controls.autoRotate = true;
+
+controls.autoRotateSpeed = 0.05;
+
+controls.minPolarAngle = Math.PI * 0.35;
+
+controls.maxPolarAngle = Math.PI * 0.65;
+
+/* ===========================================================
+   RELOJ
+   =========================================================== */
+
+const clock = new THREE.Clock();
+
+/* ===========================================================
+   RAYCASTER
+   =========================================================== */
+
+const raycaster = new THREE.Raycaster();
+
+const mouse = new THREE.Vector2();
+
+/* ===========================================================
+   CURSOR
+   =========================================================== */
+
+const cursor = {
+
+    x:0,
+
+    y:0,
+
+    targetX:0,
+
+    targetY:0
+
+};
+
+/*
 
 /* ===========================================================
    CONFIGURACIÓN
