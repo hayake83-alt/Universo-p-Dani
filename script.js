@@ -521,6 +521,15 @@ function init(){
     );
 
 
+    createStars();
+
+    createNebulas();
+
+    createPlanets();
+
+    createComets();
+
+
     renderer.render(
         scene,
         camera
