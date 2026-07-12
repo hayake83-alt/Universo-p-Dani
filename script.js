@@ -1694,6 +1694,57 @@ new THREE.MeshStandardMaterial({
     planet.position.copy(
         options.position
     );
+    /* ===========================================================
+   HALO LUMINOSO DEL PLANETA
+   =========================================================== */
+
+
+const glowGeometry =
+new THREE.SphereGeometry(
+
+    options.size * 1.35,
+
+    64,
+
+    64
+
+);
+
+
+
+const glowMaterial =
+new THREE.MeshBasicMaterial({
+
+    color:options.color,
+
+    transparent:true,
+
+    opacity:0.12,
+
+    side:
+    THREE.BackSide,
+
+    blending:
+    THREE.AdditiveBlending
+
+});
+
+
+
+const glow =
+new THREE.Mesh(
+
+    glowGeometry,
+
+    glowMaterial
+
+);
+
+
+
+planet.add(
+    glow
+);
 
 
     planet.rotationSpeed =
