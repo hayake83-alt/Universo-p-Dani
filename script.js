@@ -892,8 +892,6 @@ new THREE.PointsMaterial({
 
 });
 
-    });
-
 
 
     const starField =
