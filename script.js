@@ -2089,4 +2089,333 @@ createComets();
 console.log(
     "☄️ Cometas y estrellas fugaces creados."
 );
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 7
+   INTERACCIÓN CON ESTRELLAS · EFECTOS
+   =========================================================== */
+
+
+/* ===========================================================
+   PARTÍCULAS DE DESTELLO
+   =========================================================== */
+
+function createStarBurst(position){
+
+
+    const geometry =
+    new THREE.BufferGeometry();
+
+
+    const positions = [];
+
+
+    for(
+        let i = 0;
+        i < 80;
+        i++
+    ){
+
+        positions.push(
+
+            random(
+                -2,
+                2
+            ),
+
+            random(
+                -2,
+                2
+            ),
+
+            random(
+                -2,
+                2
+            )
+
+        );
+
+    }
+
+
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
+
+    );
+
+
+
+    const material =
+    new THREE.PointsMaterial({
+
+        color:0xffffff,
+
+        size:2.5,
+
+        transparent:true,
+
+        opacity:1,
+
+        blending:
+        THREE.AdditiveBlending,
+
+        depthWrite:false
+
+    });
+
+
+
+    const burst =
+    new THREE.Points(
+        geometry,
+        material
+    );
+
+
+    burst.position.copy(
+        position
+    );
+
+
+    burst.userData.life =
+    1;
+
+
+
+    effectsGroup.add(
+        burst
+    );
+
+
+    particles.push(
+        burst
+    );
+
+}
+
+
+
+/* ===========================================================
+   EFECTO AL TOCAR ESTRELLA
+   =========================================================== */
+
+function activateStar(star){
+
+
+    if(
+        !star
+    ) return;
+
+
+
+    createStarBurst(
+        star.position
+    );
+
+
+
+    star.scale.setScalar(
+        3
+    );
+
+
+    setTimeout(()=>{
+
+        star.scale.setScalar(
+            1
+        );
+
+    },500);
+
+
+}
+
+
+
+/* ===========================================================
+   DETECCIÓN DE CLIC / TOQUE
+   =========================================================== */
+
+function checkStarInteraction(event){
+
+
+    const rect =
+    renderer.domElement.getBoundingClientRect();
+
+
+
+    mouse.x =
+    ((event.clientX - rect.left)
+    / rect.width)
+    * 2 - 1;
+
+
+
+    mouse.y =
+    -((event.clientY - rect.top)
+    / rect.height)
+    * 2 + 1;
+
+
+
+    raycaster.setFromCamera(
+        mouse,
+        camera
+    );
+
+
+
+    const hits =
+    raycaster.intersectObjects(
+        interactiveStars,
+        true
+    );
+
+
+
+    if(
+        hits.length > 0
+    ){
+
+        activateStar(
+            hits[0].object
+        );
+
+    }
+
+}
+
+
+
+/* ===========================================================
+   EVENTOS
+   =========================================================== */
+
+window.addEventListener(
+
+    "click",
+
+    checkStarInteraction
+
+);
+
+
+
+window.addEventListener(
+
+    "pointerdown",
+
+    (event)=>{
+
+        checkStarInteraction(
+            event
+        );
+
+    }
+
+);
+
+
+
+/* ===========================================================
+   MENSAJES OCULTOS
+   =========================================================== */
+
+const starMessages = [
+
+    "Algunas luces permanecen incluso en la distancia.",
+
+    "Cada universo tiene una estrella especial.",
+
+    "Hay personas que hacen más brillante nuestro cielo."
+
+];
+
+
+
+function showStarMessage(){
+
+
+    const message =
+    starMessages[
+        randomInt(
+            0,
+            starMessages.length - 1
+        )
+    ];
+
+
+
+    subtitulo.innerText =
+    message;
+
+
+
+    overlay.classList.add(
+        "mostrar"
+    );
+
+}
+
+
+
+/* ===========================================================
+   ACTUALIZAR DESTELLOS
+   =========================================================== */
+
+function updateStarBursts(){
+
+
+    particles.forEach(
+        (particle,index)=>{
+
+
+            if(
+                particle.userData &&
+                particle.userData.life
+            ){
+
+                particle.userData.life -=
+                0.015;
+
+
+                particle.material.opacity =
+                particle.userData.life;
+
+
+                particle.scale.multiplyScalar(
+                    1.02
+                );
+
+
+                if(
+                    particle.userData.life <= 0
+                ){
+
+                    effectsGroup.remove(
+                        particle
+                    );
+
+                }
+
+            }
+
+
+        }
+    );
+
+}
+
+
+console.log(
+    "✨ Interacción estelar preparada."
+);
+
 
