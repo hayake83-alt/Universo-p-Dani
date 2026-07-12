@@ -2229,7 +2229,7 @@ createPlanet({
 
     size:18,
 
-    color:color:0x2979ff,
+    color:0x2979ff,
 
     position:new THREE.Vector3(
         -230,
@@ -2250,7 +2250,7 @@ createPlanet({
 
     size:12,
 
-    color:color:0xff1744,
+    color:0xff1744,
 
     position:new THREE.Vector3(
         250,
@@ -2271,7 +2271,7 @@ createPlanet({
 
     size:25,
 
-    color:color:0x9c27ff,
+    color:0x9c27ff,
 
     position:new THREE.Vector3(
         100,
@@ -2292,7 +2292,7 @@ createPlanet({
 
     size:9,
 
-    color:color:0xdde7ff,
+    color:0xdde7ff,
 
     position:new THREE.Vector3(
         -500,
