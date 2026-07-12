@@ -858,28 +858,20 @@ function createStars(){
     );
 
 
-    geometry.setAttribute(
-
-        "size",
-
-        new THREE.Float32BufferAttribute(
-            sizes,
-            1
-        )
-
-    );
-
     const starTexture =
-         new THREE.TextureLoader().load(
-      "https://threejs.org/examples/textures/sprites/disc.png"
+new THREE.TextureLoader().load(
+    "https://threejs.org/examples/textures/sprites/disc.png"
 );
 
-    const material =
+
+const material =
 new THREE.PointsMaterial({
 
-    size:Math.random()*2+0.5,
+    size:1.8,
 
     map:starTexture,
+
+    vertexColors:true,
 
     transparent:true,
 
