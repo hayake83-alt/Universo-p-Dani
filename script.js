@@ -869,23 +869,28 @@ function createStars(){
 
     );
 
-
+    const starTexture =
+         new THREE.TextureLoader().load(
+      "https://threejs.org/examples/textures/sprites/disc.png"
+);
 
     const material =
-    new THREE.PointsMaterial({
+new THREE.PointsMaterial({
 
-        size:1.5,
+    size:1.8,
 
-        vertexColors:true,
+    map:starTexture,
 
-        transparent:true,
+    transparent:true,
 
-        opacity:0.9,
+    opacity:0.9,
 
-        depthWrite:false,
+    depthWrite:false,
 
-        blending:
-        THREE.AdditiveBlending
+    blending:
+    THREE.AdditiveBlending
+
+});
 
     });
 
