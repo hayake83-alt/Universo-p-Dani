@@ -961,6 +961,194 @@ console.log(
     "estrellas"
 );
 /* ===========================================================
+   GALAXIA ESPIRAL
+   =========================================================== */
+
+function createGalaxySpiral(){
+
+    const geometry =
+    new THREE.BufferGeometry();
+
+
+    const positions = [];
+
+    const colors = [];
+
+
+    const starColors = [
+
+        new THREE.Color(0x4d8cff),
+
+        new THREE.Color(0xff5577),
+
+        new THREE.Color(0xb26cff),
+
+        new THREE.Color(0xffffff)
+
+    ];
+
+
+
+    const arms = 4;
+
+    const totalStars = 7000;
+
+
+    for(
+        let i = 0;
+        i < totalStars;
+        i++
+    ){
+
+
+        const radius =
+        Math.random() * 900;
+
+
+        const arm =
+        i % arms;
+
+
+        const angle =
+        (arm / arms)
+        *
+        Math.PI * 2
+        +
+        radius * 0.004;
+
+
+
+        const spread =
+        random(
+            -25,
+            25
+        );
+
+
+
+        const x =
+        Math.cos(angle)
+        *
+        radius
+        +
+        spread;
+
+
+        const z =
+        Math.sin(angle)
+        *
+        radius
+        +
+        spread;
+
+
+
+        const y =
+        random(
+            -40,
+            40
+        );
+
+
+
+        positions.push(
+            x,
+            y,
+            z
+        );
+
+
+
+        const color =
+        starColors[
+            randomInt(
+                0,
+                starColors.length-1
+            )
+        ];
+
+
+        colors.push(
+
+            color.r,
+
+            color.g,
+
+            color.b
+
+        );
+
+
+    }
+
+
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
+
+    );
+
+
+
+    geometry.setAttribute(
+
+        "color",
+
+        new THREE.Float32BufferAttribute(
+            colors,
+            3
+        )
+
+    );
+
+
+
+    const material =
+    new THREE.PointsMaterial({
+
+        size:2,
+
+        vertexColors:true,
+
+        transparent:true,
+
+        opacity:0.8,
+
+        blending:
+        THREE.AdditiveBlending
+
+    });
+
+
+
+    const galaxy =
+    new THREE.Points(
+        geometry,
+        material
+    );
+
+
+    galaxyGroup.add(
+        galaxy
+    );
+
+
+    galaxies.push(
+        galaxy
+    );
+
+
+}
+
+
+/*
+ ===========================================================
    UNIVERSO PARA DANI ❤️
    MÓDULO 3
    NEBULOSAS CÓSMICAS
