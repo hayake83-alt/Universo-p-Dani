@@ -1550,6 +1550,211 @@ console.log(
     "☁️ Nebulosas creadas."
 );
 /* ===========================================================
+   NEBULOSA AVANZADA CON SHADER
+   =========================================================== */
+
+
+function createShaderNebula(){
+
+
+const geometry =
+new THREE.PlaneGeometry(
+    900,
+    900,
+    128,
+    128
+);
+
+
+
+const material =
+new THREE.ShaderMaterial({
+
+    transparent:true,
+
+    depthWrite:false,
+
+    blending:
+    THREE.AdditiveBlending,
+
+
+    uniforms:{
+
+        uTime:{
+            value:0
+        },
+
+
+        uColor1:{
+            value:
+            new THREE.Color(
+                0xff3366
+            )
+        },
+
+
+        uColor2:{
+            value:
+            new THREE.Color(
+                0x6644ff
+            )
+        },
+
+
+        uColor3:{
+            value:
+            new THREE.Color(
+                0x2288ff
+            )
+        }
+
+    },
+
+
+    vertexShader:`
+
+        varying vec2 vUv;
+
+
+        void main(){
+
+            vUv = uv;
+
+
+            vec3 pos =
+            position;
+
+
+            pos.z +=
+            sin(
+                pos.x * 0.01 +
+                pos.y * 0.01
+            ) * 20.0;
+
+
+            gl_Position =
+            projectionMatrix *
+            modelViewMatrix *
+            vec4(
+                pos,
+                1.0
+            );
+
+        }
+
+    `,
+
+
+    fragmentShader:`
+
+        uniform float uTime;
+
+
+        uniform vec3 uColor1;
+        uniform vec3 uColor2;
+        uniform vec3 uColor3;
+
+
+        varying vec2 vUv;
+
+
+        void main(){
+
+
+            float wave =
+            sin(
+                vUv.x * 8.0 +
+                uTime
+            );
+
+
+            vec3 color =
+            mix(
+                uColor1,
+                uColor2,
+                wave
+            );
+
+
+            color =
+            mix(
+                color,
+                uColor3,
+                vUv.y
+            );
+
+
+            float alpha =
+            0.25 *
+            sin(
+                vUv.x *
+                3.14
+            );
+
+
+            gl_FragColor =
+            vec4(
+                color,
+                alpha
+            );
+
+
+        }
+
+    `
+
+});
+
+
+
+const nebula =
+new THREE.Mesh(
+    geometry,
+    material
+);
+
+
+
+nebula.rotation.x =
+- Math.PI / 2;
+
+
+
+nebula.position.z =
+-500;
+
+
+
+nebulaGroup.add(
+    nebula
+);
+
+
+
+shaderNebulas.push(
+    nebula
+);
+
+
+}
+createShaderNebula();
+function updateShaderNebulas(){
+
+    shaderNebulas.forEach(
+        (nebula)=>{
+
+            nebula.material
+            .uniforms
+            .uTime
+            .value =
+            elapsedTime;
+
+
+        }
+    );
+
+}
+/* ===========================================================
    UNIVERSO PARA DANI ❤️
    MÓDULO 4
    POLVO CÓSMICO · PARTÍCULAS AMBIENTALES
@@ -3113,6 +3318,8 @@ function updateWorld(){
     animatePlanets();
 
     updateStarBursts();
+   
+    updateShaderNebulas();
 
     twinkleStars();
 
