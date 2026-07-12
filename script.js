@@ -877,7 +877,7 @@ function createStars(){
     const material =
 new THREE.PointsMaterial({
 
-    size:1.8,
+    size:Math.random()*2+0.5,
 
     map:starTexture,
 
