@@ -1395,15 +1395,19 @@ function createPlanet(options){
 
 
     const material =
-    new THREE.MeshStandardMaterial({
+new THREE.MeshStandardMaterial({
 
-        color: options.color,
+    color: options.color,
 
-        roughness:0.75,
+    emissive: options.color,
 
-        metalness:0.1
+    emissiveIntensity: 0.35,
 
-    });
+    roughness:0.4,
+
+    metalness:0.2
+
+});
 
 
 
