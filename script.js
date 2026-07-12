@@ -301,407 +301,6 @@ const cursor = {
 
 };
 
-/*
-
-/* ===========================================================
-   CONFIGURACIÓN
-   =========================================================== */
-
-const SETTINGS={
-
-    stars:18000,
-
-    interactiveStars:120,
-
-    nebulas:8,
-
-    planets:7,
-
-    comets:5,
-
-    particles:3500,
-
-    galaxyRadius:1300
-
-};
-
-console.log("🌌 Universo inicializado");
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 1B (CORREGIDO)
-   Luces · Utilidades · Eventos · Preparación del motor
-   =========================================================== */
-
-
-
-
-
-/* ===========================================================
-   VARIABLES DEL MOTOR
-   =========================================================== */
-
-let elapsedTime = 0;
-
-let universeRotation = 0;
-
-let introFinished = false;
-
-let allowInteraction = false;
-
-
-/* ===========================================================
-   FUNCIONES AUXILIARES
-   =========================================================== */
-
-function random(min,max){
-
-    return Math.random() * (max-min) + min;
-
-}
-
-
-function randomInt(min,max){
-
-    return Math.floor(
-        random(min,max+1)
-    );
-
-}
-
-
-function lerp(start,end,amount){
-
-    return start + (end-start)*amount;
-
-}
-
-
-function clamp(value,min,max){
-
-    return Math.min(
-        Math.max(value,min),
-        max
-    );
-
-}
-
-
-function degrees(value){
-
-    return value * Math.PI / 180;
-
-}
-
-
-/* ===========================================================
-   MOVIMIENTO DE CÁMARA
-   =========================================================== */
-
-function updateCamera(){
-
-    cursor.x = lerp(
-        cursor.x,
-        cursor.targetX,
-        0.03
-    );
-
-
-    cursor.y = lerp(
-        cursor.y,
-        cursor.targetY,
-        0.03
-    );
-
-
-    camera.position.x +=
-        (cursor.x * 12 - camera.position.x)
-        * 0.01;
-
-
-    camera.position.y +=
-        (cursor.y * 8 + 8 - camera.position.y)
-        * 0.01;
-
-
-}
-
-
-/* ===========================================================
-   EVENTOS DEL MOUSE
-   =========================================================== */
-
-window.addEventListener(
-    "pointermove",
-    (event)=>{
-
-        cursor.targetX =
-        (event.clientX / window.innerWidth)
-        * 2 - 1;
-
-
-        cursor.targetY =
-        -(event.clientY / window.innerHeight)
-        * 2 + 1;
-
-
-        mouse.x = cursor.targetX;
-
-        mouse.y = cursor.targetY;
-
-    }
-);
-
-
-
-/* ===========================================================
-   REDIMENSIONAR PANTALLA
-   =========================================================== */
-
-window.addEventListener(
-    "resize",
-    ()=>{
-
-        camera.aspect =
-        window.innerWidth /
-        window.innerHeight;
-
-
-        camera.updateProjectionMatrix();
-
-
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
-
-
-        renderer.setPixelRatio(
-            Math.min(
-                window.devicePixelRatio,
-                2
-            )
-        );
-
-    }
-);
-
-
-/* ===========================================================
-   CARGA INICIAL
-   =========================================================== */
-
-function finishLoading(){
-
-    loader.classList.add(
-        "ocultar"
-    );
-
-
-    setTimeout(()=>{
-
-        overlay.classList.add(
-            "mostrar"
-        );
-
-
-        introFinished = true;
-
-        allowInteraction = true;
-
-
-    },1500);
-
-}
-
-
-/* ===========================================================
-   FUNCIÓN INIT
-   =========================================================== */
-
-function init(){
-
-    console.log(
-        "🌌 Iniciando universo..."
-    );
-
-
-    createStars();
-
-    createNebulas();
-
-    createPlanets();
-
-    createComets();
-
-
-    composer.render(
-    );
-
-}
-
-
-/* ===========================================================
-   PREPARACIÓN
-   =========================================================== */
-
-init();
-
-
-console.log(
-    "💡 Módulo 1B corregido correctamente."
-);
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 1C
-   Animación · Loop principal · Táctil · Inicio
-   =========================================================== */
-
-
-/* ===========================================================
-   EVENTOS TÁCTILES
-   =========================================================== */
-
-let touchStartX = 0;
-let touchStartY = 0;
-
-
-window.addEventListener(
-    "touchstart",
-    (event)=>{
-
-        touchStartX =
-        event.touches[0].clientX;
-
-
-        touchStartY =
-        event.touches[0].clientY;
-
-    },
-    {passive:true}
-);
-
-
-
-window.addEventListener(
-    "touchmove",
-    (event)=>{
-
-        const touch =
-        event.touches[0];
-
-
-        const deltaX =
-        touch.clientX - touchStartX;
-
-
-        const deltaY =
-        touch.clientY - touchStartY;
-
-
-        cursor.targetX +=
-        deltaX * 0.0005;
-
-
-        cursor.targetY -=
-        deltaY * 0.0005;
-
-
-        touchStartX =
-        touch.clientX;
-
-
-        touchStartY =
-        touch.clientY;
-
-    },
-    {passive:true}
-);
-
-
-
-/* ===========================================================
-   LOOP DE ANIMACIÓN PRINCIPAL
-   =========================================================== */
-
-function animate(){
-
-    requestAnimationFrame(
-        animate
-    );
-
-
-    elapsedTime =
-    clock.getElapsedTime();
-
-
-
-    /*
-       Movimiento global suave.
-       Más adelante aquí conectaremos:
-       - estrellas
-       - nebulosas
-       - planetas
-       - partículas
-    */
-
-    universeRotation += 0.00008;
-
-
-    universe.rotation.y =
-    universeRotation;
-
-
-
-    updateCamera();
-
-
-    controls.update();
-
-
-
-    renderer.render(
-        scene,
-        camera
-    );
-
-}
-
-
-
-/* ===========================================================
-   INTRODUCCIÓN
-   =========================================================== */
-
-function startUniverse(){
-
-    animate();
-
-
-    setTimeout(()=>{
-
-        finishLoading();
-
-    },2200);
-
-}
-
-
-
-/* ===========================================================
-   INICIO DEFINITIVO
-   =========================================================== */
-
-startUniverse();
-
-
-
-console.log(
-    "🎬 Motor de animación iniciado."
-);
-
-console.log(
-    "🌌 Universo preparado para recibir estrellas."
-);
 /* ===========================================================
    UNIVERSO PARA DANI ❤️
    MÓDULO 2
@@ -1761,470 +1360,6 @@ function updateShaderNebulas(){
 
 }
 /* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 4
-   POLVO CÓSMICO · PARTÍCULAS AMBIENTALES
-   =========================================================== */
-
-
-/* ===========================================================
-   CREAR POLVO ESTELAR
-   =========================================================== */
-
-function createCosmicDust(){
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
-    const positions = [];
-
-    const colors = [];
-
-
-    const dustColors = [
-
-        new THREE.Color(0x8db8ff),
-
-        new THREE.Color(0xcbb7ff),
-
-        new THREE.Color(0xff9fb5),
-
-        new THREE.Color(0xffffff)
-
-    ];
-
-
-
-    for(
-        let i = 0;
-        i < SETTINGS.particles;
-        i++
-    ){
-
-        const radius =
-        random(
-            200,
-            1400
-        );
-
-
-        const angle =
-        Math.random()
-        *
-        Math.PI
-        *
-        2;
-
-
-
-        const spread =
-        random(
-            -500,
-            500
-        );
-
-
-
-        const x =
-        Math.cos(angle)
-        *
-        radius
-        +
-        spread;
-
-
-
-        const y =
-        random(
-            -600,
-            600
-        );
-
-
-
-        const z =
-        Math.sin(angle)
-        *
-        radius
-        +
-        spread;
-
-
-
-        positions.push(
-            x,
-            y,
-            z
-        );
-
-
-
-        const color =
-        dustColors[
-            randomInt(
-                0,
-                dustColors.length - 1
-            )
-        ];
-
-
-
-        colors.push(
-
-            color.r,
-
-            color.g,
-
-            color.b
-
-        );
-
-    }
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-
-    geometry.setAttribute(
-
-        "color",
-
-        new THREE.Float32BufferAttribute(
-            colors,
-            3
-        )
-
-    );
-
-
-
-    const material =
-    new THREE.PointsMaterial({
-
-        size:1.8,
-
-        vertexColors:true,
-
-        transparent:true,
-
-        opacity:0.35,
-
-        depthWrite:false,
-
-        blending:
-        THREE.AdditiveBlending
-
-    });
-
-
-
-    const dust =
-    new THREE.Points(
-        geometry,
-        material
-    );
-
-
-
-    particlesGroup.add(
-        dust
-    );
-
-
-    particles.push(
-        dust
-    );
-
-}
-
-
-
-/* ===========================================================
-   PARTÍCULAS DE LUZ PEQUEÑAS
-   =========================================================== */
-
-function createLightParticles(){
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
-    const positions = [];
-
-
-
-    for(
-        let i = 0;
-        i < 700;
-        i++
-    ){
-
-        positions.push(
-
-            random(
-                -900,
-                900
-            ),
-
-            random(
-                -500,
-                500
-            ),
-
-            random(
-                -900,
-                900
-            )
-
-        );
-
-    }
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-
-    const material =
-    new THREE.PointsMaterial({
-
-        color:0xffffff,
-
-        size:1.2,
-
-        transparent:true,
-
-        opacity:0.22,
-
-        depthWrite:false,
-
-        blending:
-        THREE.AdditiveBlending
-
-    });
-
-
-
-    const particlesLight =
-    new THREE.Points(
-        geometry,
-        material
-    );
-
-
-
-    effectsGroup.add(
-        particlesLight
-    );
-
-
-    particles.push(
-        particlesLight
-    );
-
-}
-
-
-
-/* ===========================================================
-   ANIMACIÓN DE PARTÍCULAS
-   =========================================================== */
-
-function updateParticles(){
-
-    particles.forEach(
-        (particle,index)=>{
-
-            particle.rotation.y +=
-            0.00015 +
-            index * 0.00002;
-
-
-            particle.rotation.x +=
-            0.00005;
-
-
-        }
-    );
-
-}
-
-
-
-/* ===========================================================
-   INICIAR PARTÍCULAS
-   =========================================================== */
-
-createCosmicDust();
-
-createLightParticles();
-
-
-console.log(
-    "✨ Polvo cósmico generado."
-);
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 5
-   PLANETAS · LUNA · CUERPOS CELESTES
-   =========================================================== */
-
-
-/* ===========================================================
-   CREAR PLANETA
-   =========================================================== */
-
-function createPlanet(options){
-
-
-    const geometry =
-    new THREE.SphereGeometry(
-
-        options.size,
-
-        64,
-
-        64
-
-    );
-
-
-
-    const material =
-new THREE.MeshStandardMaterial({
-
-    color: options.color,
-
-    emissive: options.color,
-
-    emissiveIntensity: 0.5,
-
-    roughness:0.35,
-
-    metalness:0.15
-
-});
-
-
-
-    const planet =
-    new THREE.Mesh(
-
-        geometry,
-
-        material
-
-    );
-
-
-
-    planet.position.copy(
-        options.position
-    );
-    /* ===========================================================
-   HALO LUMINOSO DEL PLANETA
-   =========================================================== */
-
-
-const glowGeometry =
-new THREE.SphereGeometry(
-
-    options.size * 1.35,
-
-    64,
-
-    64
-
-);
-
-
-
-const glowMaterial =
-new THREE.MeshBasicMaterial({
-
-    color:options.color,
-
-    transparent:true,
-
-    opacity:0.12,
-
-    side:
-    THREE.BackSide,
-
-    blending:
-    THREE.AdditiveBlending
-
-});
-
-
-
-const glow =
-new THREE.Mesh(
-
-    glowGeometry,
-
-    glowMaterial
-
-);
-
-
-
-planet.add(
-    glow
-);
-
-
-    planet.rotationSpeed =
-    options.rotationSpeed ||
-    0.002;
-
-
-
-    planet.name =
-    options.name;
-
-
-
-    planetsGroup.add(
-        planet
-    );
-
-
-    planets.push(
-        planet
-    );
-
-
-
-    return planet;
-
-}
-
-
-
-/* ===========================================================
    PLANETAS PRINCIPALES
    =========================================================== */
 
@@ -2874,6 +2009,469 @@ function updateShootingStars(){
 
 }
 
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 4
+   POLVO CÓSMICO · PARTÍCULAS AMBIENTALES
+   =========================================================== */
+
+
+/* ===========================================================
+   CREAR POLVO ESTELAR
+   =========================================================== */
+
+function createCosmicDust(){
+
+    const geometry =
+    new THREE.BufferGeometry();
+
+
+    const positions = [];
+
+    const colors = [];
+
+
+    const dustColors = [
+
+        new THREE.Color(0x8db8ff),
+
+        new THREE.Color(0xcbb7ff),
+
+        new THREE.Color(0xff9fb5),
+
+        new THREE.Color(0xffffff)
+
+    ];
+
+
+
+    for(
+        let i = 0;
+        i < SETTINGS.particles;
+        i++
+    ){
+
+        const radius =
+        random(
+            200,
+            1400
+        );
+
+
+        const angle =
+        Math.random()
+        *
+        Math.PI
+        *
+        2;
+
+
+
+        const spread =
+        random(
+            -500,
+            500
+        );
+
+
+
+        const x =
+        Math.cos(angle)
+        *
+        radius
+        +
+        spread;
+
+
+
+        const y =
+        random(
+            -600,
+            600
+        );
+
+
+
+        const z =
+        Math.sin(angle)
+        *
+        radius
+        +
+        spread;
+
+
+
+        positions.push(
+            x,
+            y,
+            z
+        );
+
+
+
+        const color =
+        dustColors[
+            randomInt(
+                0,
+                dustColors.length - 1
+            )
+        ];
+
+
+
+        colors.push(
+
+            color.r,
+
+            color.g,
+
+            color.b
+
+        );
+
+    }
+
+
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
+
+    );
+
+
+
+    geometry.setAttribute(
+
+        "color",
+
+        new THREE.Float32BufferAttribute(
+            colors,
+            3
+        )
+
+    );
+
+
+
+    const material =
+    new THREE.PointsMaterial({
+
+        size:1.8,
+
+        vertexColors:true,
+
+        transparent:true,
+
+        opacity:0.35,
+
+        depthWrite:false,
+
+        blending:
+        THREE.AdditiveBlending
+
+    });
+
+
+
+    const dust =
+    new THREE.Points(
+        geometry,
+        material
+    );
+
+
+
+    particlesGroup.add(
+        dust
+    );
+
+
+    particles.push(
+        dust
+    );
+
+}
+
+
+
+/* ===========================================================
+   PARTÍCULAS DE LUZ PEQUEÑAS
+   =========================================================== */
+
+function createLightParticles(){
+
+    const geometry =
+    new THREE.BufferGeometry();
+
+
+    const positions = [];
+
+
+
+    for(
+        let i = 0;
+        i < 700;
+        i++
+    ){
+
+        positions.push(
+
+            random(
+                -900,
+                900
+            ),
+
+            random(
+                -500,
+                500
+            ),
+
+            random(
+                -900,
+                900
+            )
+
+        );
+
+    }
+
+
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
+
+    );
+
+
+
+    const material =
+    new THREE.PointsMaterial({
+
+        color:0xffffff,
+
+        size:1.2,
+
+        transparent:true,
+
+        opacity:0.22,
+
+        depthWrite:false,
+
+        blending:
+        THREE.AdditiveBlending
+
+    });
+
+
+
+    const particlesLight =
+    new THREE.Points(
+        geometry,
+        material
+    );
+
+
+
+    effectsGroup.add(
+        particlesLight
+    );
+
+
+    particles.push(
+        particlesLight
+    );
+
+}
+
+
+
+/* ===========================================================
+   ANIMACIÓN DE PARTÍCULAS
+   =========================================================== */
+
+function updateParticles(){
+
+    particles.forEach(
+        (particle,index)=>{
+
+            particle.rotation.y +=
+            0.00015 +
+            index * 0.00002;
+
+
+            particle.rotation.x +=
+            0.00005;
+
+
+        }
+    );
+
+}
+
+
+
+/* ===========================================================
+   INICIAR PARTÍCULAS
+   =========================================================== */
+
+createCosmicDust();
+
+createLightParticles();
+
+
+console.log(
+    "✨ Polvo cósmico generado."
+);
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 5
+   PLANETAS · LUNA · CUERPOS CELESTES
+   =========================================================== */
+
+
+/* ===========================================================
+   CREAR PLANETA
+   =========================================================== */
+
+function createPlanet(options){
+
+
+    const geometry =
+    new THREE.SphereGeometry(
+
+        options.size,
+
+        64,
+
+        64
+
+    );
+
+
+
+    const material =
+new THREE.MeshStandardMaterial({
+
+    color: options.color,
+
+    emissive: options.color,
+
+    emissiveIntensity: 0.5,
+
+    roughness:0.35,
+
+    metalness:0.15
+
+});
+
+
+
+    const planet =
+    new THREE.Mesh(
+
+        geometry,
+
+        material
+
+    );
+
+
+
+    planet.position.copy(
+        options.position
+    );
+    /* ===========================================================
+   HALO LUMINOSO DEL PLANETA
+   =========================================================== */
+
+
+const glowGeometry =
+new THREE.SphereGeometry(
+
+    options.size * 1.35,
+
+    64,
+
+    64
+
+);
+
+
+
+const glowMaterial =
+new THREE.MeshBasicMaterial({
+
+    color:options.color,
+
+    transparent:true,
+
+    opacity:0.12,
+
+    side:
+    THREE.BackSide,
+
+    blending:
+    THREE.AdditiveBlending
+
+});
+
+
+
+const glow =
+new THREE.Mesh(
+
+    glowGeometry,
+
+    glowMaterial
+
+);
+
+
+
+planet.add(
+    glow
+);
+
+
+    planet.rotationSpeed =
+    options.rotationSpeed ||
+    0.002;
+
+
+
+    planet.name =
+    options.name;
+
+
+
+    planetsGroup.add(
+        planet
+    );
+
+
+    planets.push(
+        planet
+    );
+
+
+
+    return planet;
+
+}
+
+
 
 
 /* ===========================================================
@@ -2897,6 +2495,410 @@ createComets();
 console.log(
     "☄️ Cometas y estrellas fugaces creados."
 );
+
+/* ===========================================================
+   CONFIGURACIÓN
+   =========================================================== */
+
+const SETTINGS={
+
+    stars:18000,
+
+    interactiveStars:120,
+
+    nebulas:8,
+
+    planets:7,
+
+    comets:5,
+
+    particles:3500,
+
+    galaxyRadius:1300
+
+};
+
+console.log("🌌 Universo inicializado");
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 1B (CORREGIDO)
+   Luces · Utilidades · Eventos · Preparación del motor
+   =========================================================== */
+
+
+
+
+
+/* ===========================================================
+   VARIABLES DEL MOTOR
+   =========================================================== */
+
+let elapsedTime = 0;
+
+let universeRotation = 0;
+
+let introFinished = false;
+
+let allowInteraction = false;
+
+
+/* ===========================================================
+   FUNCIONES AUXILIARES
+   =========================================================== */
+
+function random(min,max){
+
+    return Math.random() * (max-min) + min;
+
+}
+
+
+function randomInt(min,max){
+
+    return Math.floor(
+        random(min,max+1)
+    );
+
+}
+
+
+function lerp(start,end,amount){
+
+    return start + (end-start)*amount;
+
+}
+
+
+function clamp(value,min,max){
+
+    return Math.min(
+        Math.max(value,min),
+        max
+    );
+
+}
+
+
+function degrees(value){
+
+    return value * Math.PI / 180;
+
+}
+
+
+/* ===========================================================
+   MOVIMIENTO DE CÁMARA
+   =========================================================== */
+
+function updateCamera(){
+
+    cursor.x = lerp(
+        cursor.x,
+        cursor.targetX,
+        0.03
+    );
+
+
+    cursor.y = lerp(
+        cursor.y,
+        cursor.targetY,
+        0.03
+    );
+
+
+    camera.position.x +=
+        (cursor.x * 12 - camera.position.x)
+        * 0.01;
+
+
+    camera.position.y +=
+        (cursor.y * 8 + 8 - camera.position.y)
+        * 0.01;
+
+
+}
+
+
+/* ===========================================================
+   EVENTOS DEL MOUSE
+   =========================================================== */
+
+window.addEventListener(
+    "pointermove",
+    (event)=>{
+
+        cursor.targetX =
+        (event.clientX / window.innerWidth)
+        * 2 - 1;
+
+
+        cursor.targetY =
+        -(event.clientY / window.innerHeight)
+        * 2 + 1;
+
+
+        mouse.x = cursor.targetX;
+
+        mouse.y = cursor.targetY;
+
+    }
+);
+
+
+
+/* ===========================================================
+   REDIMENSIONAR PANTALLA
+   =========================================================== */
+
+window.addEventListener(
+    "resize",
+    ()=>{
+
+        camera.aspect =
+        window.innerWidth /
+        window.innerHeight;
+
+
+        camera.updateProjectionMatrix();
+
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+
+        renderer.setPixelRatio(
+            Math.min(
+                window.devicePixelRatio,
+                2
+            )
+        );
+
+    }
+);
+
+
+/* ===========================================================
+   CARGA INICIAL
+   =========================================================== */
+
+function finishLoading(){
+
+    loader.classList.add(
+        "ocultar"
+    );
+
+
+    setTimeout(()=>{
+
+        overlay.classList.add(
+            "mostrar"
+        );
+
+
+        introFinished = true;
+
+        allowInteraction = true;
+
+
+    },1500);
+
+}
+
+
+/* ===========================================================
+   FUNCIÓN INIT
+   =========================================================== */
+
+function init(){
+
+    console.log(
+        "🌌 Iniciando universo..."
+    );
+
+
+    createStars();
+
+    createNebulas();
+
+    createPlanets();
+
+    createComets();
+
+
+    composer.render(
+    );
+
+}
+
+
+/* ===========================================================
+   PREPARACIÓN
+   =========================================================== */
+
+init();
+
+
+console.log(
+    "💡 Módulo 1B corregido correctamente."
+);
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 1C
+   Animación · Loop principal · Táctil · Inicio
+   =========================================================== */
+
+
+/* ===========================================================
+   EVENTOS TÁCTILES
+   =========================================================== */
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+
+window.addEventListener(
+    "touchstart",
+    (event)=>{
+
+        touchStartX =
+        event.touches[0].clientX;
+
+
+        touchStartY =
+        event.touches[0].clientY;
+
+    },
+    {passive:true}
+);
+
+
+
+window.addEventListener(
+    "touchmove",
+    (event)=>{
+
+        const touch =
+        event.touches[0];
+
+
+        const deltaX =
+        touch.clientX - touchStartX;
+
+
+        const deltaY =
+        touch.clientY - touchStartY;
+
+
+        cursor.targetX +=
+        deltaX * 0.0005;
+
+
+        cursor.targetY -=
+        deltaY * 0.0005;
+
+
+        touchStartX =
+        touch.clientX;
+
+
+        touchStartY =
+        touch.clientY;
+
+    },
+    {passive:true}
+);
+
+
+
+/* ===========================================================
+   LOOP DE ANIMACIÓN PRINCIPAL
+   =========================================================== */
+
+function animate(){
+
+    requestAnimationFrame(
+        animate
+    );
+
+
+    elapsedTime =
+    clock.getElapsedTime();
+
+
+
+    /*
+       Movimiento global suave.
+       Más adelante aquí conectaremos:
+       - estrellas
+       - nebulosas
+       - planetas
+       - partículas
+    */
+
+    universeRotation += 0.00008;
+
+
+    universe.rotation.y =
+    universeRotation;
+
+
+
+    updateCamera();
+
+
+    controls.update();
+
+
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+}
+
+
+
+/* ===========================================================
+   INTRODUCCIÓN
+   =========================================================== */
+
+function startUniverse(){
+
+    animate();
+
+
+    setTimeout(()=>{
+
+        finishLoading();
+
+    },2200);
+
+}
+
+
+
+/* ===========================================================
+   INICIO DEFINITIVO
+   =========================================================== */
+
+startUniverse();
+
+
+
+console.log(
+    "🎬 Motor de animación iniciado."
+);
+
+console.log(
+    "🌌 Universo preparado para recibir estrellas."
+);
+
+
+
+
 /* ===========================================================
    UNIVERSO PARA DANI ❤️
    MÓDULO 7
