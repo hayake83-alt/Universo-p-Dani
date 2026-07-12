@@ -1670,11 +1670,11 @@ new THREE.MeshStandardMaterial({
 
     emissive: options.color,
 
-    emissiveIntensity: 1.8,
+    emissiveIntensity: 0.5,
 
-    roughness:0.5,
+    roughness:0.35,
 
-    metalness:0.75
+    metalness:0.15
 
 });
 
