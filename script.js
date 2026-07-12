@@ -1040,3 +1040,694 @@ createNebulas();
 console.log(
     "☁️ Nebulosas creadas."
 );
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 4
+   POLVO CÓSMICO · PARTÍCULAS AMBIENTALES
+   =========================================================== */
+
+
+/* ===========================================================
+   CREAR POLVO ESTELAR
+   =========================================================== */
+
+function createCosmicDust(){
+
+    const geometry =
+    new THREE.BufferGeometry();
+
+
+    const positions = [];
+
+    const colors = [];
+
+
+    const dustColors = [
+
+        new THREE.Color(0x8db8ff),
+
+        new THREE.Color(0xcbb7ff),
+
+        new THREE.Color(0xff9fb5),
+
+        new THREE.Color(0xffffff)
+
+    ];
+
+
+
+    for(
+        let i = 0;
+        i < SETTINGS.particles;
+        i++
+    ){
+
+        const radius =
+        random(
+            200,
+            1400
+        );
+
+
+        const angle =
+        Math.random()
+        *
+        Math.PI
+        *
+        2;
+
+
+
+        const spread =
+        random(
+            -500,
+            500
+        );
+
+
+
+        const x =
+        Math.cos(angle)
+        *
+        radius
+        +
+        spread;
+
+
+
+        const y =
+        random(
+            -600,
+            600
+        );
+
+
+
+        const z =
+        Math.sin(angle)
+        *
+        radius
+        +
+        spread;
+
+
+
+        positions.push(
+            x,
+            y,
+            z
+        );
+
+
+
+        const color =
+        dustColors[
+            randomInt(
+                0,
+                dustColors.length - 1
+            )
+        ];
+
+
+
+        colors.push(
+
+            color.r,
+
+            color.g,
+
+            color.b
+
+        );
+
+    }
+
+
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
+
+    );
+
+
+
+    geometry.setAttribute(
+
+        "color",
+
+        new THREE.Float32BufferAttribute(
+            colors,
+            3
+        )
+
+    );
+
+
+
+    const material =
+    new THREE.PointsMaterial({
+
+        size:1.8,
+
+        vertexColors:true,
+
+        transparent:true,
+
+        opacity:0.35,
+
+        depthWrite:false,
+
+        blending:
+        THREE.AdditiveBlending
+
+    });
+
+
+
+    const dust =
+    new THREE.Points(
+        geometry,
+        material
+    );
+
+
+
+    particlesGroup.add(
+        dust
+    );
+
+
+    particles.push(
+        dust
+    );
+
+}
+
+
+
+/* ===========================================================
+   PARTÍCULAS DE LUZ PEQUEÑAS
+   =========================================================== */
+
+function createLightParticles(){
+
+    const geometry =
+    new THREE.BufferGeometry();
+
+
+    const positions = [];
+
+
+
+    for(
+        let i = 0;
+        i < 700;
+        i++
+    ){
+
+        positions.push(
+
+            random(
+                -900,
+                900
+            ),
+
+            random(
+                -500,
+                500
+            ),
+
+            random(
+                -900,
+                900
+            )
+
+        );
+
+    }
+
+
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
+
+    );
+
+
+
+    const material =
+    new THREE.PointsMaterial({
+
+        color:0xffffff,
+
+        size:1.2,
+
+        transparent:true,
+
+        opacity:0.22,
+
+        depthWrite:false,
+
+        blending:
+        THREE.AdditiveBlending
+
+    });
+
+
+
+    const particlesLight =
+    new THREE.Points(
+        geometry,
+        material
+    );
+
+
+
+    effectsGroup.add(
+        particlesLight
+    );
+
+
+    particles.push(
+        particlesLight
+    );
+
+}
+
+
+
+/* ===========================================================
+   ANIMACIÓN DE PARTÍCULAS
+   =========================================================== */
+
+function updateParticles(){
+
+    particles.forEach(
+        (particle,index)=>{
+
+            particle.rotation.y +=
+            0.00015 +
+            index * 0.00002;
+
+
+            particle.rotation.x +=
+            0.00005;
+
+
+        }
+    );
+
+}
+
+
+
+/* ===========================================================
+   INICIAR PARTÍCULAS
+   =========================================================== */
+
+createCosmicDust();
+
+createLightParticles();
+
+
+console.log(
+    "✨ Polvo cósmico generado."
+);
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 5
+   PLANETAS · LUNA · CUERPOS CELESTES
+   =========================================================== */
+
+
+/* ===========================================================
+   CREAR PLANETA
+   =========================================================== */
+
+function createPlanet(options){
+
+
+    const geometry =
+    new THREE.SphereGeometry(
+
+        options.size,
+
+        64,
+
+        64
+
+    );
+
+
+
+    const material =
+    new THREE.MeshStandardMaterial({
+
+        color: options.color,
+
+        roughness:0.75,
+
+        metalness:0.1
+
+    });
+
+
+
+    const planet =
+    new THREE.Mesh(
+
+        geometry,
+
+        material
+
+    );
+
+
+
+    planet.position.copy(
+        options.position
+    );
+
+
+    planet.rotationSpeed =
+    options.rotationSpeed ||
+    0.002;
+
+
+
+    planet.name =
+    options.name;
+
+
+
+    planetsGroup.add(
+        planet
+    );
+
+
+    planets.push(
+        planet
+    );
+
+
+
+    return planet;
+
+}
+
+
+
+/* ===========================================================
+   PLANETAS PRINCIPALES
+   =========================================================== */
+
+const planetOne =
+createPlanet({
+
+    name:"Planeta azul",
+
+    size:18,
+
+    color:0x3868ff,
+
+    position:new THREE.Vector3(
+        -230,
+        40,
+        -450
+    ),
+
+    rotationSpeed:0.0015
+
+});
+
+
+
+const planetTwo =
+createPlanet({
+
+    name:"Planeta rojo",
+
+    size:12,
+
+    color:0xff405f,
+
+    position:new THREE.Vector3(
+        250,
+        -40,
+        -600
+    ),
+
+    rotationSpeed:0.0025
+
+});
+
+
+
+const planetThree =
+createPlanet({
+
+    name:"Planeta violeta",
+
+    size:25,
+
+    color:0x855cff,
+
+    position:new THREE.Vector3(
+        100,
+        180,
+        -900
+    ),
+
+    rotationSpeed:0.001
+
+});
+
+
+
+const planetFour =
+createPlanet({
+
+    name:"Planeta oscuro",
+
+    size:9,
+
+    color:0x29254a,
+
+    position:new THREE.Vector3(
+        -500,
+        -130,
+        -700
+    ),
+
+    rotationSpeed:0.003
+
+});
+
+
+
+/* ===========================================================
+   ANILLO PLANETARIO
+   =========================================================== */
+
+function addRing(planet){
+
+
+    const geometry =
+    new THREE.RingGeometry(
+
+        planet.geometry.parameters.radius * 1.5,
+
+        planet.geometry.parameters.radius * 2.2,
+
+        96
+
+    );
+
+
+
+    const material =
+    new THREE.MeshBasicMaterial({
+
+        color:0xd7c8ff,
+
+        side:THREE.DoubleSide,
+
+        transparent:true,
+
+        opacity:0.55
+
+    });
+
+
+
+    const ring =
+    new THREE.Mesh(
+
+        geometry,
+
+        material
+
+    );
+
+
+
+    ring.rotation.x =
+    Math.PI / 2.5;
+
+
+
+    planet.add(
+        ring
+    );
+
+
+}
+
+
+addRing(
+    planetThree
+);
+
+
+
+/* ===========================================================
+   LUNA
+   =========================================================== */
+
+function createMoon(parent){
+
+
+    const moonGroup =
+    new THREE.Group();
+
+
+
+    const geometry =
+    new THREE.SphereGeometry(
+
+        4,
+
+        48,
+
+        48
+
+    );
+
+
+
+    const material =
+    new THREE.MeshStandardMaterial({
+
+        color:0xcfd7ff,
+
+        roughness:1
+
+    });
+
+
+
+    const moon =
+    new THREE.Mesh(
+
+        geometry,
+
+        material
+
+    );
+
+
+
+    moon.position.x =
+    32;
+
+
+
+    moonGroup.add(
+        moon
+    );
+
+
+    parent.add(
+        moonGroup
+    );
+
+
+    moonGroup.orbitSpeed =
+    0.004;
+
+
+    moonGroup.moon =
+    moon;
+
+
+
+    planets.push(
+        moonGroup
+    );
+
+}
+
+
+createMoon(
+    planetOne
+);
+
+
+
+/* ===========================================================
+   ACTUALIZACIÓN DE PLANETAS
+   =========================================================== */
+
+function updatePlanets(){
+
+    planets.forEach(
+        (planet)=>{
+
+
+            if(
+                planet.rotationSpeed
+            ){
+
+                planet.rotation.y +=
+                planet.rotationSpeed;
+
+            }
+
+
+            if(
+                planet.orbitSpeed
+            ){
+
+                planet.rotation.y +=
+                planet.orbitSpeed;
+
+            }
+
+
+        }
+    );
+
+}
+
+
+
+/* ===========================================================
+   INICIO
+   =========================================================== */
+
+console.log(
+    "🪐 Planetas y luna creados."
+);
+
