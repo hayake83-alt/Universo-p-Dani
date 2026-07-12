@@ -229,6 +229,8 @@ const particles=[];
 
 const comets=[];
 
+const shootingStars=[];
+
 /* ===========================================================
    CONFIGURACIÓN
    =========================================================== */
@@ -1729,5 +1731,362 @@ function updatePlanets(){
 
 console.log(
     "🪐 Planetas y luna creados."
+);
+/* ===========================================================
+   UNIVERSO PARA DANI ❤️
+   MÓDULO 6
+   COMETAS · ESTRELLAS FUGACES · EFECTOS
+   =========================================================== */
+
+
+/* ===========================================================
+   CREAR COMETA
+   =========================================================== */
+
+function createComet(){
+
+    const cometGroup =
+    new THREE.Group();
+
+
+    const headGeometry =
+    new THREE.SphereGeometry(
+        2.5,
+        32,
+        32
+    );
+
+
+    const headMaterial =
+    new THREE.MeshBasicMaterial({
+
+        color:0xffffff
+
+    });
+
+
+    const head =
+    new THREE.Mesh(
+        headGeometry,
+        headMaterial
+    );
+
+
+    cometGroup.add(head);
+
+
+
+    const tailGeometry =
+    new THREE.BufferGeometry();
+
+
+    const tailPositions = [];
+
+
+    for(
+        let i = 0;
+        i < 80;
+        i++
+    ){
+
+        tailPositions.push(
+
+            -i * 1.8,
+
+            random(
+                -0.8,
+                0.8
+            ),
+
+            random(
+                -0.8,
+                0.8
+            )
+
+        );
+
+    }
+
+
+
+    tailGeometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            tailPositions,
+            3
+        )
+
+    );
+
+
+
+    const tailMaterial =
+    new THREE.PointsMaterial({
+
+        color:0x9ecbff,
+
+        size:1.5,
+
+        transparent:true,
+
+        opacity:0.65,
+
+        blending:
+        THREE.AdditiveBlending,
+
+        depthWrite:false
+
+    });
+
+
+
+    const tail =
+    new THREE.Points(
+        tailGeometry,
+        tailMaterial
+    );
+
+
+    cometGroup.add(tail);
+
+
+
+    cometGroup.position.set(
+
+        random(-900,900),
+
+        random(-400,400),
+
+        random(-1200,-600)
+
+    );
+
+
+
+    cometGroup.velocity =
+    new THREE.Vector3(
+
+        random(0.4,1),
+
+        random(-0.15,0.15),
+
+        random(0.1,0.4)
+
+    );
+
+
+
+    cometsGroup.add(
+        cometGroup
+    );
+
+
+    comets.push(
+        cometGroup
+    );
+
+}
+
+
+
+/* ===========================================================
+   CREAR VARIOS COMETAS
+   =========================================================== */
+
+function createComets(){
+
+    for(
+        let i = 0;
+        i < SETTINGS.comets;
+        i++
+    ){
+
+        createComet();
+
+    }
+
+}
+
+
+
+/* ===========================================================
+   ESTRELLAS FUGACES
+   =========================================================== */
+
+function createShootingStar(){
+
+
+    const geometry =
+    new THREE.BufferGeometry();
+
+
+    const positions = [
+
+        0,0,0,
+
+        -60,
+        15,
+        0
+
+    ];
+
+
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
+
+    );
+
+
+
+    const material =
+    new THREE.LineBasicMaterial({
+
+        color:0xffffff,
+
+        transparent:true,
+
+        opacity:0.8
+
+    });
+
+
+
+    const line =
+    new THREE.Line(
+
+        geometry,
+
+        material
+
+    );
+
+
+
+    line.position.set(
+
+        random(-600,600),
+
+        random(-300,300),
+
+        random(-800,-300)
+
+    );
+
+
+    line.speed =
+    random(
+        0.8,
+        2
+    );
+
+
+    effectsGroup.add(
+        line
+    );
+
+
+    shootingStars.push(
+        line
+    );
+
+}
+
+
+
+/* ===========================================================
+   ACTUALIZAR COMETAS
+   =========================================================== */
+
+function updateComets(){
+
+    comets.forEach(
+        (comet)=>{
+
+
+            comet.position.add(
+                comet.velocity
+            );
+
+
+            if(
+                comet.position.x > 1000
+            ){
+
+                comet.position.x =
+                -1000;
+
+            }
+
+        }
+    );
+
+}
+
+
+
+/* ===========================================================
+   ACTUALIZAR ESTRELLAS FUGACES
+   =========================================================== */
+
+function updateShootingStars(){
+
+    shootingStars.forEach(
+        (star)=>{
+
+            star.position.x +=
+            star.speed;
+
+
+            if(
+                star.position.x > 800
+            ){
+
+                star.position.x =
+                -800;
+
+                star.position.y =
+                random(
+                    -300,
+                    300
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+
+/* ===========================================================
+   INICIO
+   =========================================================== */
+
+for(
+    let i = 0;
+    i < 3;
+    i++
+){
+
+    createShootingStar();
+
+}
+
+
+createComets();
+
+
+console.log(
+    "☄️ Cometas y estrellas fugaces creados."
 );
 
