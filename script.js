@@ -1,3 +1,10 @@
+console.log("script.js sí está cargando");
+
+const loaderPrueba = document.getElementById("loader");
+
+if (loaderPrueba) {
+    loaderPrueba.style.display = "none";
+}
 /*==========================================================
                     UNIVERSO PARA DANI ❤️
                 Proyecto creado con Three.js
