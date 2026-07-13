@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   ETAPA 3: NEBULOSAS Y PROFUNDIDAD ESPACIAL
+   ETAPA 4: PLANETA, ATMÓSFERA, LUNA Y ÓRBITA
    ========================================================= */
 
 
@@ -41,6 +41,21 @@ let closeStars;
 let nebulaGroup;
 let glowGroup;
 
+let planetSystem;
+let planet;
+let planetClouds;
+let atmosphere;
+let outerGlow;
+
+let moonPivot;
+let moon;
+let moonGlow;
+let moonOrbitLine;
+
+let keyLight;
+let fillLight;
+let ambientLight;
+
 let animationFrameId = null;
 
 let isUniverseReady = false;
@@ -76,14 +91,14 @@ const prefersReducedMotion = window.matchMedia(
 
 
 /* ---------------------------------------------------------
-   CONFIGURACIÓN DE RENDIMIENTO
+   CONFIGURACIÓN
 --------------------------------------------------------- */
 
 const STAR_CONFIG = {
-    mainCount: isSmallScreen ? 1400 : 2600,
-    distantCount: isSmallScreen ? 850 : 1600,
-    coloredCount: isSmallScreen ? 180 : 360,
-    closeCount: isSmallScreen ? 120 : 240,
+    mainCount: isSmallScreen ? 1350 : 2500,
+    distantCount: isSmallScreen ? 800 : 1500,
+    coloredCount: isSmallScreen ? 170 : 340,
+    closeCount: isSmallScreen ? 110 : 220,
 
     mainSpread: 115,
     distantSpread: 175,
@@ -93,10 +108,20 @@ const STAR_CONFIG = {
 
 const NEBULA_CONFIG = {
     count: isVerySmallScreen
-        ? 5
+        ? 4
         : isSmallScreen
-            ? 7
-            : 11
+            ? 6
+            : 9
+};
+
+const PLANET_CONFIG = {
+    radius: isSmallScreen ? 3.3 : 4.2,
+    position: isSmallScreen
+        ? new THREE.Vector3(4.7, -1.3, -16)
+        : new THREE.Vector3(7.5, -1.2, -18),
+
+    moonDistance: isSmallScreen ? 6.2 : 7.8,
+    moonRadius: isSmallScreen ? 0.62 : 0.78
 };
 
 
@@ -111,7 +136,7 @@ document.addEventListener(
 
 
 /**
- * Inicia la escena completa.
+ * Inicializa toda la experiencia.
  */
 async function initializeUniverse() {
     try {
@@ -130,6 +155,7 @@ async function initializeUniverse() {
         createScene();
         createCamera();
         createRenderer();
+        createLights();
 
         updateLoaderText("Creando estrellas…");
 
@@ -140,6 +166,10 @@ async function initializeUniverse() {
         createNebulas();
         createAmbientGlows();
 
+        updateLoaderText("Creando un nuevo mundo…");
+
+        createPlanetSystem();
+
         createEventListeners();
         handleResize();
 
@@ -147,7 +177,7 @@ async function initializeUniverse() {
 
         startAnimation();
 
-        await wait(750);
+        await wait(900);
 
         revealUniverse();
 
@@ -161,9 +191,6 @@ async function initializeUniverse() {
    COMPROBACIONES
 --------------------------------------------------------- */
 
-/**
- * Comprueba que todos los elementos necesarios existan.
- */
 function validateRequiredElements() {
     const requiredElements = [
         canvas,
@@ -182,16 +209,12 @@ function validateRequiredElements() {
 
     if (missingElement) {
         throw new Error(
-            "Falta uno o más elementos necesarios en index.html. " +
-            "No cambies los identificadores id del proyecto."
+            "Falta uno o más elementos necesarios en index.html."
         );
     }
 }
 
 
-/**
- * Comprueba si el navegador puede utilizar WebGL.
- */
 function supportsWebGL() {
     try {
         const testCanvas = document.createElement("canvas");
@@ -218,9 +241,6 @@ function supportsWebGL() {
    ESCENA, CÁMARA Y RENDERIZADOR
 --------------------------------------------------------- */
 
-/**
- * Crea el espacio principal.
- */
 function createScene() {
     scene = new THREE.Scene();
 
@@ -230,14 +250,11 @@ function createScene() {
 
     scene.fog = new THREE.FogExp2(
         0x02030a,
-        0.0075
+        0.0065
     );
 }
 
 
-/**
- * Crea la cámara.
- */
 function createCamera() {
     camera = new THREE.PerspectiveCamera(
         61,
@@ -254,9 +271,6 @@ function createCamera() {
 }
 
 
-/**
- * Crea el renderizador de Three.js.
- */
 function createRenderer() {
     renderer = new THREE.WebGLRenderer({
         canvas,
@@ -269,7 +283,7 @@ function createRenderer() {
     renderer.setPixelRatio(
         Math.min(
             window.devicePixelRatio || 1,
-            isSmallScreen ? 1.7 : 2
+            isSmallScreen ? 1.6 : 2
         )
     );
 
@@ -282,6 +296,12 @@ function createRenderer() {
     renderer.outputColorSpace =
         THREE.SRGBColorSpace;
 
+    renderer.toneMapping =
+        THREE.ACESFilmicToneMapping;
+
+    renderer.toneMappingExposure =
+        1.08;
+
     renderer.setClearColor(
         0x02030a,
         1
@@ -290,12 +310,54 @@ function createRenderer() {
 
 
 /* ---------------------------------------------------------
+   LUCES
+--------------------------------------------------------- */
+
+function createLights() {
+    ambientLight =
+        new THREE.AmbientLight(
+            0x7180b8,
+            0.58
+        );
+
+    keyLight =
+        new THREE.DirectionalLight(
+            0xbfd4ff,
+            2.7
+        );
+
+    keyLight.position.set(
+        -10,
+        8,
+        14
+    );
+
+    fillLight =
+        new THREE.PointLight(
+            0xea79cc,
+            32,
+            90,
+            2
+        );
+
+    fillLight.position.set(
+        18,
+        -10,
+        5
+    );
+
+    scene.add(
+        ambientLight,
+        keyLight,
+        fillLight
+    );
+}
+
+
+/* ---------------------------------------------------------
    TEXTURAS GENERADAS CON CANVAS
 --------------------------------------------------------- */
 
-/**
- * Crea una textura circular para las estrellas.
- */
 function createStarTexture() {
     const textureCanvas =
         document.createElement("canvas");
@@ -308,7 +370,7 @@ function createStarTexture() {
 
     if (!context) {
         throw new Error(
-            "No fue posible crear la textura de las estrellas."
+            "No se pudo crear la textura de las estrellas."
         );
     }
 
@@ -333,13 +395,13 @@ function createStarTexture() {
     );
 
     gradient.addColorStop(
-        0.22,
-        "rgba(190,215,255,0.75)"
+        0.24,
+        "rgba(180,210,255,0.72)"
     );
 
     gradient.addColorStop(
-        0.48,
-        "rgba(120,160,255,0.22)"
+        0.5,
+        "rgba(110,150,255,0.2)"
     );
 
     gradient.addColorStop(
@@ -364,15 +426,10 @@ function createStarTexture() {
     texture.colorSpace =
         THREE.SRGBColorSpace;
 
-    texture.needsUpdate = true;
-
     return texture;
 }
 
 
-/**
- * Crea una textura suave para una nebulosa.
- */
 function createNebulaTexture({
     innerColor,
     middleColor,
@@ -389,18 +446,11 @@ function createNebulaTexture({
 
     if (!context) {
         throw new Error(
-            "No fue posible crear la textura de la nebulosa."
+            "No se pudo crear la textura de la nebulosa."
         );
     }
 
-    context.clearRect(
-        0,
-        0,
-        512,
-        512
-    );
-
-    const mainGradient =
+    const gradient =
         context.createRadialGradient(
             256,
             256,
@@ -410,28 +460,27 @@ function createNebulaTexture({
             255
         );
 
-    mainGradient.addColorStop(
+    gradient.addColorStop(
         0,
         innerColor
     );
 
-    mainGradient.addColorStop(
-        0.24,
+    gradient.addColorStop(
+        0.25,
         middleColor
     );
 
-    mainGradient.addColorStop(
-        0.64,
+    gradient.addColorStop(
+        0.65,
         outerColor
     );
 
-    mainGradient.addColorStop(
+    gradient.addColorStop(
         1,
         "rgba(0,0,0,0)"
     );
 
-    context.fillStyle =
-        mainGradient;
+    context.fillStyle = gradient;
 
     context.fillRect(
         0,
@@ -440,55 +489,30 @@ function createNebulaTexture({
         512
     );
 
-    addNebulaClouds(
-        context,
-        512,
-        512
-    );
-
-    const texture =
-        new THREE.CanvasTexture(
-            textureCanvas
-        );
-
-    texture.colorSpace =
-        THREE.SRGBColorSpace;
-
-    texture.needsUpdate = true;
-
-    return texture;
-}
-
-
-/**
- * Agrega manchas suaves dentro de la nebulosa.
- */
-function addNebulaClouds(
-    context,
-    width,
-    height
-) {
     for (
         let index = 0;
         index < 18;
         index += 1
     ) {
-        const x = randomBetween(
-            width * 0.18,
-            width * 0.82
-        );
+        const x =
+            randomBetween(
+                90,
+                422
+            );
 
-        const y = randomBetween(
-            height * 0.18,
-            height * 0.82
-        );
+        const y =
+            randomBetween(
+                90,
+                422
+            );
 
-        const radius = randomBetween(
-            32,
-            120
-        );
+        const radius =
+            randomBetween(
+                35,
+                120
+            );
 
-        const cloudGradient =
+        const cloud =
             context.createRadialGradient(
                 x,
                 y,
@@ -498,28 +522,28 @@ function addNebulaClouds(
                 radius
             );
 
-        const opacity = randomBetween(
-            0.025,
-            0.1
-        );
+        const opacity =
+            randomBetween(
+                0.025,
+                0.09
+            );
 
-        cloudGradient.addColorStop(
+        cloud.addColorStop(
             0,
             `rgba(255,255,255,${opacity})`
         );
 
-        cloudGradient.addColorStop(
-            0.45,
-            `rgba(170,190,255,${opacity * 0.38})`
+        cloud.addColorStop(
+            0.5,
+            `rgba(170,190,255,${opacity * 0.35})`
         );
 
-        cloudGradient.addColorStop(
+        cloud.addColorStop(
             1,
             "rgba(0,0,0,0)"
         );
 
-        context.fillStyle =
-            cloudGradient;
+        context.fillStyle = cloud;
 
         context.beginPath();
 
@@ -533,12 +557,19 @@ function addNebulaClouds(
 
         context.fill();
     }
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    return texture;
 }
 
 
-/**
- * Crea una textura ambiental circular.
- */
 function createGlowTexture() {
     const textureCanvas =
         document.createElement("canvas");
@@ -551,7 +582,7 @@ function createGlowTexture() {
 
     if (!context) {
         throw new Error(
-            "No fue posible crear el brillo ambiental."
+            "No se pudo crear el brillo."
         );
     }
 
@@ -567,16 +598,16 @@ function createGlowTexture() {
 
     gradient.addColorStop(
         0,
-        "rgba(255,255,255,0.85)"
+        "rgba(255,255,255,0.9)"
     );
 
     gradient.addColorStop(
-        0.12,
-        "rgba(180,205,255,0.48)"
+        0.14,
+        "rgba(180,205,255,0.5)"
     );
 
     gradient.addColorStop(
-        0.42,
+        0.45,
         "rgba(105,120,255,0.12)"
     );
 
@@ -585,8 +616,7 @@ function createGlowTexture() {
         "rgba(0,0,0,0)"
     );
 
-    context.fillStyle =
-        gradient;
+    context.fillStyle = gradient;
 
     context.fillRect(
         0,
@@ -607,13 +637,492 @@ function createGlowTexture() {
 }
 
 
-/* ---------------------------------------------------------
-   CAMPOS DE ESTRELLAS
---------------------------------------------------------- */
+/**
+ * Genera la textura del planeta.
+ */
+function createPlanetTexture() {
+    const textureCanvas =
+        document.createElement("canvas");
+
+    textureCanvas.width = 1024;
+    textureCanvas.height = 512;
+
+    const context =
+        textureCanvas.getContext("2d");
+
+    if (!context) {
+        throw new Error(
+            "No se pudo crear la textura del planeta."
+        );
+    }
+
+    const background =
+        context.createLinearGradient(
+            0,
+            0,
+            1024,
+            512
+        );
+
+    background.addColorStop(
+        0,
+        "#101b4d"
+    );
+
+    background.addColorStop(
+        0.3,
+        "#263c86"
+    );
+
+    background.addColorStop(
+        0.58,
+        "#422b73"
+    );
+
+    background.addColorStop(
+        0.82,
+        "#7a315f"
+    );
+
+    background.addColorStop(
+        1,
+        "#24154e"
+    );
+
+    context.fillStyle = background;
+
+    context.fillRect(
+        0,
+        0,
+        1024,
+        512
+    );
+
+    drawPlanetBands(context);
+    drawPlanetCloudDetails(context);
+    drawPlanetHighlights(context);
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    texture.wrapS =
+        THREE.RepeatWrapping;
+
+    texture.wrapT =
+        THREE.ClampToEdgeWrapping;
+
+    texture.anisotropy =
+        Math.min(
+            renderer.capabilities.getMaxAnisotropy(),
+            8
+        );
+
+    return texture;
+}
+
+
+function drawPlanetBands(context) {
+    const colors = [
+        "rgba(119,164,255,0.22)",
+        "rgba(158,109,215,0.16)",
+        "rgba(255,125,192,0.14)",
+        "rgba(64,92,180,0.2)",
+        "rgba(225,177,255,0.12)"
+    ];
+
+    for (
+        let index = 0;
+        index < 42;
+        index += 1
+    ) {
+        const y =
+            randomBetween(
+                10,
+                502
+            );
+
+        const height =
+            randomBetween(
+                8,
+                38
+            );
+
+        const wave =
+            randomBetween(
+                10,
+                45
+            );
+
+        context.beginPath();
+
+        context.moveTo(
+            0,
+            y
+        );
+
+        for (
+            let x = 0;
+            x <= 1024;
+            x += 32
+        ) {
+            context.lineTo(
+                x,
+                y +
+                Math.sin(
+                    x * 0.012 +
+                    index
+                ) *
+                wave
+            );
+        }
+
+        context.lineTo(
+            1024,
+            y + height
+        );
+
+        context.lineTo(
+            0,
+            y + height
+        );
+
+        context.closePath();
+
+        context.fillStyle =
+            colors[
+                index %
+                colors.length
+            ];
+
+        context.fill();
+    }
+}
+
+
+function drawPlanetCloudDetails(context) {
+    for (
+        let index = 0;
+        index < 105;
+        index += 1
+    ) {
+        const x =
+            randomBetween(
+                0,
+                1024
+            );
+
+        const y =
+            randomBetween(
+                0,
+                512
+            );
+
+        const width =
+            randomBetween(
+                35,
+                170
+            );
+
+        const height =
+            randomBetween(
+                6,
+                28
+            );
+
+        const opacity =
+            randomBetween(
+                0.025,
+                0.11
+            );
+
+        context.fillStyle =
+            `rgba(210,225,255,${opacity})`;
+
+        context.beginPath();
+
+        context.ellipse(
+            x,
+            y,
+            width,
+            height,
+            randomBetween(
+                -0.25,
+                0.25
+            ),
+            0,
+            Math.PI * 2
+        );
+
+        context.fill();
+    }
+}
+
+
+function drawPlanetHighlights(context) {
+    const glow =
+        context.createRadialGradient(
+            760,
+            170,
+            0,
+            760,
+            170,
+            280
+        );
+
+    glow.addColorStop(
+        0,
+        "rgba(255,190,232,0.24)"
+    );
+
+    glow.addColorStop(
+        0.5,
+        "rgba(125,148,255,0.08)"
+    );
+
+    glow.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    context.fillStyle = glow;
+
+    context.fillRect(
+        0,
+        0,
+        1024,
+        512
+    );
+}
+
 
 /**
- * Crea todas las capas de estrellas.
+ * Genera una textura secundaria para nubes.
  */
+function createPlanetCloudTexture() {
+    const textureCanvas =
+        document.createElement("canvas");
+
+    textureCanvas.width = 1024;
+    textureCanvas.height = 512;
+
+    const context =
+        textureCanvas.getContext("2d");
+
+    if (!context) {
+        throw new Error(
+            "No se pudo crear la textura de nubes."
+        );
+    }
+
+    context.clearRect(
+        0,
+        0,
+        1024,
+        512
+    );
+
+    for (
+        let index = 0;
+        index < 130;
+        index += 1
+    ) {
+        const x =
+            randomBetween(
+                0,
+                1024
+            );
+
+        const y =
+            randomBetween(
+                0,
+                512
+            );
+
+        const width =
+            randomBetween(
+                45,
+                180
+            );
+
+        const height =
+            randomBetween(
+                4,
+                20
+            );
+
+        const opacity =
+            randomBetween(
+                0.02,
+                0.11
+            );
+
+        context.fillStyle =
+            `rgba(225,235,255,${opacity})`;
+
+        context.beginPath();
+
+        context.ellipse(
+            x,
+            y,
+            width,
+            height,
+            randomBetween(
+                -0.3,
+                0.3
+            ),
+            0,
+            Math.PI * 2
+        );
+
+        context.fill();
+    }
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    texture.wrapS =
+        THREE.RepeatWrapping;
+
+    return texture;
+}
+
+
+/**
+ * Genera la textura de la luna.
+ */
+function createMoonTexture() {
+    const textureCanvas =
+        document.createElement("canvas");
+
+    textureCanvas.width = 512;
+    textureCanvas.height = 256;
+
+    const context =
+        textureCanvas.getContext("2d");
+
+    if (!context) {
+        throw new Error(
+            "No se pudo crear la textura de la luna."
+        );
+    }
+
+    const background =
+        context.createLinearGradient(
+            0,
+            0,
+            512,
+            256
+        );
+
+    background.addColorStop(
+        0,
+        "#6d7287"
+    );
+
+    background.addColorStop(
+        0.5,
+        "#bbc1d0"
+    );
+
+    background.addColorStop(
+        1,
+        "#555b72"
+    );
+
+    context.fillStyle = background;
+
+    context.fillRect(
+        0,
+        0,
+        512,
+        256
+    );
+
+    for (
+        let index = 0;
+        index < 90;
+        index += 1
+    ) {
+        const x =
+            randomBetween(
+                0,
+                512
+            );
+
+        const y =
+            randomBetween(
+                0,
+                256
+            );
+
+        const radius =
+            randomBetween(
+                3,
+                20
+            );
+
+        const opacity =
+            randomBetween(
+                0.04,
+                0.19
+            );
+
+        context.fillStyle =
+            `rgba(40,45,65,${opacity})`;
+
+        context.beginPath();
+
+        context.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI * 2
+        );
+
+        context.fill();
+
+        context.strokeStyle =
+            `rgba(235,240,255,${opacity * 0.55})`;
+
+        context.lineWidth =
+            randomBetween(
+                0.5,
+                2
+            );
+
+        context.stroke();
+    }
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    texture.wrapS =
+        THREE.RepeatWrapping;
+
+    return texture;
+}
+
+
+/* ---------------------------------------------------------
+   ESTRELLAS
+--------------------------------------------------------- */
+
 function createStarFields() {
     const starTexture =
         createStarTexture();
@@ -621,7 +1130,7 @@ function createStarFields() {
     mainStars = createStars({
         count: STAR_CONFIG.mainCount,
         spread: STAR_CONFIG.mainSpread,
-        size: isSmallScreen ? 0.5 : 0.42,
+        size: isSmallScreen ? 0.48 : 0.4,
         opacity: 0.88,
         colorMode: "white",
         texture: starTexture
@@ -630,7 +1139,7 @@ function createStarFields() {
     distantStars = createStars({
         count: STAR_CONFIG.distantCount,
         spread: STAR_CONFIG.distantSpread,
-        size: isSmallScreen ? 0.25 : 0.2,
+        size: isSmallScreen ? 0.24 : 0.19,
         opacity: 0.42,
         colorMode: "soft",
         texture: starTexture
@@ -639,8 +1148,8 @@ function createStarFields() {
     coloredStars = createStars({
         count: STAR_CONFIG.coloredCount,
         spread: STAR_CONFIG.coloredSpread,
-        size: isSmallScreen ? 0.7 : 0.58,
-        opacity: 0.74,
+        size: isSmallScreen ? 0.67 : 0.55,
+        opacity: 0.72,
         colorMode: "colored",
         texture: starTexture
     });
@@ -648,8 +1157,8 @@ function createStarFields() {
     closeStars = createStars({
         count: STAR_CONFIG.closeCount,
         spread: STAR_CONFIG.closeSpread,
-        size: isSmallScreen ? 0.9 : 0.72,
-        opacity: 0.72,
+        size: isSmallScreen ? 0.84 : 0.7,
+        opacity: 0.68,
         colorMode: "bright",
         texture: starTexture,
         minimumRadius: 20
@@ -660,16 +1169,15 @@ function createStarFields() {
     coloredStars.rotation.z = 0.03;
     closeStars.rotation.y = -0.08;
 
-    scene.add(mainStars);
-    scene.add(distantStars);
-    scene.add(coloredStars);
-    scene.add(closeStars);
+    scene.add(
+        mainStars,
+        distantStars,
+        coloredStars,
+        closeStars
+    );
 }
 
 
-/**
- * Genera una capa de partículas.
- */
 function createStars({
     count,
     spread,
@@ -692,11 +1200,6 @@ function createStars({
             count * 3
         );
 
-    const sizes =
-        new Float32Array(
-            count
-        );
-
     const color =
         new THREE.Color();
 
@@ -705,7 +1208,7 @@ function createStars({
         index < count;
         index += 1
     ) {
-        const positionIndex =
+        const offset =
             index * 3;
 
         const innerRadius =
@@ -731,17 +1234,17 @@ function createStars({
                 )
             );
 
-        positions[positionIndex] =
+        positions[offset] =
             radius *
             Math.sin(phi) *
             Math.cos(theta);
 
-        positions[positionIndex + 1] =
+        positions[offset + 1] =
             radius *
             Math.sin(phi) *
             Math.sin(theta);
 
-        positions[positionIndex + 2] =
+        positions[offset + 2] =
             radius *
             Math.cos(phi);
 
@@ -750,20 +1253,14 @@ function createStars({
             colorMode
         );
 
-        colors[positionIndex] =
+        colors[offset] =
             color.r;
 
-        colors[positionIndex + 1] =
+        colors[offset + 1] =
             color.g;
 
-        colors[positionIndex + 2] =
+        colors[offset + 2] =
             color.b;
-
-        sizes[index] =
-            randomBetween(
-                0.65,
-                1.35
-            );
     }
 
     geometry.setAttribute(
@@ -779,14 +1276,6 @@ function createStars({
         new THREE.BufferAttribute(
             colors,
             3
-        )
-    );
-
-    geometry.setAttribute(
-        "randomSize",
-        new THREE.BufferAttribute(
-            sizes,
-            1
         )
     );
 
@@ -814,16 +1303,10 @@ function createStars({
     points.userData.baseOpacity =
         opacity;
 
-    points.userData.baseSize =
-        size;
-
     return points;
 }
 
 
-/**
- * Asigna un color según la capa.
- */
 function setStarColor(
     color,
     mode
@@ -935,23 +1418,17 @@ function setStarColor(
    NEBULOSAS
 --------------------------------------------------------- */
 
-/**
- * Crea varias nebulosas suaves.
- */
 function createNebulas() {
     nebulaGroup =
         new THREE.Group();
 
-    nebulaGroup.name =
-        "NebulaGroup";
-
     const blueTexture =
         createNebulaTexture({
             innerColor:
-                "rgba(120,155,255,0.6)",
+                "rgba(120,155,255,0.58)",
 
             middleColor:
-                "rgba(52,79,194,0.27)",
+                "rgba(52,79,194,0.25)",
 
             outerColor:
                 "rgba(20,30,90,0.03)"
@@ -960,10 +1437,10 @@ function createNebulas() {
     const violetTexture =
         createNebulaTexture({
             innerColor:
-                "rgba(189,131,255,0.5)",
+                "rgba(189,131,255,0.48)",
 
             middleColor:
-                "rgba(103,47,167,0.23)",
+                "rgba(103,47,167,0.21)",
 
             outerColor:
                 "rgba(46,20,80,0.03)"
@@ -972,16 +1449,16 @@ function createNebulas() {
     const pinkTexture =
         createNebulaTexture({
             innerColor:
-                "rgba(255,137,204,0.44)",
+                "rgba(255,137,204,0.42)",
 
             middleColor:
-                "rgba(163,54,128,0.2)",
+                "rgba(163,54,128,0.18)",
 
             outerColor:
                 "rgba(72,20,58,0.025)"
         });
 
-    const textureOptions = [
+    const textures = [
         blueTexture,
         violetTexture,
         pinkTexture
@@ -992,23 +1469,26 @@ function createNebulas() {
         index < NEBULA_CONFIG.count;
         index += 1
     ) {
-        const texture =
-            textureOptions[
-                index %
-                textureOptions.length
-            ];
-
         const material =
             new THREE.SpriteMaterial({
-                map: texture,
+                map:
+                    textures[
+                        index %
+                        textures.length
+                    ],
+
                 transparent: true,
-                opacity: randomBetween(
-                    0.1,
-                    0.24
-                ),
+
+                opacity:
+                    randomBetween(
+                        0.09,
+                        0.21
+                    ),
+
                 depthWrite: false,
-                depthTest: true,
-                blending: THREE.AdditiveBlending
+
+                blending:
+                    THREE.AdditiveBlending
             });
 
         const sprite =
@@ -1018,7 +1498,7 @@ function createNebulas() {
 
         const distance =
             randomBetween(
-                42,
+                48,
                 105
             );
 
@@ -1028,19 +1508,14 @@ function createNebulas() {
                 Math.PI * 2
             );
 
-        const verticalAngle =
-            randomBetween(
-                -0.8,
-                0.8
-            );
-
         sprite.position.set(
             Math.cos(angle) *
                 distance,
 
-            Math.sin(verticalAngle) *
-                distance *
-                0.45,
+            randomBetween(
+                -30,
+                30
+            ),
 
             Math.sin(angle) *
                 distance
@@ -1048,31 +1523,25 @@ function createNebulas() {
 
         const baseScale =
             randomBetween(
-                24,
-                52
+                25,
+                50
             );
 
         sprite.scale.set(
             baseScale *
                 randomBetween(
                     1.1,
-                    1.65
+                    1.6
                 ),
 
             baseScale *
                 randomBetween(
                     0.72,
-                    1.15
+                    1.1
                 ),
 
             1
         );
-
-        sprite.material.rotation =
-            randomBetween(
-                0,
-                Math.PI * 2
-            );
 
         sprite.userData = {
             baseOpacity:
@@ -1084,7 +1553,7 @@ function createNebulas() {
             baseScaleY:
                 sprite.scale.y,
 
-            driftSpeed:
+            speed:
                 randomBetween(
                     0.03,
                     0.08
@@ -1094,12 +1563,6 @@ function createNebulas() {
                 randomBetween(
                     0,
                     Math.PI * 2
-                ),
-
-            rotationSpeed:
-                randomBetween(
-                    -0.006,
-                    0.006
                 )
         };
 
@@ -1107,9 +1570,6 @@ function createNebulas() {
             sprite
         );
     }
-
-    nebulaGroup.rotation.x =
-        0.06;
 
     scene.add(
         nebulaGroup
@@ -1121,15 +1581,9 @@ function createNebulas() {
    DESTELLOS AMBIENTALES
 --------------------------------------------------------- */
 
-/**
- * Agrega luces pequeñas en puntos concretos.
- */
 function createAmbientGlows() {
     glowGroup =
         new THREE.Group();
-
-    glowGroup.name =
-        "GlowGroup";
 
     const glowTexture =
         createGlowTexture();
@@ -1139,24 +1593,18 @@ function createAmbientGlows() {
             position: [-18, 12, -28],
             scale: 7,
             color: 0x89aaff,
-            opacity: 0.28
+            opacity: 0.25
         },
         {
             position: [24, -9, -42],
             scale: 10,
             color: 0xf09bd2,
-            opacity: 0.2
+            opacity: 0.18
         },
         {
             position: [8, 18, -58],
             scale: 8,
             color: 0xc4a0ff,
-            opacity: 0.18
-        },
-        {
-            position: [-27, -15, -54],
-            scale: 9,
-            color: 0x7898ff,
             opacity: 0.16
         }
     ];
@@ -1173,10 +1621,12 @@ function createAmbientGlows() {
                         glowInformation.color,
 
                     transparent: true,
+
                     opacity:
                         glowInformation.opacity,
 
                     depthWrite: false,
+
                     blending:
                         THREE.AdditiveBlending
                 });
@@ -1187,9 +1637,7 @@ function createAmbientGlows() {
                 );
 
             sprite.position.set(
-                glowInformation.position[0],
-                glowInformation.position[1],
-                glowInformation.position[2]
+                ...glowInformation.position
             );
 
             sprite.scale.setScalar(
@@ -1199,6 +1647,9 @@ function createAmbientGlows() {
             sprite.userData = {
                 baseOpacity:
                     glowInformation.opacity,
+
+                baseScale:
+                    glowInformation.scale,
 
                 phase:
                     index * 1.7,
@@ -1223,12 +1674,348 @@ function createAmbientGlows() {
 
 
 /* ---------------------------------------------------------
+   PLANETA PRINCIPAL
+--------------------------------------------------------- */
+
+function createPlanetSystem() {
+    planetSystem =
+        new THREE.Group();
+
+    planetSystem.name =
+        "PlanetSystem";
+
+    planetSystem.position.copy(
+        PLANET_CONFIG.position
+    );
+
+    createPlanet();
+    createPlanetAtmosphere();
+    createMoonSystem();
+
+    planetSystem.rotation.z =
+        -0.12;
+
+    planetSystem.scale.setScalar(
+        0.001
+    );
+
+    scene.add(
+        planetSystem
+    );
+}
+
+
+function createPlanet() {
+    const planetTexture =
+        createPlanetTexture();
+
+    const cloudTexture =
+        createPlanetCloudTexture();
+
+    const planetGeometry =
+        new THREE.SphereGeometry(
+            PLANET_CONFIG.radius,
+            isSmallScreen ? 48 : 72,
+            isSmallScreen ? 32 : 48
+        );
+
+    const planetMaterial =
+        new THREE.MeshStandardMaterial({
+            map: planetTexture,
+
+            roughness: 0.78,
+            metalness: 0.04,
+
+            emissive:
+                new THREE.Color(
+                    0x101329
+                ),
+
+            emissiveIntensity:
+                0.18
+        });
+
+    planet =
+        new THREE.Mesh(
+            planetGeometry,
+            planetMaterial
+        );
+
+    planet.rotation.z =
+        -0.18;
+
+    planet.userData.baseRotationZ =
+        planet.rotation.z;
+
+    planetSystem.add(
+        planet
+    );
+
+    const cloudsGeometry =
+        new THREE.SphereGeometry(
+            PLANET_CONFIG.radius * 1.015,
+            isSmallScreen ? 40 : 64,
+            isSmallScreen ? 28 : 44
+        );
+
+    const cloudsMaterial =
+        new THREE.MeshPhongMaterial({
+            map: cloudTexture,
+
+            transparent: true,
+            opacity: 0.38,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+    planetClouds =
+        new THREE.Mesh(
+            cloudsGeometry,
+            cloudsMaterial
+        );
+
+    planetClouds.rotation.z =
+        -0.16;
+
+    planetSystem.add(
+        planetClouds
+    );
+}
+
+
+/* ---------------------------------------------------------
+   ATMÓSFERA
+--------------------------------------------------------- */
+
+function createPlanetAtmosphere() {
+    const atmosphereGeometry =
+        new THREE.SphereGeometry(
+            PLANET_CONFIG.radius * 1.065,
+            isSmallScreen ? 42 : 64,
+            isSmallScreen ? 30 : 48
+        );
+
+    const atmosphereMaterial =
+        new THREE.MeshBasicMaterial({
+            color: 0x779cff,
+
+            transparent: true,
+            opacity: 0.11,
+
+            side: THREE.BackSide,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+    atmosphere =
+        new THREE.Mesh(
+            atmosphereGeometry,
+            atmosphereMaterial
+        );
+
+    planetSystem.add(
+        atmosphere
+    );
+
+    const glowGeometry =
+        new THREE.SphereGeometry(
+            PLANET_CONFIG.radius * 1.14,
+            isSmallScreen ? 38 : 56,
+            isSmallScreen ? 26 : 40
+        );
+
+    const glowMaterial =
+        new THREE.MeshBasicMaterial({
+            color: 0xbc7fff,
+
+            transparent: true,
+            opacity: 0.035,
+
+            side: THREE.BackSide,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+    outerGlow =
+        new THREE.Mesh(
+            glowGeometry,
+            glowMaterial
+        );
+
+    planetSystem.add(
+        outerGlow
+    );
+}
+
+
+/* ---------------------------------------------------------
+   LUNA Y ÓRBITA
+--------------------------------------------------------- */
+
+function createMoonSystem() {
+    moonPivot =
+        new THREE.Group();
+
+    moonPivot.rotation.x =
+        0.32;
+
+    moonPivot.rotation.z =
+        -0.1;
+
+    planetSystem.add(
+        moonPivot
+    );
+
+    const moonGeometry =
+        new THREE.SphereGeometry(
+            PLANET_CONFIG.moonRadius,
+            isSmallScreen ? 30 : 42,
+            isSmallScreen ? 22 : 32
+        );
+
+    const moonMaterial =
+        new THREE.MeshStandardMaterial({
+            map:
+                createMoonTexture(),
+
+            roughness: 0.96,
+            metalness: 0,
+
+            emissive:
+                new THREE.Color(
+                    0x141827
+                ),
+
+            emissiveIntensity:
+                0.12
+        });
+
+    moon =
+        new THREE.Mesh(
+            moonGeometry,
+            moonMaterial
+        );
+
+    moon.position.x =
+        PLANET_CONFIG.moonDistance;
+
+    moonPivot.add(
+        moon
+    );
+
+    const glowTexture =
+        createGlowTexture();
+
+    const moonGlowMaterial =
+        new THREE.SpriteMaterial({
+            map: glowTexture,
+            color: 0xb8c8ff,
+
+            transparent: true,
+            opacity: 0.2,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+    moonGlow =
+        new THREE.Sprite(
+            moonGlowMaterial
+        );
+
+    moonGlow.position.copy(
+        moon.position
+    );
+
+    moonGlow.scale.setScalar(
+        PLANET_CONFIG.moonRadius * 4.2
+    );
+
+    moonPivot.add(
+        moonGlow
+    );
+
+    createMoonOrbit();
+}
+
+
+function createMoonOrbit() {
+    const points = [];
+
+    const segments = 160;
+
+    for (
+        let index = 0;
+        index <= segments;
+        index += 1
+    ) {
+        const angle =
+            (
+                index /
+                segments
+            ) *
+            Math.PI *
+            2;
+
+        points.push(
+            new THREE.Vector3(
+                Math.cos(angle) *
+                    PLANET_CONFIG.moonDistance,
+
+                0,
+
+                Math.sin(angle) *
+                    PLANET_CONFIG.moonDistance
+            )
+        );
+    }
+
+    const geometry =
+        new THREE.BufferGeometry()
+            .setFromPoints(
+                points
+            );
+
+    const material =
+        new THREE.LineBasicMaterial({
+            color: 0xb2c4ff,
+
+            transparent: true,
+            opacity: 0.13,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+    moonOrbitLine =
+        new THREE.LineLoop(
+            geometry,
+            material
+        );
+
+    moonPivot.add(
+        moonOrbitLine
+    );
+}
+
+
+/* ---------------------------------------------------------
    EVENTOS
 --------------------------------------------------------- */
 
-/**
- * Registra eventos de pantalla y controles.
- */
 function createEventListeners() {
     window.addEventListener(
         "resize",
@@ -1271,12 +2058,7 @@ function createEventListeners() {
 }
 
 
-/**
- * Controla correctamente el botón.
- */
-function handleStartButtonClick(
-    event
-) {
+function handleStartButtonClick(event) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -1284,12 +2066,7 @@ function handleStartButtonClick(
 }
 
 
-/**
- * Guarda la posición del mouse.
- */
-function handlePointerMove(
-    event
-) {
+function handlePointerMove(event) {
     pointer.x =
         (
             event.clientX /
@@ -1310,12 +2087,7 @@ function handlePointerMove(
 }
 
 
-/**
- * Guarda la posición del dedo.
- */
-function handleTouchMove(
-    event
-) {
+function handleTouchMove(event) {
     const firstTouch =
         event.touches?.[0];
 
@@ -1343,9 +2115,6 @@ function handleTouchMove(
 }
 
 
-/**
- * Adapta el universo a la pantalla.
- */
 function handleResize() {
     if (!camera || !renderer) {
         return;
@@ -1372,7 +2141,7 @@ function handleResize() {
     renderer.setPixelRatio(
         Math.min(
             window.devicePixelRatio || 1,
-            isSmallScreen ? 1.7 : 2
+            isSmallScreen ? 1.6 : 2
         )
     );
 
@@ -1384,9 +2153,6 @@ function handleResize() {
 }
 
 
-/**
- * Espera a que el teléfono termine de girar.
- */
 function handleOrientationChange() {
     window.setTimeout(
         handleResize,
@@ -1395,9 +2161,6 @@ function handleOrientationChange() {
 }
 
 
-/**
- * Detiene temporalmente la animación en segundo plano.
- */
 function handleVisibilityChange() {
     isPageVisible =
         !document.hidden;
@@ -1415,11 +2178,6 @@ function handleVisibilityChange() {
    ENTRADA AL UNIVERSO
 --------------------------------------------------------- */
 
-/**
- * Oculta la introducción.
- *
- * Esta función incluye la corrección de la etapa anterior.
- */
 function enterUniverse() {
     if (
         !isUniverseReady ||
@@ -1463,9 +2221,6 @@ function enterUniverse() {
    ANIMACIÓN PRINCIPAL
 --------------------------------------------------------- */
 
-/**
- * Inicia la animación.
- */
 function startAnimation() {
     if (
         animationFrameId !== null
@@ -1477,9 +2232,6 @@ function startAnimation() {
 }
 
 
-/**
- * Bucle principal de renderizado.
- */
 function animate() {
     animationFrameId =
         window.requestAnimationFrame(
@@ -1501,22 +2253,11 @@ function animate() {
             : 0;
 
     updatePointerSmoothing();
-
-    animateStars(
-        elapsedTime
-    );
-
-    animateNebulas(
-        elapsedTime
-    );
-
-    animateAmbientGlows(
-        elapsedTime
-    );
-
-    animateCamera(
-        elapsedTime
-    );
+    animateStars(elapsedTime);
+    animateNebulas(elapsedTime);
+    animateAmbientGlows(elapsedTime);
+    animatePlanetSystem(elapsedTime);
+    animateCamera(elapsedTime);
 
     renderer.render(
         scene,
@@ -1525,9 +2266,6 @@ function animate() {
 }
 
 
-/**
- * Suaviza el movimiento del mouse y del dedo.
- */
 function updatePointerSmoothing() {
     const smoothing =
         prefersReducedMotion
@@ -1550,21 +2288,7 @@ function updatePointerSmoothing() {
 }
 
 
-/**
- * Anima las distintas capas de estrellas.
- */
-function animateStars(
-    elapsedTime
-) {
-    if (
-        !mainStars ||
-        !distantStars ||
-        !coloredStars ||
-        !closeStars
-    ) {
-        return;
-    }
-
+function animateStars(elapsedTime) {
     const motionMultiplier =
         prefersReducedMotion
             ? 0.18
@@ -1596,103 +2320,41 @@ function animateStars(
         0.000145 *
         motionMultiplier;
 
-    coloredStars.rotation.z =
-        0.03 +
-        Math.cos(
-            elapsedTime *
-            0.08
-        ) *
-        0.012 *
-        motionMultiplier;
-
     closeStars.rotation.y -=
         0.00012 *
         motionMultiplier;
 
-    closeStars.rotation.x =
-        smoothPointer.y *
-        0.012 *
-        motionMultiplier;
-
     closeStars.position.x =
         smoothPointer.x *
-        -0.55 *
+        -0.5 *
         motionMultiplier;
 
     closeStars.position.y =
         smoothPointer.y *
-        -0.35 *
+        -0.3 *
         motionMultiplier;
 
-    animateStarOpacity(
-        elapsedTime,
-        motionMultiplier
-    );
+    mainStars.material.opacity =
+        mainStars.userData.baseOpacity +
+        Math.sin(
+            elapsedTime *
+            0.65
+        ) *
+        0.03 *
+        motionMultiplier;
+
+    coloredStars.material.opacity =
+        coloredStars.userData.baseOpacity +
+        Math.sin(
+            elapsedTime *
+            1.1
+        ) *
+        0.065 *
+        motionMultiplier;
 }
 
 
-/**
- * Produce un parpadeo muy suave.
- */
-function animateStarOpacity(
-    elapsedTime,
-    motionMultiplier
-) {
-    const starLayers = [
-        {
-            object: mainStars,
-            speed: 0.65,
-            amount: 0.032
-        },
-        {
-            object: coloredStars,
-            speed: 1.12,
-            amount: 0.07
-        },
-        {
-            object: closeStars,
-            speed: 0.86,
-            amount: 0.055
-        }
-    ];
-
-    starLayers.forEach(
-        (
-            layer,
-            index
-        ) => {
-            if (
-                !layer.object?.material
-            ) {
-                return;
-            }
-
-            const baseOpacity =
-                layer.object.userData
-                    .baseOpacity ??
-                layer.object.material
-                    .opacity;
-
-            layer.object.material.opacity =
-                baseOpacity +
-                Math.sin(
-                    elapsedTime *
-                    layer.speed +
-                    index
-                ) *
-                layer.amount *
-                motionMultiplier;
-        }
-    );
-}
-
-
-/**
- * Mueve y transforma las nebulosas lentamente.
- */
-function animateNebulas(
-    elapsedTime
-) {
+function animateNebulas(elapsedTime) {
     if (!nebulaGroup) {
         return;
     }
@@ -1703,37 +2365,25 @@ function animateNebulas(
             : 1;
 
     nebulaGroup.rotation.y +=
-        0.000045 *
-        motionMultiplier;
-
-    nebulaGroup.rotation.x =
-        0.06 +
-        Math.sin(
-            elapsedTime *
-            0.035
-        ) *
-        0.008 *
+        0.00004 *
         motionMultiplier;
 
     nebulaGroup.children.forEach(
-        (
-            nebula,
-            index
-        ) => {
+        (nebula) => {
             const data =
                 nebula.userData;
 
             const pulse =
                 Math.sin(
                     elapsedTime *
-                    data.driftSpeed +
+                    data.speed +
                     data.phase
                 );
 
             nebula.material.opacity =
                 data.baseOpacity +
                 pulse *
-                0.025 *
+                0.022 *
                 motionMultiplier;
 
             nebula.scale.x =
@@ -1741,7 +2391,7 @@ function animateNebulas(
                 (
                     1 +
                     pulse *
-                    0.025 *
+                    0.02 *
                     motionMultiplier
                 );
 
@@ -1750,31 +2400,14 @@ function animateNebulas(
                 (
                     1 -
                     pulse *
-                    0.018 *
+                    0.015 *
                     motionMultiplier
                 );
-
-            nebula.material.rotation +=
-                data.rotationSpeed *
-                0.01 *
-                motionMultiplier;
-
-            nebula.position.y +=
-                Math.sin(
-                    elapsedTime *
-                    0.06 +
-                    index
-                ) *
-                0.0005 *
-                motionMultiplier;
         }
     );
 }
 
 
-/**
- * Hace respirar los destellos.
- */
 function animateAmbientGlows(
     elapsedTime
 ) {
@@ -1787,21 +2420,8 @@ function animateAmbientGlows(
             ? 0.16
             : 1;
 
-    glowGroup.rotation.y =
-        smoothPointer.x *
-        0.012 *
-        motionMultiplier;
-
-    glowGroup.rotation.x =
-        smoothPointer.y *
-        0.008 *
-        motionMultiplier;
-
     glowGroup.children.forEach(
-        (
-            glow,
-            index
-        ) => {
+        (glow) => {
             const data =
                 glow.userData;
 
@@ -1809,28 +2429,26 @@ function animateAmbientGlows(
                 Math.sin(
                     elapsedTime *
                     data.pulseSpeed +
-                    data.phase +
-                    index
+                    data.phase
                 );
 
             glow.material.opacity =
                 data.baseOpacity +
                 pulse *
-                0.045 *
-                motionMultiplier;
-
-            const scalePulse =
-                1 +
-                pulse *
                 0.035 *
                 motionMultiplier;
 
-            glow.scale.multiplyScalar(
-                scalePulse
-            );
+            const scale =
+                data.baseScale *
+                (
+                    1 +
+                    pulse *
+                    0.035 *
+                    motionMultiplier
+                );
 
-            glow.scale.divideScalar(
-                scalePulse
+            glow.scale.setScalar(
+                scale
             );
         }
     );
@@ -1838,7 +2456,111 @@ function animateAmbientGlows(
 
 
 /**
- * Mueve la cámara.
+ * Anima el planeta y su luna.
+ */
+function animatePlanetSystem(
+    elapsedTime
+) {
+    if (
+        !planetSystem ||
+        !planet ||
+        !moonPivot
+    ) {
+        return;
+    }
+
+    const motionMultiplier =
+        prefersReducedMotion
+            ? 0.16
+            : 1;
+
+    const targetScale =
+        hasEntered
+            ? 1
+            : 0.78;
+
+    planetSystem.scale.lerp(
+        new THREE.Vector3(
+            targetScale,
+            targetScale,
+            targetScale
+        ),
+        hasEntered
+            ? 0.018
+            : 0.01
+    );
+
+    planet.rotation.y +=
+        0.00115 *
+        motionMultiplier;
+
+    planetClouds.rotation.y +=
+        0.00155 *
+        motionMultiplier;
+
+    moon.rotation.y +=
+        0.002 *
+        motionMultiplier;
+
+    moonPivot.rotation.y +=
+        0.00125 *
+        motionMultiplier;
+
+    planetSystem.rotation.y =
+        smoothPointer.x *
+        0.035 *
+        motionMultiplier;
+
+    planetSystem.rotation.x =
+        smoothPointer.y *
+        0.022 *
+        motionMultiplier;
+
+    planetSystem.position.y =
+        PLANET_CONFIG.position.y +
+        Math.sin(
+            elapsedTime *
+            0.22
+        ) *
+        0.15 *
+        motionMultiplier;
+
+    atmosphere.material.opacity =
+        0.105 +
+        Math.sin(
+            elapsedTime *
+            0.8
+        ) *
+        0.018 *
+        motionMultiplier;
+
+    outerGlow.material.opacity =
+        0.034 +
+        Math.sin(
+            elapsedTime *
+            0.55
+        ) *
+        0.009 *
+        motionMultiplier;
+
+    moonGlow.material.opacity =
+        0.18 +
+        Math.sin(
+            elapsedTime *
+            1.1
+        ) *
+        0.045 *
+        motionMultiplier;
+
+    moonOrbitLine.material.opacity =
+        hasEntered
+            ? 0.13
+            : 0.07;
+}
+
+
+/**
+ * Movimiento cinematográfico de la cámara.
  */
 function animateCamera(
     elapsedTime
@@ -1851,17 +2573,17 @@ function animateCamera(
     const interactionStrength =
         hasEntered
             ? 1
-            : 0.48;
+            : 0.42;
 
     const targetX =
         smoothPointer.x *
-        0.62 *
+        0.55 *
         motionMultiplier *
         interactionStrength;
 
     const targetY =
         smoothPointer.y *
-        0.38 *
+        0.34 *
         motionMultiplier *
         interactionStrength;
 
@@ -1870,39 +2592,60 @@ function animateCamera(
             targetX -
             camera.position.x
         ) *
-        0.022;
+        0.018;
 
     camera.position.y +=
         (
             targetY -
             camera.position.y
         ) *
-        0.022;
+        0.018;
 
-    const baseCameraZ =
+    const targetZ =
         hasEntered
-            ? 17.25
+            ? 14.7
             : 18;
 
-    camera.position.z =
-        baseCameraZ +
+    camera.position.z +=
+        (
+            targetZ -
+            camera.position.z
+        ) *
+        0.012;
+
+    camera.position.z +=
         Math.sin(
             elapsedTime *
-            0.15
+            0.16
         ) *
-        0.32 *
+        0.002 *
         motionMultiplier;
 
-    camera.lookAt(
+    const lookTarget =
+        hasEntered
+            ? new THREE.Vector3(
+                isSmallScreen ? 1.1 : 2.1,
+                -0.15,
+                -4
+            )
+            : new THREE.Vector3(
+                0,
+                0,
+                0
+            );
+
+    lookTarget.x +=
         smoothPointer.x *
-            0.13 *
-            interactionStrength,
+        0.16 *
+        interactionStrength;
 
+    lookTarget.y +=
         smoothPointer.y *
-            0.09 *
-            interactionStrength,
+        0.1 *
+        interactionStrength;
 
-        0
+    camera.lookAt(
+        lookTarget
     );
 }
 
@@ -1911,9 +2654,6 @@ function animateCamera(
    CARGA COMPLETADA
 --------------------------------------------------------- */
 
-/**
- * Muestra el universo.
- */
 function revealUniverse() {
     isUniverseReady = true;
 
@@ -1943,15 +2683,10 @@ function revealUniverse() {
 
 
 /* ---------------------------------------------------------
-   MANEJO DE ERRORES
+   ERRORES
 --------------------------------------------------------- */
 
-/**
- * Muestra cualquier error importante.
- */
-function handleFatalError(
-    error
-) {
+function handleFatalError(error) {
     console.error(
         "Error al iniciar el universo:",
         error
@@ -1985,12 +2720,7 @@ function handleFatalError(
    FUNCIONES AUXILIARES
 --------------------------------------------------------- */
 
-/**
- * Actualiza el texto del cargador.
- */
-function updateLoaderText(
-    message
-) {
+function updateLoaderText(message) {
     if (loaderText) {
         loaderText.textContent =
             message;
@@ -1998,12 +2728,7 @@ function updateLoaderText(
 }
 
 
-/**
- * Actualiza el estado accesible.
- */
-function updateStatus(
-    message
-) {
+function updateStatus(message) {
     if (statusElement) {
         statusElement.textContent =
             message;
@@ -2011,9 +2736,6 @@ function updateStatus(
 }
 
 
-/**
- * Genera un número aleatorio.
- */
 function randomBetween(
     minimum,
     maximum
@@ -2029,12 +2751,7 @@ function randomBetween(
 }
 
 
-/**
- * Espera una cantidad de milisegundos.
- */
-function wait(
-    milliseconds
-) {
+function wait(milliseconds) {
     return new Promise(
         (resolve) => {
             window.setTimeout(
@@ -2050,9 +2767,6 @@ function wait(
    LIMPIEZA DE MEMORIA
 --------------------------------------------------------- */
 
-/**
- * Libera los recursos al cerrar.
- */
 function cleanUp() {
     if (
         animationFrameId !== null
@@ -2065,21 +2779,10 @@ function cleanUp() {
             null;
     }
 
-    disposePoints(
-        mainStars
-    );
-
-    disposePoints(
-        distantStars
-    );
-
-    disposePoints(
-        coloredStars
-    );
-
-    disposePoints(
-        closeStars
-    );
+    disposePoints(mainStars);
+    disposePoints(distantStars);
+    disposePoints(coloredStars);
+    disposePoints(closeStars);
 
     disposeSpriteGroup(
         nebulaGroup
@@ -2089,38 +2792,26 @@ function cleanUp() {
         glowGroup
     );
 
+    disposeObject3D(
+        planetSystem
+    );
+
     renderer?.dispose();
 }
 
 
-/**
- * Libera una capa de estrellas.
- */
-function disposePoints(
-    points
-) {
+function disposePoints(points) {
     if (!points) {
         return;
     }
 
     points.geometry?.dispose();
-
-    if (
-        points.material?.map
-    ) {
-        points.material.map.dispose();
-    }
-
+    points.material?.map?.dispose();
     points.material?.dispose();
 }
 
 
-/**
- * Libera un grupo de sprites.
- */
-function disposeSpriteGroup(
-    group
-) {
+function disposeSpriteGroup(group) {
     if (!group) {
         return;
     }
@@ -2131,4 +2822,42 @@ function disposeSpriteGroup(
             sprite.material?.dispose();
         }
     );
+}
+
+
+function disposeObject3D(object) {
+    if (!object) {
+        return;
+    }
+
+    object.traverse(
+        (child) => {
+            child.geometry?.dispose();
+
+            if (Array.isArray(child.material)) {
+                child.material.forEach(
+                    disposeMaterial
+                );
+            } else {
+                disposeMaterial(
+                    child.material
+                );
+            }
+        }
+    );
+}
+
+
+function disposeMaterial(material) {
+    if (!material) {
+        return;
+    }
+
+    material.map?.dispose();
+    material.alphaMap?.dispose();
+    material.normalMap?.dispose();
+    material.roughnessMap?.dispose();
+    material.metalnessMap?.dispose();
+
+    material.dispose?.();
 }
