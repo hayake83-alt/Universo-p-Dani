@@ -587,3 +587,38 @@ body.constellation-hover {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* =========================================================
+   ETAPA 8
+   Cuarta constelación: Cáncer
+   ========================================================= */
+
+.constellation-message__title {
+    transition:
+        opacity 0.35s ease,
+        transform 0.35s ease,
+        text-shadow 0.35s ease;
+}
+
+.constellation-navigation__counter {
+    min-width: 34px;
+}
+
+.constellation-navigation__button:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+@media (max-width: 420px) {
+    .constellation-navigation {
+        min-width: 205px;
+    }
+
+    .constellation-navigation__name {
+        max-width: 88px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
