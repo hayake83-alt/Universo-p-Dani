@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   ETAPA 7: TRES CONSTELACIONES Y RECUERDOS
+   ETAPA 8: CUATRO CONSTELACIONES Y RECUERDOS
    ========================================================= */
 
 
@@ -30,6 +30,11 @@ const constellationMessage =
 const constellationMessageText =
     document.getElementById(
         "constellationMessageText"
+    );
+
+const constellationMessageTitle =
+    document.getElementById(
+        "constellationMessageTitle"
     );
 
 const closeConstellationMessage =
@@ -253,6 +258,40 @@ const CONSTELLATION_DATA = [
             "No necesito poseer el cielo. Me basta con compartir contigo el mismo universo.",
             "Amarte se parece a mirar las estrellas: algo inmenso y, al mismo tiempo, profundamente cercano.",
             "En cualquier versión del universo, quisiera volver a elegirte."
+        ]
+    },
+    {
+        name: "Cáncer",
+        color: 0x9ed7ff,
+        glowColor: 0x69bfff,
+        points: [
+            [-3.35, 1.4, 0],
+            [-2.2, 2.15, 0.08],
+            [-1.05, 1.35, -0.08],
+            [0, 2.35, 0.1],
+            [1.05, 1.35, -0.08],
+            [2.2, 2.15, 0.08],
+            [3.35, 1.4, 0],
+            [2.55, 0.25, 0.08],
+            [1.35, -0.4, -0.08],
+            [0, 0.25, 0.12],
+            [-1.35, -0.4, -0.08],
+            [-2.55, 0.25, 0.08],
+            [0, -1.55, 0],
+            [-1.55, -2.2, 0.08],
+            [1.55, -2.2, 0.08]
+        ],
+        connections: [
+            [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],
+            [6,7],[7,8],[8,9],[9,10],[10,11],[11,0],
+            [9,12],[12,13],[12,14]
+        ],
+        messages: [
+            "No me dejes volver a la oscuridad del océano; mientras esté contigo, todo estará bien.",
+            "Es un dulce caos. Desde que apareciste en mi vida, mis sueños, mis metas y mi mundo entero han cambiado.",
+            "Cuando me miras, el mundo se desvanece. Siempre nos recordaré así.",
+            "Think I like you best when you're just with me and no one else.",
+            "If you ever go, all the songs that we like will sound like bittersweet lullabies lost in the blue. They don't love me like you do."
         ]
     }
 ];
@@ -2766,6 +2805,9 @@ function openConstellationPanel(
             "Entre todas las estrellas, siempre elegiría encontrarte a ti."
         ];
 
+    constellationMessageTitle.textContent =
+        activeData?.name ?? "Siempre tú";
+
     constellationMessageText.textContent =
         messages[selectedIndex % messages.length];
 
@@ -3350,9 +3392,29 @@ function animateConstellation(
         0.08 *
         motionMultiplier;
 
-    constellationGroups.forEach((group) => {
+    constellationGroups.forEach((group, groupIndex) => {
         if (!group.visible) {
             return;
+        }
+
+        if (groupIndex === 3) {
+            group.rotation.z =
+                Math.sin(elapsedTime * 0.22) *
+                0.035 *
+                motionMultiplier;
+
+            group.position.x =
+                Math.sin(elapsedTime * 0.18) *
+                0.12 *
+                motionMultiplier;
+        } else {
+            group.rotation.z +=
+                (0 - group.rotation.z) *
+                0.06;
+
+            group.position.x +=
+                (0 - group.position.x) *
+                0.06;
         }
 
         group.userData.opacity +=
