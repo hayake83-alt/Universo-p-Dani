@@ -118,7 +118,68 @@
                 Ocurrió un error inesperado.
             </p>
         </div>
+<!-- Mensaje oculto de la constelación -->
+<section
+    id="constellationMessage"
+    class="constellation-message"
+    aria-hidden="true"
+>
+    <div class="constellation-message__card">
 
+        <button
+            id="closeConstellationMessage"
+            class="constellation-message__close"
+            type="button"
+            aria-label="Cerrar mensaje"
+        >
+            ×
+        </button>
+
+        <p class="constellation-message__eyebrow">
+            Entre las estrellas
+        </p>
+
+        <h2 class="constellation-message__title">
+            Siempre tú
+        </h2>
+
+        <div
+            class="constellation-message__line"
+            aria-hidden="true"
+        ></div>
+
+        <p
+            id="constellationMessageText"
+            class="constellation-message__text"
+        >
+            Incluso si el universo fuera infinito,
+            seguiría encontrando el camino hacia ti.
+        </p>
+
+        <p class="constellation-message__signature">
+            Para Dani ✦
+        </p>
+
+    </div>
+</section>
+
+<!-- Instrucción que aparece al llegar a la constelación -->
+<div
+    id="constellationHint"
+    class="constellation-hint"
+    aria-hidden="true"
+>
+    <span
+        class="constellation-hint__star"
+        aria-hidden="true"
+    >
+        ✦
+    </span>
+
+    <span>
+        Toca una estrella
+    </span>
+</div>
         <!-- Aviso de estado para accesibilidad -->
         <p
             id="status"
