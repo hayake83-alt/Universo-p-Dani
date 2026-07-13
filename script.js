@@ -586,23 +586,21 @@ function enterUniverse() {
     }
 
     hasEntered = true;
-
     startButton.disabled = true;
 
     document.body.classList.add("has-entered");
 
-    updateStatus(
-        "Has entrado al universo."
-    );
+    intro.style.opacity = "0";
+    intro.style.visibility = "hidden";
+    intro.style.pointerEvents = "none";
+
+    updateStatus("Has entrado al universo.");
 
     window.setTimeout(() => {
-        intro.setAttribute(
-            "aria-hidden",
-            "true"
-        );
+        intro.setAttribute("aria-hidden", "true");
+        intro.style.display = "none";
     }, 1300);
 }
-
 
 /* ------------------------------
    Animación
