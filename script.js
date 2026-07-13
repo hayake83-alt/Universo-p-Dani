@@ -542,4 +542,119 @@ function animate() {
             positions.array[i * 3 + 2] += userData.velocities[i].z;
             
             // Gravedad sutil hacia abajo
-            userData.velocities[i].y -=
+            userData.velocities[i].y -= 0.01;
+        }
+        positions.needsUpdate = true;
+
+        if (userData.life <= 0) {
+            effectsGroup.remove(burst);
+            particles.splice(particles.indexOf(burst), 1);
+        }
+    });
+
+    // 3. Actualizar Nebulosas (RotaciÃ³n sutilÃ­sima)
+    nebulas.forEach((nebula, i) => {
+        nebula.rotation.y += delta * (0.01 + i * 0.005);
+        nebula.rotation.x += delta * 0.008;
+    });
+
+    // 4. Actualizar Planetas
+    planets.forEach(planet => {
+        planet.rotation.y += delta * 0.1;
+    });
+
+    // 5. LÃ³gica de Desvanecimiento del Texto
+    updateTextFading(delta);
+
+    // Renderizar la escena
+    renderer.render(scene, camera);
+}
+
+/* ===========================================================
+   8. EVENTOS Y LANZAMIENTO
+   =========================================================== */
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onPointerMove(event) {
+    // Normalizar coordenadas del mouse para Raycaster
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+
+function checkStarClick() {
+    raycaster.setFromCamera(mouse, camera);
+    // Solo checkear contra el grupo de estrellas interactivas
+    const intersects = raycaster.intersectObjects(interactiveStarMeshes);
+
+    if (intersects.length > 0) {
+        interactWithStar(intersects[0].object);
+    }
+}
+
+function onStarClick(event) {
+    checkStarClick();
+}
+
+function onStarTouch(event) {
+    // Prevenir scroll
+    if(event.touches.length > 0) {
+        // Actualizar posiciÃ³n del mouse simulada para el toque
+        mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+        checkStarClick();
+        event.preventDefault();
+    }
+}
+
+// FunciÃ³n de Inicio (Intro CinemÃ¡tica)
+function startExperience() {
+    // AnimaciÃ³n de entrada de cÃ¡mara (Zoom in suave)
+    const duration = 4000; // ms
+    const startPos = { z: 500 };
+    const endPos = { z: 200 };
+    
+    let startTime = null;
+
+    function cameraIntro(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        
+        // Easing suave (ease-out)
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        camera.position.z = startPos.z - (startPos.z - endPos.z) * easeOut;
+
+        if (progress < 1) {
+            requestAnimationFrame(cameraIntro);
+        } else {
+            // Ocultar loader HTML si existe
+            if (loader) loader.style.display = 'none';
+        }
+    }
+
+    requestAnimationFrame(cameraIntro);
+    animate();
+}
+
+/* ===========================================================
+   LANZAMIENTO FINAL
+   =========================================================== */
+// Asegurarnos de que el DOM estÃ© cargado
+window.onload = () => {
+    initEngine();
+    createStars();
+    createInteractiveStars();
+    createNebulas();
+    createPlanets();
+    createCosmicDust();
+    createBirthdayMessages();
+    
+    // Iniciar con la intro cinemÃ¡tica
+    startExperience();
+    
+    console.log("ðŸŒŒ Universo para Dani cargado. Esperando interacciones...");
+};
