@@ -1470,15 +1470,22 @@ function updateUniverse(){
                 ACTUALIZAR SISTEMAS
 ==========================================================*/
 
+
 function updateSystems(){
 
     updateUniverse();
 
     updateStars(elapsedTime);
-    updateGalaxyMaterial();
+
+    updateGalaxies();
+
+    updateNebulas();
+
+    animatePlanetSystem();
+
+    updateConstellations();
+
 }
-
-
 
 
 
@@ -1497,6 +1504,401 @@ function renderUniverse(){
     );
 
 }
+/*==========================================================
+                    MÓDULO 9
+
+                PARTE 9.3
+
+        CONSTELACIONES PRINCIPALES
+
+Crea las primeras constelaciones del universo:
+
+• Constelación azul decorativa
+• Corazón oculto
+• Letra D para Dani
+
+==========================================================*/
+
+
+
+/*==========================================================
+        CONSTELACIÓN DECORATIVA AZUL
+==========================================================*/
+
+const blueConstellationPoints = [
+
+    [-2.8,  0.4,  0.0],
+    [-1.6,  1.8,  0.2],
+    [-0.3,  1.1, -0.1],
+    [ 0.9,  2.3,  0.1],
+    [ 2.2,  1.0,  0.0],
+    [ 1.4, -0.5, -0.2],
+    [ 0.0, -1.2,  0.1],
+    [-1.4, -0.6,  0.0]
+
+];
+
+
+
+const blueConstellationConnections = [
+
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [4, 5],
+    [5, 6],
+    [6, 7],
+    [7, 0],
+
+    [2, 6]
+
+];
+
+
+
+let blueConstellation = null;
+
+
+
+function createBlueConstellation(){
+
+    blueConstellation = createConstellation({
+
+        name: "CieloAzul",
+
+        points: blueConstellationPoints,
+
+        connections: blueConstellationConnections,
+
+        position: new THREE.Vector3(
+
+            -380,
+
+            180,
+
+            -720
+
+        ),
+
+        scale: 32,
+
+        starColor:
+
+            CONSTELLATION_COLORS.white,
+
+        lineColor:
+
+            CONSTELLATION_COLORS.blue,
+
+        hidden: false
+
+    });
+
+}
+
+
+
+/*==========================================================
+        CONSTELACIÓN CORAZÓN
+==========================================================*/
+
+const heartConstellationPoints = [
+
+    [ 0.0, -2.8,  0.0],
+
+    [-2.8, -0.2,  0.1],
+
+    [-3.2,  1.8,  0.0],
+
+    [-1.8,  3.1, -0.1],
+
+    [ 0.0,  1.8,  0.2],
+
+    [ 1.8,  3.1, -0.1],
+
+    [ 3.2,  1.8,  0.0],
+
+    [ 2.8, -0.2,  0.1]
+
+];
+
+
+
+const heartConstellationConnections = [
+
+    [0, 1],
+
+    [1, 2],
+
+    [2, 3],
+
+    [3, 4],
+
+    [4, 5],
+
+    [5, 6],
+
+    [6, 7],
+
+    [7, 0]
+
+];
+
+
+
+let heartConstellation = null;
+
+
+
+function createHeartConstellation(){
+
+    heartConstellation = createConstellation({
+
+        name: "CorazonDani",
+
+        points: heartConstellationPoints,
+
+        connections: heartConstellationConnections,
+
+        position: new THREE.Vector3(
+
+            360,
+
+            90,
+
+            -850
+
+        ),
+
+        scale: 34,
+
+        starColor:
+
+            CONSTELLATION_COLORS.pink,
+
+        lineColor:
+
+            CONSTELLATION_COLORS.red,
+
+        hidden: true
+
+    });
+
+}
+
+
+
+/*==========================================================
+        CONSTELACIÓN LETRA D
+==========================================================*/
+
+const letterDPoints = [
+
+    [-2.0,  3.2, 0.0],
+
+    [-2.0,  1.6, 0.1],
+
+    [-2.0,  0.0, 0.0],
+
+    [-2.0, -1.6, -0.1],
+
+    [-2.0, -3.2, 0.0],
+
+    [ 0.2,  3.0, 0.1],
+
+    [ 2.0,  1.8, 0.0],
+
+    [ 2.5,  0.0, -0.1],
+
+    [ 2.0, -1.8, 0.0],
+
+    [ 0.2, -3.0, 0.1]
+
+];
+
+
+
+const letterDConnections = [
+
+    [0, 1],
+
+    [1, 2],
+
+    [2, 3],
+
+    [3, 4],
+
+    [0, 5],
+
+    [5, 6],
+
+    [6, 7],
+
+    [7, 8],
+
+    [8, 9],
+
+    [9, 4]
+
+];
+
+
+
+let letterDConstellation = null;
+
+
+
+function createLetterDConstellation(){
+
+    letterDConstellation = createConstellation({
+
+        name: "LetraD",
+
+        points: letterDPoints,
+
+        connections: letterDConnections,
+
+        position: new THREE.Vector3(
+
+            40,
+
+            -140,
+
+            -1050
+
+        ),
+
+        scale: 30,
+
+        starColor:
+
+            CONSTELLATION_COLORS.white,
+
+        lineColor:
+
+            CONSTELLATION_COLORS.violet,
+
+        hidden: true
+
+    });
+
+}
+
+
+
+/*==========================================================
+        CREAR TODAS LAS CONSTELACIONES
+==========================================================*/
+
+function createMainConstellations(){
+
+    createBlueConstellation();
+
+    createHeartConstellation();
+
+    createLetterDConstellation();
+
+}
+
+
+
+/*==========================================================
+        MOSTRAR CORAZÓN
+==========================================================*/
+
+function revealHeartConstellation(){
+
+    if(heartConstellation){
+
+        heartConstellation.show();
+
+    }
+
+}
+
+
+
+/*==========================================================
+        MOSTRAR LETRA D
+==========================================================*/
+
+function revealLetterDConstellation(){
+
+    if(letterDConstellation){
+
+        letterDConstellation.show();
+
+    }
+
+}
+
+
+
+/*==========================================================
+        OCULTAR CONSTELACIONES ESPECIALES
+==========================================================*/
+
+function hideSecretConstellations(){
+
+    if(heartConstellation){
+
+        heartConstellation.hide();
+
+    }
+
+    if(letterDConstellation){
+
+        letterDConstellation.hide();
+
+    }
+
+}
+
+
+
+/*==========================================================
+        MOSTRAR CONSTELACIONES ESPECIALES
+==========================================================*/
+
+function revealSecretConstellations(){
+
+    revealHeartConstellation();
+
+    setTimeout(
+
+        () => {
+
+            revealLetterDConstellation();
+
+        },
+
+        1800
+
+    );
+
+}
+
+
+
+/*==========================================================
+        INICIALIZACIÓN
+==========================================================*/
+
+createMainConstellations();
+
+
+
+debug(
+
+    "✔ Constelaciones principales creadas"
+
+);
+setTimeout(() => {
+
+    revealSecretConstellations();
+
+}, 5000);
 
 
 
@@ -6717,5 +7119,1256 @@ createConstellationLineMaterial();
 debug(
 
     "✔ Base del sistema de constelaciones creada"
+
+);
+/*==========================================================
+                    MÓDULO 9
+
+                PARTE 9.2
+
+        CONSTRUCCIÓN DE CONSTELACIONES
+
+Convierte coordenadas en estrellas y líneas
+reales dentro del universo.
+
+==========================================================*/
+
+
+
+/*==========================================================
+        NORMALIZAR UN PUNTO
+
+Acepta estas dos formas:
+
+new THREE.Vector3(1, 2, 0)
+
+o:
+
+[1, 2, 0]
+==========================================================*/
+
+function normalizeConstellationPoint(point){
+
+    if(point instanceof THREE.Vector3){
+
+        return point.clone();
+
+    }
+
+    if(
+
+        Array.isArray(point) &&
+
+        point.length >= 2
+
+    ){
+
+        return new THREE.Vector3(
+
+            point[0],
+
+            point[1],
+
+            point[2] || 0
+
+        );
+
+    }
+
+    console.warn(
+
+        "Punto inválido en una constelación:",
+
+        point
+
+    );
+
+    return new THREE.Vector3();
+
+}
+
+
+
+/*==========================================================
+        CREAR GEOMETRÍA DE ESTRELLAS
+==========================================================*/
+
+function createConstellationStarsGeometry(
+
+    points,
+
+    scale
+
+){
+
+    const positions = [];
+
+    for(const originalPoint of points){
+
+        const point =
+
+            normalizeConstellationPoint(
+
+                originalPoint
+
+            );
+
+        positions.push(
+
+            point.x * scale,
+
+            point.y * scale,
+
+            point.z * scale
+
+        );
+
+    }
+
+    const geometry =
+
+        new THREE.BufferGeometry();
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+
+            positions,
+
+            3
+
+        )
+
+    );
+
+    geometry.computeBoundingSphere();
+
+    return geometry;
+
+}
+
+
+
+/*==========================================================
+        CREAR CONEXIONES AUTOMÁTICAS
+
+Conecta:
+
+0 → 1
+1 → 2
+2 → 3
+etc.
+==========================================================*/
+
+function createSequentialConnections(
+
+    pointCount
+
+){
+
+    const connections = [];
+
+    for(
+
+        let index = 0;
+
+        index < pointCount - 1;
+
+        index++
+
+    ){
+
+        connections.push([
+
+            index,
+
+            index + 1
+
+        ]);
+
+    }
+
+    return connections;
+
+}
+
+
+
+/*==========================================================
+        CREAR GEOMETRÍA DE LÍNEAS
+==========================================================*/
+
+function createConstellationLinesGeometry(
+
+    points,
+
+    connections,
+
+    scale
+
+){
+
+    const positions = [];
+
+    for(const connection of connections){
+
+        const startIndex = connection[0];
+
+        const endIndex = connection[1];
+
+        const startPoint = points[startIndex];
+
+        const endPoint = points[endIndex];
+
+        if(
+
+            startPoint === undefined ||
+
+            endPoint === undefined
+
+        ){
+
+            console.warn(
+
+                "Conexión inválida:",
+
+                connection
+
+            );
+
+            continue;
+
+        }
+
+        const start =
+
+            normalizeConstellationPoint(
+
+                startPoint
+
+            );
+
+        const end =
+
+            normalizeConstellationPoint(
+
+                endPoint
+
+            );
+
+        positions.push(
+
+            start.x * scale,
+
+            start.y * scale,
+
+            start.z * scale,
+
+            end.x * scale,
+
+            end.y * scale,
+
+            end.z * scale
+
+        );
+
+    }
+
+    const geometry =
+
+        new THREE.BufferGeometry();
+
+    geometry.setAttribute(
+
+        "position",
+
+        new THREE.Float32BufferAttribute(
+
+            positions,
+
+            3
+
+        )
+
+    );
+
+    /*
+        Al principio no se dibuja ninguna línea.
+
+        drawRange será actualizado de acuerdo
+        con drawProgress.
+    */
+
+    geometry.setDrawRange(
+
+        0,
+
+        0
+
+    );
+
+    geometry.computeBoundingSphere();
+
+    return geometry;
+
+}
+
+
+
+/*==========================================================
+        CREAR MATERIAL INDIVIDUAL
+==========================================================*/
+
+function createIndividualConstellationStarMaterial(
+
+    color
+
+){
+
+    const material =
+
+        constellationStarMaterial.clone();
+
+    material.color.copy(color);
+
+    material.opacity = 0;
+
+    return material;
+
+}
+
+
+
+function createIndividualConstellationLineMaterial(
+
+    color
+
+){
+
+    const material =
+
+        constellationLineMaterial.clone();
+
+    material.color.copy(color);
+
+    material.opacity = 0;
+
+    return material;
+
+}
+
+
+
+/*==========================================================
+        CONSTRUIR UNA CONSTELACIÓN
+
+Parámetros:
+
+name:
+Nombre interno.
+
+points:
+Lista de coordenadas.
+
+connections:
+Pares de índices que se conectan.
+
+position:
+Posición dentro del universo.
+
+scale:
+Tamaño.
+
+starColor:
+Color de las estrellas.
+
+lineColor:
+Color de las líneas.
+
+hidden:
+Si comienza oculta.
+==========================================================*/
+
+function createConstellation({
+
+    name,
+
+    points,
+
+    connections = null,
+
+    position = new THREE.Vector3(),
+
+    scale = CONSTELLATION.scale,
+
+    starColor = CONSTELLATION_COLORS.white,
+
+    lineColor = CONSTELLATION_COLORS.blue,
+
+    hidden = false
+
+}){
+
+    if(
+
+        !Array.isArray(points) ||
+
+        points.length < 2
+
+    ){
+
+        console.warn(
+
+            `La constelación "${name}" no tiene suficientes puntos.`
+
+        );
+
+        return null;
+
+    }
+
+    /*
+        Si no se especifican conexiones,
+        los puntos se conectan en orden.
+    */
+
+    const finalConnections =
+
+        Array.isArray(connections)
+
+            ? connections
+
+            : createSequentialConnections(
+
+                points.length
+
+            );
+
+    const constellation =
+
+        new Constellation({
+
+            name,
+
+            points,
+
+            position,
+
+            scale,
+
+            starColor,
+
+            lineColor,
+
+            hidden
+
+        });
+
+
+
+    /*--------------------------------------
+            Crear estrellas
+    --------------------------------------*/
+
+    const starsGeometry =
+
+        createConstellationStarsGeometry(
+
+            points,
+
+            scale
+
+        );
+
+    const starsMaterial =
+
+        createIndividualConstellationStarMaterial(
+
+            starColor
+
+        );
+
+    constellation.stars =
+
+        new THREE.Points(
+
+            starsGeometry,
+
+            starsMaterial
+
+        );
+
+
+
+    /*--------------------------------------
+            Crear líneas
+    --------------------------------------*/
+
+    const linesGeometry =
+
+        createConstellationLinesGeometry(
+
+            points,
+
+            finalConnections,
+
+            scale
+
+        );
+
+    const linesMaterial =
+
+        createIndividualConstellationLineMaterial(
+
+            lineColor
+
+        );
+
+    constellation.lines =
+
+        new THREE.LineSegments(
+
+            linesGeometry,
+
+            linesMaterial
+
+        );
+
+
+
+    /*--------------------------------------
+            Datos internos
+    --------------------------------------*/
+
+    constellation.connections =
+
+        finalConnections;
+
+    constellation.lineVertexCount =
+
+        linesGeometry.attributes.position.count;
+
+    constellation.group.name =
+
+        `Constellation_${name}`;
+
+    constellation.group.userData.type =
+
+        "constellation";
+
+    constellation.group.userData.constellation =
+
+        constellation;
+
+
+
+    /*--------------------------------------
+            Composición
+    --------------------------------------*/
+
+    constellation.group.add(
+
+        constellation.lines
+
+    );
+
+    constellation.group.add(
+
+        constellation.stars
+
+    );
+
+    constellation.group.position.copy(
+
+        position
+
+    );
+
+
+
+    /*--------------------------------------
+            Estado inicial
+    --------------------------------------*/
+
+    if(hidden){
+
+        constellation.stars.material.opacity = 0;
+
+        constellation.lines.material.opacity = 0;
+
+        constellation.lines.geometry.setDrawRange(
+
+            0,
+
+            0
+
+        );
+
+    }else{
+
+        constellation.stars.material.opacity =
+
+            CONSTELLATION.starOpacity;
+
+        constellation.lines.material.opacity =
+
+            CONSTELLATION.lineOpacity;
+
+        constellation.lines.geometry.setDrawRange(
+
+            0,
+
+            constellation.lineVertexCount
+
+        );
+
+    }
+
+
+
+    /*--------------------------------------
+            Guardar y añadir
+    --------------------------------------*/
+
+    constellation.created = true;
+
+    constellations.push(
+
+        constellation
+
+    );
+
+    constellationsGroup.add(
+
+        constellation.group
+
+    );
+
+    return constellation;
+
+}
+
+
+
+/*==========================================================
+        ACTUALIZAR EL DIBUJO DE LÍNEAS
+==========================================================*/
+
+function updateConstellationDrawing(
+
+    constellation
+
+){
+
+    if(
+
+        !constellation.lines ||
+
+        !constellation.lines.geometry
+
+    ){
+
+        return;
+
+    }
+
+    const totalVertices =
+
+        constellation.lineVertexCount;
+
+    let visibleVertices = Math.floor(
+
+        totalVertices *
+
+        clamp(
+
+            constellation.drawProgress,
+
+            0,
+
+            1
+
+        )
+
+    );
+
+    /*
+        LineSegments necesita pares de vértices.
+        Convertimos el número a un valor par.
+    */
+
+    visibleVertices -=
+
+        visibleVertices % 2;
+
+    constellation.lines.geometry.setDrawRange(
+
+        0,
+
+        visibleVertices
+
+    );
+
+}
+
+
+
+/*==========================================================
+        ACTUALIZAR TODAS LAS CONSTELACIONES
+==========================================================*/
+
+function updateConstellations(){
+
+    for(
+
+        const constellation
+
+        of
+
+        constellations
+
+    ){
+
+        constellation.update();
+
+        updateConstellationDrawing(
+
+            constellation
+
+        );
+
+    }
+
+}
+
+
+
+/*==========================================================
+        BUSCAR CONSTELACIÓN POR NOMBRE
+==========================================================*/
+
+function getConstellationByName(name){
+
+    return constellations.find(
+
+        constellation =>
+
+            constellation.name === name
+
+    ) || null;
+
+}
+
+
+
+/*==========================================================
+        MOSTRAR CONSTELACIÓN POR NOMBRE
+==========================================================*/
+
+function showConstellation(name){
+
+    const constellation =
+
+        getConstellationByName(name);
+
+    if(constellation){
+
+        constellation.show();
+
+    }
+
+}
+
+
+
+/*==========================================================
+        OCULTAR CONSTELACIÓN POR NOMBRE
+==========================================================*/
+
+function hideConstellation(name){
+
+    const constellation =
+
+        getConstellationByName(name);
+
+    if(constellation){
+
+        constellation.hide();
+
+    }
+
+}
+
+
+
+/*==========================================================
+                INFORMACIÓN
+==========================================================*/
+
+debug(
+
+    "✔ Constructor de constelaciones preparado"
+
+);
+/*==========================================================
+                    MÓDULO 9
+
+                PARTE 9.4
+
+      ANIMACIÓN AVANZADA DE CONSTELACIONES
+
+Añade:
+
+• Parpadeo individual
+• Pulsación de estrellas
+• Brillo dinámico
+• Movimiento con profundidad
+• Visibilidad según la cámara
+
+==========================================================*/
+
+
+
+/*==========================================================
+        PREPARAR DATOS DE ANIMACIÓN
+==========================================================*/
+
+function prepareConstellationAnimations(){
+
+    for(const constellation of constellations){
+
+        constellation.twinkleOffset = random(
+
+            0,
+
+            Math.PI * 2
+
+        );
+
+        constellation.twinkleSpeed = random(
+
+            0.7,
+
+            1.5
+
+        );
+
+        constellation.pulseStrength = random(
+
+            0.05,
+
+            0.14
+
+        );
+
+        constellation.depthOffset = random(
+
+            0,
+
+            Math.PI * 2
+
+        );
+
+        constellation.baseScale =
+
+            constellation.group.scale.x || 1;
+
+        constellation.baseStarOpacity =
+
+            CONSTELLATION.starOpacity;
+
+        constellation.baseLineOpacity =
+
+            CONSTELLATION.lineOpacity;
+
+    }
+
+}
+
+
+
+/*==========================================================
+        DISTANCIA ENTRE CÁMARA Y CONSTELACIÓN
+==========================================================*/
+
+function getConstellationCameraDistance(
+
+    constellation
+
+){
+
+    const worldPosition =
+
+        new THREE.Vector3();
+
+    constellation.group.getWorldPosition(
+
+        worldPosition
+
+    );
+
+    return camera.position.distanceTo(
+
+        worldPosition
+
+    );
+
+}
+
+
+
+/*==========================================================
+        VISIBILIDAD SEGÚN DISTANCIA
+==========================================================*/
+
+function calculateConstellationVisibility(
+
+    constellation
+
+){
+
+    const distance =
+
+        getConstellationCameraDistance(
+
+            constellation
+
+        );
+
+    const nearFade =
+
+        THREE.MathUtils.smoothstep(
+
+            distance,
+
+            CONSTELLATION.minVisibleDistance * 0.45,
+
+            CONSTELLATION.minVisibleDistance
+
+        );
+
+    const farFade =
+
+        1 -
+
+        THREE.MathUtils.smoothstep(
+
+            distance,
+
+            CONSTELLATION.maxVisibleDistance * 0.72,
+
+            CONSTELLATION.maxVisibleDistance
+
+        );
+
+    return clamp(
+
+        nearFade * farFade,
+
+        0,
+
+        1
+
+    );
+
+}
+
+
+
+/*==========================================================
+        PARPADEO DE ESTRELLAS
+==========================================================*/
+
+function updateConstellationTwinkle(
+
+    constellation
+
+){
+
+    if(!constellation.stars){
+
+        return;
+
+    }
+
+    const twinkle =
+
+        0.88 +
+
+        Math.sin(
+
+            elapsedTime *
+
+            constellation.twinkleSpeed +
+
+            constellation.twinkleOffset
+
+        ) * 0.12;
+
+    const visibility =
+
+        calculateConstellationVisibility(
+
+            constellation
+
+        );
+
+    constellation.stars.material.opacity =
+
+        constellation.opacity *
+
+        constellation.baseStarOpacity *
+
+        twinkle *
+
+        visibility;
+
+}
+
+
+
+/*==========================================================
+        BRILLO DE LÍNEAS
+==========================================================*/
+
+function updateConstellationLineGlow(
+
+    constellation
+
+){
+
+    if(!constellation.lines){
+
+        return;
+
+    }
+
+    const glow =
+
+        0.82 +
+
+        Math.sin(
+
+            elapsedTime * 0.65 +
+
+            constellation.twinkleOffset
+
+        ) * 0.18;
+
+    const visibility =
+
+        calculateConstellationVisibility(
+
+            constellation
+
+        );
+
+    constellation.lines.material.opacity =
+
+        constellation.opacity *
+
+        constellation.baseLineOpacity *
+
+        glow *
+
+        visibility;
+
+}
+
+
+
+/*==========================================================
+        PULSACIÓN DE LA CONSTELACIÓN
+==========================================================*/
+
+function updateConstellationPulse(
+
+    constellation
+
+){
+
+    const pulse =
+
+        1 +
+
+        Math.sin(
+
+            elapsedTime * 0.45 +
+
+            constellation.twinkleOffset
+
+        ) *
+
+        constellation.pulseStrength;
+
+    constellation.group.scale.setScalar(
+
+        constellation.baseScale *
+
+        pulse
+
+    );
+
+}
+
+
+
+/*==========================================================
+        MOVIMIENTO DE PROFUNDIDAD
+==========================================================*/
+
+function updateConstellationDepth(
+
+    constellation
+
+){
+
+    constellation.group.position.z =
+
+        constellation.position.z +
+
+        Math.sin(
+
+            elapsedTime * 0.07 +
+
+            constellation.depthOffset
+
+        ) * 10;
+
+}
+
+
+
+/*==========================================================
+        ANIMACIÓN ESPECIAL DEL CORAZÓN
+==========================================================*/
+
+function updateHeartConstellation(){
+
+    if(
+
+        !heartConstellation ||
+
+        !heartConstellation.active
+
+    ){
+
+        return;
+
+    }
+
+    const heartbeat =
+
+        1 +
+
+        Math.pow(
+
+            Math.max(
+
+                0,
+
+                Math.sin(
+
+                    elapsedTime * 2.2
+
+                )
+
+            ),
+
+            8
+
+        ) * 0.08;
+
+    heartConstellation.group.scale.multiplyScalar(
+
+        heartbeat
+
+    );
+
+}
+
+
+
+/*==========================================================
+        ANIMACIÓN ESPECIAL DE LA LETRA D
+==========================================================*/
+
+function updateLetterDConstellation(){
+
+    if(
+
+        !letterDConstellation ||
+
+        !letterDConstellation.active
+
+    ){
+
+        return;
+
+    }
+
+    letterDConstellation.group.rotation.y +=
+
+        0.00035;
+
+}
+
+
+
+/*==========================================================
+        ACTUALIZACIÓN AVANZADA
+==========================================================*/
+
+function updateAdvancedConstellationEffects(){
+
+    for(const constellation of constellations){
+
+        updateConstellationTwinkle(
+
+            constellation
+
+        );
+
+        updateConstellationLineGlow(
+
+            constellation
+
+        );
+
+        updateConstellationPulse(
+
+            constellation
+
+        );
+
+        updateConstellationDepth(
+
+            constellation
+
+        );
+
+    }
+
+    updateHeartConstellation();
+
+    updateLetterDConstellation();
+
+}
+
+
+
+/*==========================================================
+        INICIALIZACIÓN
+==========================================================*/
+
+prepareConstellationAnimations();
+
+
+
+debug(
+
+    "✔ Animación avanzada de constelaciones preparada"
 
 );
