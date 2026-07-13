@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   ETAPA 10: ESCENAS NARRATIVAS Y CIERRE DEL RECORRIDO
+   ETAPA 11: REALISMO GALÁCTICO Y MENSAJE OCULTO
    ========================================================= */
 
 
@@ -97,6 +97,16 @@ const journeyFinalMessage =
         "journeyFinalMessage"
     );
 
+const cosmicNavigationHint =
+    document.getElementById(
+        "cosmicNavigationHint"
+    );
+
+const hiddenBirthdayHint =
+    document.getElementById(
+        "hiddenBirthdayHint"
+    );
+
 /* ---------------------------------------------------------
    VARIABLES PRINCIPALES
 --------------------------------------------------------- */
@@ -149,6 +159,36 @@ let stardustBursts = [];
 let lastJourneyCaptionStage = -1;
 let finalJourneyMessageShown = false;
 let journeyCaptionHideTimer = null;
+
+let galaxyGroup;
+let galaxies = [];
+
+let asteroidGroup;
+let asteroids = [];
+
+let distantSun;
+let distantSunGlow;
+
+let detailedStarGroup;
+let detailedStars = [];
+
+let birthdayMessageGroup;
+let birthdayMessagePoints;
+let birthdayMessageTargetPositions;
+let birthdayMessageScatterPositions;
+let birthdayMessageState = "hidden";
+let birthdayMessageTimer = 0;
+
+let isDraggingUniverse = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragLastX = 0;
+let dragLastY = 0;
+let totalDragDistance = 0;
+let universeYaw = 0;
+let universePitch = 0;
+let targetUniverseYaw = 0;
+let targetUniversePitch = 0;
 
 const cosmicRaycaster = new THREE.Raycaster();
 const cosmicPointer = new THREE.Vector2();
@@ -401,6 +441,14 @@ const JOURNEY_SCENES = [
     }
 ];
 
+const REALISM_CONFIG = {
+    galaxyCount: isSmallScreen ? 2 : 3,
+    asteroidCount: isSmallScreen ? 18 : 32,
+    detailedStarCount: isSmallScreen ? 16 : 28,
+    birthdayRevealDragDistance: isSmallScreen ? 520 : 760,
+    birthdayHoldDuration: 7.5
+};
+
 /* ---------------------------------------------------------
    INICIO
 --------------------------------------------------------- */
@@ -460,6 +508,14 @@ updateLoaderText("Encendiendo el cielo…");
 createShootingStars();
 createInteractiveStars();
 createStardustSystem();
+
+updateLoaderText("Formando galaxias…");
+
+createDetailedStars();
+createGalaxies();
+createAsteroidField();
+createDistantSun();
+createHiddenBirthdayMessage();
 
 createEventListeners();
         handleResize();
@@ -3187,6 +3243,946 @@ function resetInteractiveStar(
         true;
 }
 
+
+/* ---------------------------------------------------------
+   REALISMO GALÁCTICO
+--------------------------------------------------------- */
+
+function createDetailedStarTexture() {
+    const textureCanvas =
+        document.createElement("canvas");
+
+    textureCanvas.width = 256;
+    textureCanvas.height = 256;
+
+    const context =
+        textureCanvas.getContext("2d");
+
+    const radial =
+        context.createRadialGradient(
+            128, 128, 0,
+            128, 128, 128
+        );
+
+    radial.addColorStop(
+        0,
+        "rgba(255,255,255,1)"
+    );
+
+    radial.addColorStop(
+        0.045,
+        "rgba(255,255,255,1)"
+    );
+
+    radial.addColorStop(
+        0.12,
+        "rgba(210,225,255,0.9)"
+    );
+
+    radial.addColorStop(
+        0.35,
+        "rgba(120,160,255,0.26)"
+    );
+
+    radial.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    context.fillStyle = radial;
+    context.fillRect(0, 0, 256, 256);
+
+    context.save();
+    context.translate(128, 128);
+
+    const beam =
+        context.createLinearGradient(
+            -128, 0, 128, 0
+        );
+
+    beam.addColorStop(
+        0,
+        "rgba(255,255,255,0)"
+    );
+
+    beam.addColorStop(
+        0.48,
+        "rgba(220,235,255,0.42)"
+    );
+
+    beam.addColorStop(
+        0.5,
+        "rgba(255,255,255,0.9)"
+    );
+
+    beam.addColorStop(
+        0.52,
+        "rgba(220,235,255,0.42)"
+    );
+
+    beam.addColorStop(
+        1,
+        "rgba(255,255,255,0)"
+    );
+
+    context.fillStyle = beam;
+    context.fillRect(
+        -128,
+        -2,
+        256,
+        4
+    );
+
+    context.rotate(Math.PI / 2);
+
+    context.fillStyle = beam;
+    context.fillRect(
+        -128,
+        -1.4,
+        256,
+        2.8
+    );
+
+    context.restore();
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    return texture;
+}
+
+
+function createDetailedStars() {
+    detailedStarGroup =
+        new THREE.Group();
+
+    detailedStarGroup.name =
+        "DetailedStarGroup";
+
+    const texture =
+        createDetailedStarTexture();
+
+    detailedStars = [];
+
+    for (
+        let index = 0;
+        index < REALISM_CONFIG
+            .detailedStarCount;
+        index += 1
+    ) {
+        const material =
+            new THREE.SpriteMaterial({
+                map: texture,
+                color:
+                    index % 4 === 0
+                        ? 0xffd9f1
+                        : index % 4 === 1
+                            ? 0xbcd5ff
+                            : 0xffffff,
+                transparent: true,
+                opacity:
+                    randomBetween(
+                        0.42,
+                        0.88
+                    ),
+                depthWrite: false,
+                blending:
+                    THREE.AdditiveBlending
+            });
+
+        const star =
+            new THREE.Sprite(
+                material
+            );
+
+        const radius =
+            randomBetween(
+                18,
+                70
+            );
+
+        const angle =
+            randomBetween(
+                0,
+                Math.PI * 2
+            );
+
+        star.position.set(
+            Math.cos(angle) *
+                radius,
+            randomBetween(
+                -22,
+                22
+            ),
+            randomBetween(
+                -18,
+                -100
+            )
+        );
+
+        const scale =
+            randomBetween(
+                0.7,
+                2.2
+            );
+
+        star.scale.set(
+            scale,
+            scale,
+            1
+        );
+
+        star.userData = {
+            baseScale: scale,
+            baseOpacity:
+                material.opacity,
+            phase:
+                randomBetween(
+                    0,
+                    Math.PI * 2
+                )
+        };
+
+        detailedStars.push(
+            star
+        );
+
+        detailedStarGroup.add(
+            star
+        );
+    }
+
+    scene.add(
+        detailedStarGroup
+    );
+}
+
+
+function createGalaxyTexture(
+    innerColor,
+    outerColor
+) {
+    const textureCanvas =
+        document.createElement("canvas");
+
+    textureCanvas.width = 512;
+    textureCanvas.height = 512;
+
+    const context =
+        textureCanvas.getContext("2d");
+
+    context.translate(
+        256,
+        256
+    );
+
+    for (
+        let arm = 0;
+        arm < 4;
+        arm += 1
+    ) {
+        context.save();
+        context.rotate(
+            arm *
+            Math.PI /
+            2
+        );
+
+        for (
+            let index = 0;
+            index < 150;
+            index += 1
+        ) {
+            const t =
+                index /
+                150;
+
+            const angle =
+                t *
+                Math.PI *
+                3.2;
+
+            const radius =
+                t *
+                205;
+
+            const x =
+                Math.cos(angle) *
+                radius;
+
+            const y =
+                Math.sin(angle) *
+                radius *
+                0.36;
+
+            const size =
+                randomBetween(
+                    1,
+                    4.5
+                ) *
+                (1 - t * 0.55);
+
+            context.fillStyle =
+                index % 3 === 0
+                    ? innerColor
+                    : outerColor;
+
+            context.globalAlpha =
+                randomBetween(
+                    0.08,
+                    0.42
+                ) *
+                (1 - t * 0.35);
+
+            context.beginPath();
+            context.arc(
+                x +
+                randomBetween(-12, 12),
+                y +
+                randomBetween(-8, 8),
+                size,
+                0,
+                Math.PI * 2
+            );
+            context.fill();
+        }
+
+        context.restore();
+    }
+
+    const core =
+        context.createRadialGradient(
+            0, 0, 0,
+            0, 0, 95
+        );
+
+    core.addColorStop(
+        0,
+        "rgba(255,255,255,0.95)"
+    );
+
+    core.addColorStop(
+        0.2,
+        innerColor
+    );
+
+    core.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    context.globalAlpha = 1;
+    context.fillStyle = core;
+    context.fillRect(
+        -256,
+        -256,
+        512,
+        512
+    );
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    return texture;
+}
+
+
+function createGalaxies() {
+    galaxyGroup =
+        new THREE.Group();
+
+    galaxyGroup.name =
+        "GalaxyGroup";
+
+    galaxies = [];
+
+    const textures = [
+        createGalaxyTexture(
+            "rgba(180,205,255,0.7)",
+            "rgba(90,120,255,0.25)"
+        ),
+        createGalaxyTexture(
+            "rgba(255,188,230,0.62)",
+            "rgba(160,80,190,0.24)"
+        ),
+        createGalaxyTexture(
+            "rgba(240,220,255,0.62)",
+            "rgba(120,95,210,0.22)"
+        )
+    ];
+
+    const positions = isSmallScreen
+        ? [
+            [-18, 10, -70],
+            [24, -12, -92]
+        ]
+        : [
+            [-24, 12, -72],
+            [29, -16, -98],
+            [8, 26, -120]
+        ];
+
+    positions.forEach(
+        (
+            position,
+            index
+        ) => {
+            const material =
+                new THREE.SpriteMaterial({
+                    map:
+                        textures[
+                            index %
+                            textures.length
+                        ],
+                    transparent: true,
+                    opacity:
+                        index === 0
+                            ? 0.34
+                            : 0.24,
+                    depthWrite: false,
+                    blending:
+                        THREE.AdditiveBlending
+                });
+
+            const galaxy =
+                new THREE.Sprite(
+                    material
+                );
+
+            galaxy.position.set(
+                position[0],
+                position[1],
+                position[2]
+            );
+
+            const scale =
+                index === 0
+                    ? 34
+                    : 27;
+
+            galaxy.scale.set(
+                scale,
+                scale * 0.62,
+                1
+            );
+
+            galaxy.material.rotation =
+                randomBetween(
+                    0,
+                    Math.PI * 2
+                );
+
+            galaxy.userData = {
+                baseOpacity:
+                    material.opacity,
+                phase:
+                    index *
+                    1.7,
+                rotationSpeed:
+                    randomBetween(
+                        -0.0008,
+                        0.0008
+                    )
+            };
+
+            galaxies.push(
+                galaxy
+            );
+
+            galaxyGroup.add(
+                galaxy
+            );
+        }
+    );
+
+    scene.add(
+        galaxyGroup
+    );
+}
+
+
+function createAsteroidField() {
+    asteroidGroup =
+        new THREE.Group();
+
+    asteroidGroup.name =
+        "AsteroidGroup";
+
+    asteroids = [];
+
+    for (
+        let index = 0;
+        index < REALISM_CONFIG
+            .asteroidCount;
+        index += 1
+    ) {
+        const geometry =
+            new THREE.IcosahedronGeometry(
+                randomBetween(
+                    0.18,
+                    0.72
+                ),
+                1
+            );
+
+        const positionAttribute =
+            geometry.getAttribute(
+                "position"
+            );
+
+        for (
+            let vertexIndex = 0;
+            vertexIndex < positionAttribute.count;
+            vertexIndex += 1
+        ) {
+            const factor =
+                randomBetween(
+                    0.78,
+                    1.18
+                );
+
+            positionAttribute.setXYZ(
+                vertexIndex,
+                positionAttribute.getX(vertexIndex) * factor,
+                positionAttribute.getY(vertexIndex) * factor,
+                positionAttribute.getZ(vertexIndex) * factor
+            );
+        }
+
+        positionAttribute.needsUpdate =
+            true;
+
+        geometry.computeVertexNormals();
+
+        const material =
+            new THREE.MeshStandardMaterial({
+                color:
+                    index % 2 === 0
+                        ? 0x3f4250
+                        : 0x5b5361,
+                roughness: 0.94,
+                metalness: 0.08
+            });
+
+        const asteroid =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
+
+        const angle =
+            randomBetween(
+                0,
+                Math.PI * 2
+            );
+
+        const radius =
+            randomBetween(
+                12,
+                28
+            );
+
+        asteroid.position.set(
+            Math.cos(angle) *
+                radius,
+            randomBetween(
+                -11,
+                12
+            ),
+            randomBetween(
+                -18,
+                -68
+            )
+        );
+
+        asteroid.rotation.set(
+            randomBetween(
+                0,
+                Math.PI
+            ),
+            randomBetween(
+                0,
+                Math.PI
+            ),
+            randomBetween(
+                0,
+                Math.PI
+            )
+        );
+
+        asteroid.userData = {
+            rotationSpeed:
+                new THREE.Vector3(
+                    randomBetween(
+                        -0.006,
+                        0.006
+                    ),
+                    randomBetween(
+                        -0.008,
+                        0.008
+                    ),
+                    randomBetween(
+                        -0.005,
+                        0.005
+                    )
+                ),
+            drift:
+                randomBetween(
+                    0.0008,
+                    0.0024
+                ),
+            phase:
+                index *
+                0.71
+        };
+
+        asteroids.push(
+            asteroid
+        );
+
+        asteroidGroup.add(
+            asteroid
+        );
+    }
+
+    scene.add(
+        asteroidGroup
+    );
+}
+
+
+function createDistantSun() {
+    const sunTexture =
+        createGlowTexture();
+
+    distantSun =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                isSmallScreen
+                    ? 2.8
+                    : 3.8,
+                48,
+                32
+            ),
+            new THREE.MeshBasicMaterial({
+                color: 0xffd49c
+            })
+        );
+
+    distantSun.position.set(
+        -34,
+        18,
+        -105
+    );
+
+    distantSunGlow =
+        new THREE.Sprite(
+            new THREE.SpriteMaterial({
+                map: sunTexture,
+                color: 0xffb86f,
+                transparent: true,
+                opacity: 0.44,
+                depthWrite: false,
+                blending:
+                    THREE.AdditiveBlending
+            })
+        );
+
+    distantSunGlow.position.copy(
+        distantSun.position
+    );
+
+    distantSunGlow.scale.set(
+        22,
+        22,
+        1
+    );
+
+    scene.add(
+        distantSun,
+        distantSunGlow
+    );
+}
+
+
+function createHiddenBirthdayMessage() {
+    birthdayMessageGroup =
+        new THREE.Group();
+
+    birthdayMessageGroup.name =
+        "BirthdayMessageGroup";
+
+    const textCanvas =
+        document.createElement("canvas");
+
+    textCanvas.width = 900;
+    textCanvas.height = 220;
+
+    const context =
+        textCanvas.getContext("2d");
+
+    context.clearRect(
+        0,
+        0,
+        textCanvas.width,
+        textCanvas.height
+    );
+
+    context.fillStyle =
+        "#ffffff";
+
+    context.font =
+        "700 92px Georgia";
+
+    context.textAlign =
+        "center";
+
+    context.textBaseline =
+        "middle";
+
+    context.fillText(
+        "Feliz cumpleaños Dani",
+        textCanvas.width / 2,
+        textCanvas.height / 2
+    );
+
+    const imageData =
+        context.getImageData(
+            0,
+            0,
+            textCanvas.width,
+            textCanvas.height
+        );
+
+    const targetPositions = [];
+
+    const step =
+        isSmallScreen
+            ? 10
+            : 8;
+
+    for (
+        let y = 0;
+        y < textCanvas.height;
+        y += step
+    ) {
+        for (
+            let x = 0;
+            x < textCanvas.width;
+            x += step
+        ) {
+            const alpha =
+                imageData.data[
+                    (
+                        y *
+                        textCanvas.width +
+                        x
+                    ) *
+                    4 +
+                    3
+                ];
+
+            if (
+                alpha > 120
+            ) {
+                targetPositions.push(
+                    new THREE.Vector3(
+                        (
+                            x -
+                            textCanvas.width /
+                            2
+                        ) *
+                        0.018,
+                        (
+                            textCanvas.height /
+                            2 -
+                            y
+                        ) *
+                        0.018,
+                        0
+                    )
+                );
+            }
+        }
+    }
+
+    const maxPoints =
+        isSmallScreen
+            ? 520
+            : 820;
+
+    birthdayMessageTargetPositions =
+        targetPositions
+            .sort(
+                () =>
+                    Math.random() -
+                    0.5
+            )
+            .slice(
+                0,
+                maxPoints
+            );
+
+    birthdayMessageScatterPositions =
+        birthdayMessageTargetPositions
+            .map(
+                () =>
+                    new THREE.Vector3(
+                        randomBetween(
+                            -18,
+                            18
+                        ),
+                        randomBetween(
+                            -8,
+                            8
+                        ),
+                        randomBetween(
+                            -8,
+                            8
+                        )
+                    )
+            );
+
+    const positions =
+        new Float32Array(
+            birthdayMessageTargetPositions
+                .length *
+            3
+        );
+
+    birthdayMessageScatterPositions
+        .forEach(
+            (
+                position,
+                index
+            ) => {
+                positions[
+                    index * 3
+                ] =
+                    position.x;
+
+                positions[
+                    index * 3 + 1
+                ] =
+                    position.y;
+
+                positions[
+                    index * 3 + 2
+                ] =
+                    position.z;
+            }
+        );
+
+    const geometry =
+        new THREE.BufferGeometry();
+
+    geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(
+            positions,
+            3
+        )
+    );
+
+    const material =
+        new THREE.PointsMaterial({
+            size:
+                isSmallScreen
+                    ? 0.19
+                    : 0.15,
+            color: 0xf4e7ff,
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: false,
+            blending:
+                THREE.AdditiveBlending,
+            map:
+                createStarTexture(),
+            alphaMap:
+                createStarTexture()
+        });
+
+    birthdayMessagePoints =
+        new THREE.Points(
+            geometry,
+            material
+        );
+
+    birthdayMessageGroup.add(
+        birthdayMessagePoints
+    );
+
+    birthdayMessageGroup.position.set(
+        0,
+        2,
+        -32
+    );
+
+    birthdayMessageGroup.rotation.y =
+        0.26;
+
+    birthdayMessageGroup.visible =
+        true;
+
+    scene.add(
+        birthdayMessageGroup
+    );
+}
+
+
+function revealHiddenBirthdayMessage() {
+    if (
+        birthdayMessageState !==
+        "hidden"
+    ) {
+        return;
+    }
+
+    birthdayMessageState =
+        "revealing";
+
+    birthdayMessageTimer =
+        0;
+
+    hiddenBirthdayHint.classList.add(
+        "is-visible"
+    );
+
+    hiddenBirthdayHint.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+}
+
+
+function scatterHiddenBirthdayMessage() {
+    birthdayMessageState =
+        "scattering";
+
+    birthdayMessageTimer =
+        0;
+
+    hiddenBirthdayHint.classList.remove(
+        "is-visible"
+    );
+
+    hiddenBirthdayHint.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+
 /* ---------------------------------------------------------
    EVENTOS
 --------------------------------------------------------- */
@@ -3273,6 +4269,102 @@ function handleStartButtonClick(event) {
     event.stopPropagation();
 
     enterUniverse();
+}
+
+
+
+function handleUniverseDragStart(
+    event
+) {
+    if (
+        isConstellationMessageOpen ||
+        event.target?.closest?.(
+            "button, nav, section"
+        )
+    ) {
+        return;
+    }
+
+    isDraggingUniverse =
+        true;
+
+    dragStartX =
+        event.clientX;
+
+    dragStartY =
+        event.clientY;
+
+    dragLastX =
+        event.clientX;
+
+    dragLastY =
+        event.clientY;
+
+    cosmicNavigationHint.classList.add(
+        "is-active"
+    );
+}
+
+
+function handleUniverseDragMove(
+    event
+) {
+    if (!isDraggingUniverse) {
+        return;
+    }
+
+    const deltaX =
+        event.clientX -
+        dragLastX;
+
+    const deltaY =
+        event.clientY -
+        dragLastY;
+
+    dragLastX =
+        event.clientX;
+
+    dragLastY =
+        event.clientY;
+
+    totalDragDistance +=
+        Math.hypot(
+            deltaX,
+            deltaY
+        );
+
+    targetUniverseYaw +=
+        deltaX *
+        0.0028;
+
+    targetUniversePitch +=
+        deltaY *
+        0.0022;
+
+    targetUniversePitch =
+        THREE.MathUtils.clamp(
+            targetUniversePitch,
+            -0.42,
+            0.42
+        );
+
+    if (
+        totalDragDistance >=
+        REALISM_CONFIG
+            .birthdayRevealDragDistance
+    ) {
+        revealHiddenBirthdayMessage();
+    }
+}
+
+
+function handleUniverseDragEnd() {
+    isDraggingUniverse =
+        false;
+
+    cosmicNavigationHint.classList.remove(
+        "is-active"
+    );
 }
 
 
@@ -3766,6 +4858,12 @@ animatePlanetSystem(elapsedTime);
 animateShootingStars(elapsedTime);
 animateInteractiveStars(elapsedTime);
 animateStardust(elapsedTime);
+animateDetailedStars(elapsedTime);
+animateGalaxies(elapsedTime);
+animateAsteroids(elapsedTime);
+animateDistantSun(elapsedTime);
+animateHiddenBirthdayMessage(elapsedTime);
+applyUniverseNavigation();
 animateConstellation(elapsedTime);
 animateCamera(elapsedTime);
 updateJourneyNarrative();
@@ -5195,6 +6293,318 @@ function easeInOutSine(value) {
 
 
 
+
+function animateDetailedStars(
+    elapsedTime
+) {
+    if (!detailedStarGroup) {
+        return;
+    }
+
+    detailedStars.forEach(
+        (star) => {
+            const pulse =
+                1 +
+                Math.sin(
+                    elapsedTime *
+                    1.45 +
+                    star.userData.phase
+                ) *
+                0.16;
+
+            const scale =
+                star.userData
+                    .baseScale *
+                pulse;
+
+            star.scale.set(
+                scale,
+                scale,
+                1
+            );
+
+            star.material.opacity =
+                star.userData
+                    .baseOpacity +
+                Math.sin(
+                    elapsedTime *
+                    1.7 +
+                    star.userData.phase
+                ) *
+                0.14;
+        }
+    );
+}
+
+
+function animateGalaxies(
+    elapsedTime
+) {
+    if (!galaxyGroup) {
+        return;
+    }
+
+    galaxies.forEach(
+        (galaxy) => {
+            galaxy.material.rotation +=
+                galaxy.userData
+                    .rotationSpeed;
+
+            galaxy.material.opacity =
+                galaxy.userData
+                    .baseOpacity +
+                Math.sin(
+                    elapsedTime *
+                    0.2 +
+                    galaxy.userData
+                        .phase
+                ) *
+                0.04;
+        }
+    );
+}
+
+
+function animateAsteroids(
+    elapsedTime
+) {
+    if (!asteroidGroup) {
+        return;
+    }
+
+    asteroids.forEach(
+        (asteroid) => {
+            asteroid.rotation.x +=
+                asteroid.userData
+                    .rotationSpeed.x;
+
+            asteroid.rotation.y +=
+                asteroid.userData
+                    .rotationSpeed.y;
+
+            asteroid.rotation.z +=
+                asteroid.userData
+                    .rotationSpeed.z;
+
+            asteroid.position.y +=
+                Math.sin(
+                    elapsedTime *
+                    0.3 +
+                    asteroid.userData
+                        .phase
+                ) *
+                asteroid.userData
+                    .drift;
+        }
+    );
+}
+
+
+function animateDistantSun(
+    elapsedTime
+) {
+    if (
+        !distantSun ||
+        !distantSunGlow
+    ) {
+        return;
+    }
+
+    const pulse =
+        1 +
+        Math.sin(
+            elapsedTime *
+            0.42
+        ) *
+        0.045;
+
+    distantSunGlow.scale.set(
+        22 * pulse,
+        22 * pulse,
+        1
+    );
+
+    distantSunGlow.material.opacity =
+        0.42 +
+        Math.sin(
+            elapsedTime *
+            0.5
+        ) *
+        0.06;
+}
+
+
+function applyUniverseNavigation() {
+    universeYaw +=
+        (
+            targetUniverseYaw -
+            universeYaw
+        ) *
+        0.06;
+
+    universePitch +=
+        (
+            targetUniversePitch -
+            universePitch
+        ) *
+        0.06;
+
+    const groups = [
+        detailedStarGroup,
+        galaxyGroup,
+        asteroidGroup,
+        shootingStarGroup,
+        interactiveStarGroup,
+        birthdayMessageGroup
+    ];
+
+    groups.forEach(
+        (group) => {
+            if (!group) {
+                return;
+            }
+
+            group.rotation.y =
+                universeYaw;
+
+            group.rotation.x =
+                universePitch;
+        }
+    );
+}
+
+
+function animateHiddenBirthdayMessage(
+    elapsedTime
+) {
+    if (
+        !birthdayMessagePoints ||
+        !birthdayMessageTargetPositions ||
+        !birthdayMessageScatterPositions
+    ) {
+        return;
+    }
+
+    const positionAttribute =
+        birthdayMessagePoints
+            .geometry
+            .getAttribute(
+                "position"
+            );
+
+    let targetSet =
+        birthdayMessageScatterPositions;
+
+    let speed =
+        0.035;
+
+    if (
+        birthdayMessageState ===
+        "revealing" ||
+        birthdayMessageState ===
+        "shown"
+    ) {
+        targetSet =
+            birthdayMessageTargetPositions;
+
+        speed =
+            0.07;
+    }
+
+    for (
+        let index = 0;
+        index < positionAttribute.count;
+        index += 1
+    ) {
+        const target =
+            targetSet[
+                index
+            ];
+
+        positionAttribute.setXYZ(
+            index,
+            THREE.MathUtils.lerp(
+                positionAttribute.getX(index),
+                target.x,
+                speed
+            ),
+            THREE.MathUtils.lerp(
+                positionAttribute.getY(index),
+                target.y,
+                speed
+            ),
+            THREE.MathUtils.lerp(
+                positionAttribute.getZ(index),
+                target.z,
+                speed
+            )
+        );
+    }
+
+    positionAttribute.needsUpdate =
+        true;
+
+    birthdayMessagePoints.material.opacity =
+        birthdayMessageState ===
+        "hidden"
+            ? 0.32
+            : birthdayMessageState ===
+                "shown"
+                ? 0.94
+                : 0.72;
+
+    birthdayMessageGroup.position.y =
+        2 +
+        Math.sin(
+            elapsedTime *
+            0.3
+        ) *
+        0.12;
+
+    birthdayMessageTimer +=
+        0.016;
+
+    if (
+        birthdayMessageState ===
+        "revealing" &&
+        birthdayMessageTimer >
+        2.4
+    ) {
+        birthdayMessageState =
+            "shown";
+
+        birthdayMessageTimer =
+            0;
+    }
+
+    if (
+        birthdayMessageState ===
+        "shown" &&
+        birthdayMessageTimer >
+        REALISM_CONFIG
+            .birthdayHoldDuration
+    ) {
+        scatterHiddenBirthdayMessage();
+    }
+
+    if (
+        birthdayMessageState ===
+        "scattering" &&
+        birthdayMessageTimer >
+        2.6
+    ) {
+        birthdayMessageState =
+            "hidden";
+
+        birthdayMessageTimer =
+            0;
+
+        totalDragDistance =
+            0;
+    }
+}
+
+
 /* ---------------------------------------------------------
    NARRATIVA DEL RECORRIDO
 --------------------------------------------------------- */
@@ -5504,6 +6914,35 @@ disposeObject3D(
 disposeObject3D(
     stardustGroup
 );
+
+disposeObject3D(
+    detailedStarGroup
+);
+
+disposeObject3D(
+    galaxyGroup
+);
+
+disposeObject3D(
+    asteroidGroup
+);
+
+disposeObject3D(
+    birthdayMessageGroup
+);
+
+disposeObject3D(
+    distantSun
+);
+
+if (distantSunGlow) {
+    distantSunGlow.material
+        ?.map
+        ?.dispose();
+
+    distantSunGlow.material
+        ?.dispose();
+}
 
 renderer?.dispose();
 }
