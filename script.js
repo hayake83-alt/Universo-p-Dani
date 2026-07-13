@@ -62,6 +62,25 @@ let isUniverseReady = false;
 let hasEntered = false;
 let isPageVisible = true;
 
+
+/* ---------------------------------------------------------
+   RECORRIDO CINEMATOGRÁFICO
+--------------------------------------------------------- */
+
+let journeyStartTime = null;
+let journeyProgress = 0;
+let currentJourneyStage = 0;
+
+const cameraTarget = new THREE.Vector3();
+const desiredCameraPosition = new THREE.Vector3();
+const desiredLookTarget = new THREE.Vector3();
+
+const CAMERA_JOURNEY = {
+    stageOneEnd: 0.28,
+    stageTwoEnd: 0.58,
+    stageThreeEnd: 0.82,
+    journeyDuration: prefersReducedMotion ? 20 : 32
+};
 const pointer = {
     x: 0,
     y: 0
@@ -115,15 +134,15 @@ const NEBULA_CONFIG = {
 };
 
 const PLANET_CONFIG = {
-    radius: isSmallScreen ? 3.3 : 4.2,
+    radius: isSmallScreen ? 3.2 : 4.05,
+
     position: isSmallScreen
-        ? new THREE.Vector3(4.7, -1.3, -16)
-        : new THREE.Vector3(7.5, -1.2, -18),
+        ? new THREE.Vector3(3.55, -1.15, -16.5)
+        : new THREE.Vector3(5.85, -1.05, -18.5),
 
-    moonDistance: isSmallScreen ? 6.2 : 7.8,
-    moonRadius: isSmallScreen ? 0.62 : 0.78
+    moonDistance: isSmallScreen ? 6.05 : 7.55,
+    moonRadius: isSmallScreen ? 0.6 : 0.76
 };
-
 
 /* ---------------------------------------------------------
    INICIO
@@ -2187,6 +2206,12 @@ function enterUniverse() {
     }
 
     hasEntered = true;
+    journeyStartTime = clock
+        ? clock.getElapsedTime()
+        : 0;
+
+    journeyProgress = 0;
+    currentJourneyStage = 1;
 
     startButton.disabled = true;
 
@@ -2199,7 +2224,7 @@ function enterUniverse() {
     intro.style.pointerEvents = "none";
 
     updateStatus(
-        "Has entrado al universo."
+        "Comienza el recorrido por el universo."
     );
 
     window.setTimeout(
@@ -2215,7 +2240,6 @@ function enterUniverse() {
         1300
     );
 }
-
 
 /* ---------------------------------------------------------
    ANIMACIÓN PRINCIPAL
@@ -2506,15 +2530,23 @@ function animatePlanetSystem(
         0.00125 *
         motionMultiplier;
 
-    planetSystem.rotation.y =
-        smoothPointer.x *
-        0.035 *
-        motionMultiplier;
+   const planetInteractionStrength =
+    currentJourneyStage === 1
+        ? 0.018
+        : currentJourneyStage === 2
+            ? 0.026
+            : 0.032;
 
-    planetSystem.rotation.x =
-        smoothPointer.y *
-        0.022 *
-        motionMultiplier;
+planetSystem.rotation.y =
+    smoothPointer.x *
+    planetInteractionStrength *
+    motionMultiplier;
+
+planetSystem.rotation.x =
+    smoothPointer.y *
+    planetInteractionStrength *
+    0.65 *
+    motionMultiplier;
 
     planetSystem.position.y =
         PLANET_CONFIG.position.y +
@@ -2567,25 +2599,55 @@ function animateCamera(
 ) {
     const motionMultiplier =
         prefersReducedMotion
-            ? 0.15
+            ? 0.18
             : 1;
 
-    const interactionStrength =
-        hasEntered
-            ? 1
-            : 0.42;
+    if (!hasEntered) {
+        animateIntroCamera(
+            elapsedTime,
+            motionMultiplier
+        );
 
+        return;
+    }
+
+    updateJourneyProgress(
+        elapsedTime
+    );
+
+    calculateJourneyPosition(
+        elapsedTime,
+        motionMultiplier
+    );
+
+    applyCameraInteraction(
+        motionMultiplier
+    );
+
+    moveCameraSmoothly();
+
+    camera.lookAt(
+        cameraTarget
+    );
+}
+
+
+/**
+ * Movimiento de cámara antes de entrar.
+ */
+function animateIntroCamera(
+    elapsedTime,
+    motionMultiplier
+) {
     const targetX =
         smoothPointer.x *
-        0.55 *
-        motionMultiplier *
-        interactionStrength;
+        0.22 *
+        motionMultiplier;
 
     const targetY =
         smoothPointer.y *
-        0.34 *
-        motionMultiplier *
-        interactionStrength;
+        0.16 *
+        motionMultiplier;
 
     camera.position.x +=
         (
@@ -2601,52 +2663,537 @@ function animateCamera(
         ) *
         0.018;
 
-    const targetZ =
-        hasEntered
-            ? 14.7
-            : 18;
+    const introZ =
+        18 +
+        Math.sin(
+            elapsedTime *
+            0.15
+        ) *
+        0.18 *
+        motionMultiplier;
 
     camera.position.z +=
         (
-            targetZ -
+            introZ -
             camera.position.z
         ) *
-        0.012;
+        0.015;
 
-    camera.position.z +=
-        Math.sin(
-            elapsedTime *
-            0.16
-        ) *
-        0.002 *
-        motionMultiplier;
-
-    const lookTarget =
-        hasEntered
-            ? new THREE.Vector3(
-                isSmallScreen ? 1.1 : 2.1,
-                -0.15,
-                -4
-            )
-            : new THREE.Vector3(
-                0,
-                0,
-                0
-            );
-
-    lookTarget.x +=
-        smoothPointer.x *
-        0.16 *
-        interactionStrength;
-
-    lookTarget.y +=
-        smoothPointer.y *
-        0.1 *
-        interactionStrength;
+    cameraTarget.set(
+        smoothPointer.x * 0.04,
+        smoothPointer.y * 0.03,
+        0
+    );
 
     camera.lookAt(
-        lookTarget
+        cameraTarget
     );
+}
+
+
+/**
+ * Calcula cuánto ha avanzado el recorrido.
+ */
+function updateJourneyProgress(
+    elapsedTime
+) {
+    if (journeyStartTime === null) {
+        journeyStartTime =
+            elapsedTime;
+    }
+
+    const journeyElapsed =
+        elapsedTime -
+        journeyStartTime;
+
+    journeyProgress =
+        THREE.MathUtils.clamp(
+            journeyElapsed /
+            CAMERA_JOURNEY.journeyDuration,
+            0,
+            1
+        );
+}
+
+
+/**
+ * Decide qué tramo del recorrido está activo.
+ */
+function calculateJourneyPosition(
+    elapsedTime,
+    motionMultiplier
+) {
+    if (
+        journeyProgress <
+        CAMERA_JOURNEY.stageOneEnd
+    ) {
+        currentJourneyStage = 1;
+
+        calculatePlanetApproach(
+            elapsedTime,
+            motionMultiplier
+        );
+
+        return;
+    }
+
+    if (
+        journeyProgress <
+        CAMERA_JOURNEY.stageTwoEnd
+    ) {
+        currentJourneyStage = 2;
+
+        calculatePlanetOrbit(
+            elapsedTime,
+            motionMultiplier
+        );
+
+        return;
+    }
+
+    if (
+        journeyProgress <
+        CAMERA_JOURNEY.stageThreeEnd
+    ) {
+        currentJourneyStage = 3;
+
+        calculateMoonView(
+            elapsedTime,
+            motionMultiplier
+        );
+
+        return;
+    }
+
+    currentJourneyStage = 4;
+
+    calculateDeepSpaceExit(
+        elapsedTime,
+        motionMultiplier
+    );
+}
+
+
+/**
+ * Etapa 1:
+ * acercamiento inicial al planeta.
+ */
+function calculatePlanetApproach(
+    elapsedTime,
+    motionMultiplier
+) {
+    const localProgress =
+        normalizeJourneyProgress(
+            journeyProgress,
+            0,
+            CAMERA_JOURNEY.stageOneEnd
+        );
+
+    const easedProgress =
+        easeInOutCubic(
+            localProgress
+        );
+
+    const startPosition =
+        new THREE.Vector3(
+            0,
+            0,
+            18
+        );
+
+    const destination =
+        isSmallScreen
+            ? new THREE.Vector3(
+                0.3,
+                0.15,
+                10.8
+            )
+            : new THREE.Vector3(
+                0.8,
+                0.2,
+                10.3
+            );
+
+    desiredCameraPosition.lerpVectors(
+        startPosition,
+        destination,
+        easedProgress
+    );
+
+    desiredCameraPosition.y +=
+        Math.sin(
+            elapsedTime *
+            0.32
+        ) *
+        0.08 *
+        motionMultiplier;
+
+    desiredLookTarget.set(
+        PLANET_CONFIG.position.x * 0.52,
+        PLANET_CONFIG.position.y * 0.45,
+        PLANET_CONFIG.position.z * 0.35
+    );
+}
+
+
+/**
+ * Etapa 2:
+ * movimiento lateral alrededor del planeta.
+ */
+function calculatePlanetOrbit(
+    elapsedTime,
+    motionMultiplier
+) {
+    const localProgress =
+        normalizeJourneyProgress(
+            journeyProgress,
+            CAMERA_JOURNEY.stageOneEnd,
+            CAMERA_JOURNEY.stageTwoEnd
+        );
+
+    const easedProgress =
+        easeInOutSine(
+            localProgress
+        );
+
+    const startPosition =
+        isSmallScreen
+            ? new THREE.Vector3(
+                0.3,
+                0.15,
+                10.8
+            )
+            : new THREE.Vector3(
+                0.8,
+                0.2,
+                10.3
+            );
+
+    const orbitDestination =
+        isSmallScreen
+            ? new THREE.Vector3(
+                -1.3,
+                1.2,
+                8.4
+            )
+            : new THREE.Vector3(
+                -1.8,
+                1.45,
+                7.9
+            );
+
+    desiredCameraPosition.lerpVectors(
+        startPosition,
+        orbitDestination,
+        easedProgress
+    );
+
+    desiredCameraPosition.x +=
+        Math.sin(
+            localProgress *
+            Math.PI
+        ) *
+        0.75 *
+        motionMultiplier;
+
+    desiredCameraPosition.y +=
+        Math.sin(
+            elapsedTime *
+            0.24
+        ) *
+        0.1 *
+        motionMultiplier;
+
+    desiredLookTarget.set(
+        PLANET_CONFIG.position.x * 0.63,
+        PLANET_CONFIG.position.y * 0.5,
+        PLANET_CONFIG.position.z * 0.5
+    );
+}
+
+
+/**
+ * Etapa 3:
+ * la cámara dirige la atención hacia la luna.
+ */
+function calculateMoonView(
+    elapsedTime,
+    motionMultiplier
+) {
+    const localProgress =
+        normalizeJourneyProgress(
+            journeyProgress,
+            CAMERA_JOURNEY.stageTwoEnd,
+            CAMERA_JOURNEY.stageThreeEnd
+        );
+
+    const easedProgress =
+        easeInOutCubic(
+            localProgress
+        );
+
+    const startPosition =
+        isSmallScreen
+            ? new THREE.Vector3(
+                -1.3,
+                1.2,
+                8.4
+            )
+            : new THREE.Vector3(
+                -1.8,
+                1.45,
+                7.9
+            );
+
+    const moonViewPosition =
+        isSmallScreen
+            ? new THREE.Vector3(
+                1.15,
+                2.1,
+                7.1
+            )
+            : new THREE.Vector3(
+                1.6,
+                2.45,
+                6.6
+            );
+
+    desiredCameraPosition.lerpVectors(
+        startPosition,
+        moonViewPosition,
+        easedProgress
+    );
+
+    desiredCameraPosition.y +=
+        Math.sin(
+            elapsedTime *
+            0.3
+        ) *
+        0.07 *
+        motionMultiplier;
+
+    const moonWorldPosition =
+        new THREE.Vector3();
+
+    if (moon) {
+        moon.getWorldPosition(
+            moonWorldPosition
+        );
+    } else {
+        moonWorldPosition.copy(
+            PLANET_CONFIG.position
+        );
+    }
+
+    desiredLookTarget.lerpVectors(
+        new THREE.Vector3(
+            PLANET_CONFIG.position.x,
+            PLANET_CONFIG.position.y,
+            PLANET_CONFIG.position.z
+        ),
+        moonWorldPosition,
+        easedProgress * 0.62
+    );
+}
+
+
+/**
+ * Etapa 4:
+ * la cámara deja atrás el planeta
+ * y se dirige a otra zona del universo.
+ */
+function calculateDeepSpaceExit(
+    elapsedTime,
+    motionMultiplier
+) {
+    const localProgress =
+        normalizeJourneyProgress(
+            journeyProgress,
+            CAMERA_JOURNEY.stageThreeEnd,
+            1
+        );
+
+    const easedProgress =
+        easeInOutSine(
+            localProgress
+        );
+
+    const startPosition =
+        isSmallScreen
+            ? new THREE.Vector3(
+                1.15,
+                2.1,
+                7.1
+            )
+            : new THREE.Vector3(
+                1.6,
+                2.45,
+                6.6
+            );
+
+    const deepSpacePosition =
+        isSmallScreen
+            ? new THREE.Vector3(
+                -3.3,
+                1.1,
+                2.8
+            )
+            : new THREE.Vector3(
+                -4.8,
+                1.35,
+                1.6
+            );
+
+    desiredCameraPosition.lerpVectors(
+        startPosition,
+        deepSpacePosition,
+        easedProgress
+    );
+
+    desiredCameraPosition.y +=
+        Math.sin(
+            elapsedTime *
+            0.21
+        ) *
+        0.08 *
+        motionMultiplier;
+
+    const initialTarget =
+        new THREE.Vector3(
+            PLANET_CONFIG.position.x,
+            PLANET_CONFIG.position.y,
+            PLANET_CONFIG.position.z
+        );
+
+    const deepTarget =
+        isSmallScreen
+            ? new THREE.Vector3(
+                -3.8,
+                0.4,
+                -24
+            )
+            : new THREE.Vector3(
+                -5.5,
+                0.5,
+                -28
+            );
+
+    desiredLookTarget.lerpVectors(
+        initialTarget,
+        deepTarget,
+        easedProgress
+    );
+}
+
+
+/**
+ * Permite una interacción ligera sin romper
+ * el recorrido automático.
+ */
+function applyCameraInteraction(
+    motionMultiplier
+) {
+    const stageInteraction =
+        currentJourneyStage === 4
+            ? 0.45
+            : 0.28;
+
+    desiredCameraPosition.x +=
+        smoothPointer.x *
+        stageInteraction *
+        motionMultiplier;
+
+    desiredCameraPosition.y +=
+        smoothPointer.y *
+        stageInteraction *
+        0.65 *
+        motionMultiplier;
+
+    desiredLookTarget.x +=
+        smoothPointer.x *
+        0.16 *
+        motionMultiplier;
+
+    desiredLookTarget.y +=
+        smoothPointer.y *
+        0.1 *
+        motionMultiplier;
+}
+
+
+/**
+ * Aplica suavemente las posiciones calculadas.
+ */
+function moveCameraSmoothly() {
+    const positionSmoothing =
+        currentJourneyStage === 1
+            ? 0.022
+            : 0.018;
+
+    camera.position.lerp(
+        desiredCameraPosition,
+        positionSmoothing
+    );
+
+    cameraTarget.lerp(
+        desiredLookTarget,
+        0.022
+    );
+}
+
+
+/**
+ * Convierte un tramo del recorrido a valores de 0 a 1.
+ */
+function normalizeJourneyProgress(
+    value,
+    minimum,
+    maximum
+) {
+    if (maximum === minimum) {
+        return 1;
+    }
+
+    return THREE.MathUtils.clamp(
+        (
+            value -
+            minimum
+        ) /
+        (
+            maximum -
+            minimum
+        ),
+        0,
+        1
+    );
+}
+
+
+/**
+ * Curva suave con aceleración y desaceleración.
+ */
+function easeInOutCubic(value) {
+    return value < 0.5
+        ? 4 * value * value * value
+        : 1 -
+            Math.pow(
+                -2 * value + 2,
+                3
+            ) /
+            2;
+}
+
+
+/**
+ * Curva suave basada en seno.
+ */
+function easeInOutSine(value) {
+    return -(
+        Math.cos(
+            Math.PI * value
+        ) -
+        1
+    ) / 2;
 }
 
 
