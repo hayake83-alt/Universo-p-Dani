@@ -295,10 +295,15 @@ const PLANET_CONFIG = {
    INICIO
 --------------------------------------------------------- */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    initializeUniverse
-);
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeUniverse,
+        { once: true }
+    );
+} else {
+    initializeUniverse();
+}
 
 
 /**
