@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   VERSIÓN FINAL A: UNIVERSO DE PARTÍCULAS
+   VERSIÓN B PULIDA: UNIVERSO PROCEDIMENTAL REALISTA
    ========================================================= */
 
 
@@ -256,6 +256,17 @@ let finalSceneShown = false;
 let finalSceneTimeout = null;
 let finalSceneDismissed = false;
 
+let proceduralUniverseMesh;
+let proceduralUniverseMaterial;
+
+let milkyWayRibbonGroup;
+let milkyWayRibbonLayers = [];
+let cosmicDustGroup;
+let cosmicDustLayers = [];
+let starShockwaveGroup;
+let starShockwaves = [];
+
+
 const cosmicRaycaster = new THREE.Raycaster();
 const cosmicPointer = new THREE.Vector2();
 
@@ -450,10 +461,10 @@ const CONSTELLATION_DATA = [
 --------------------------------------------------------- */
 
 const STAR_CONFIG = {
-    mainCount: isSmallScreen ? 2200 : 4200,
-    distantCount: isSmallScreen ? 1600 : 3200,
-    coloredCount: isSmallScreen ? 320 : 680,
-    closeCount: isSmallScreen ? 190 : 380,
+    mainCount: isSmallScreen ? 1200 : 2200,
+    distantCount: isSmallScreen ? 700 : 1400,
+    coloredCount: isSmallScreen ? 160 : 300,
+    closeCount: isSmallScreen ? 100 : 180,
 
     mainSpread: 115,
     distantSpread: 175,
@@ -522,11 +533,16 @@ const AUDIO_CONFIG = {
 };
 
 const POLISH_CONFIG = {
-    deepStarCount: isSmallScreen ? 3800 : 7600,
+    deepStarCount: isSmallScreen ? 1600 : 3200,
     galacticBandParticleCount: isSmallScreen ? 950 : 1850,
-    galacticBandLayerCount: isSmallScreen ? 3 : 5,
+    galacticBandLayerCount: isSmallScreen ? 2 : 3,
     solarFlareCount: isSmallScreen ? 7 : 12,
     finalSceneDelay: 2400
+};
+
+const REFINED_COSMIC_CONFIG = {
+    milkyWayLayers: isSmallScreen ? 3 : 5,
+    dustLayers: isSmallScreen ? 4 : 7
 };
 
 /* ---------------------------------------------------------
@@ -564,6 +580,10 @@ async function initializeUniverse() {
         createScene();
         createCamera();
         createRenderer();
+        createProceduralUniverse();
+        createMilkyWayRibbon();
+        createCosmicDustLayers();
+        createStarShockwaveSystem();
         createLights();
 
         updateLoaderText("Creando estrellas…");
@@ -748,6 +768,342 @@ function createRenderer() {
 }
 
 
+
+/* ---------------------------------------------------------
+   FONDO PROCEDIMENTAL
+--------------------------------------------------------- */
+
+function createProceduralUniverse() {
+    const geometry =
+        new THREE.SphereGeometry(
+            240,
+            isSmallScreen ? 48 : 72,
+            isSmallScreen ? 32 : 48
+        );
+
+    proceduralUniverseMaterial =
+        new THREE.ShaderMaterial({
+            side: THREE.BackSide,
+            depthWrite: false,
+            transparent: false,
+            uniforms: {
+                uTime: {
+                    value: 0
+                },
+                uResolution: {
+                    value: new THREE.Vector2(
+                        window.innerWidth,
+                        window.innerHeight
+                    )
+                }
+            },
+            vertexShader: `
+                varying vec3 vWorldPosition;
+
+                void main() {
+                    vec4 worldPosition =
+                        modelMatrix *
+                        vec4(position, 1.0);
+
+                    vWorldPosition =
+                        worldPosition.xyz;
+
+                    gl_Position =
+                        projectionMatrix *
+                        viewMatrix *
+                        worldPosition;
+                }
+            `,
+            fragmentShader: `
+                precision highp float;
+
+                uniform float uTime;
+                varying vec3 vWorldPosition;
+
+                float hash(vec3 p) {
+                    p = fract(
+                        p * 0.3183099 +
+                        vec3(0.1, 0.2, 0.3)
+                    );
+
+                    p *= 17.0;
+
+                    return fract(
+                        p.x * p.y * p.z *
+                        (p.x + p.y + p.z)
+                    );
+                }
+
+                float noise(vec3 p) {
+                    vec3 i = floor(p);
+                    vec3 f = fract(p);
+
+                    f = f * f *
+                        (3.0 - 2.0 * f);
+
+                    return mix(
+                        mix(
+                            mix(
+                                hash(i + vec3(0.0,0.0,0.0)),
+                                hash(i + vec3(1.0,0.0,0.0)),
+                                f.x
+                            ),
+                            mix(
+                                hash(i + vec3(0.0,1.0,0.0)),
+                                hash(i + vec3(1.0,1.0,0.0)),
+                                f.x
+                            ),
+                            f.y
+                        ),
+                        mix(
+                            mix(
+                                hash(i + vec3(0.0,0.0,1.0)),
+                                hash(i + vec3(1.0,0.0,1.0)),
+                                f.x
+                            ),
+                            mix(
+                                hash(i + vec3(0.0,1.0,1.0)),
+                                hash(i + vec3(1.0,1.0,1.0)),
+                                f.x
+                            ),
+                            f.y
+                        ),
+                        f.z
+                    );
+                }
+
+                float fbm(vec3 p) {
+                    float value = 0.0;
+                    float amplitude = 0.5;
+
+                    for (int i = 0; i < 5; i++) {
+                        value +=
+                            amplitude *
+                            noise(p);
+
+                        p =
+                            p * 2.03 +
+                            vec3(11.7, 7.3, 5.1);
+
+                        amplitude *= 0.5;
+                    }
+
+                    return value;
+                }
+
+                void main() {
+                    vec3 direction =
+                        normalize(vWorldPosition);
+
+                    vec3 p =
+                        direction * 3.4;
+
+                    p +=
+                        vec3(
+                            uTime * 0.008,
+                            -uTime * 0.004,
+                            uTime * 0.006
+                        );
+
+                    float cloudA =
+                        fbm(p);
+
+                    float cloudB =
+                        fbm(
+                            p * 1.8 +
+                            vec3(4.0, -2.0, 3.0)
+                        );
+
+                    float band =
+                        exp(
+                            -pow(
+                                abs(direction.y * 2.8 +
+                                direction.x * 0.75),
+                                2.0
+                            ) * 3.5
+                        );
+
+                    vec3 deepColor =
+                        vec3(
+                            0.006,
+                            0.008,
+                            0.025
+                        );
+
+                    vec3 blueNebula =
+                        vec3(
+                            0.12,
+                            0.20,
+                            0.55
+                        );
+
+                    vec3 violetNebula =
+                        vec3(
+                            0.42,
+                            0.12,
+                            0.50
+                        );
+
+                    vec3 pinkNebula =
+                        vec3(
+                            0.52,
+                            0.12,
+                            0.34
+                        );
+
+                    vec3 color =
+                        deepColor;
+
+                    color +=
+                        blueNebula *
+                        smoothstep(
+                            0.48,
+                            0.84,
+                            cloudA
+                        ) *
+                        0.65;
+
+                    color +=
+                        violetNebula *
+                        smoothstep(
+                            0.55,
+                            0.88,
+                            cloudB
+                        ) *
+                        0.55;
+
+                    color +=
+                        pinkNebula *
+                        band *
+                        smoothstep(
+                            0.36,
+                            0.8,
+                            cloudA + cloudB * 0.25
+                        ) *
+                        0.45;
+
+                    float dust =
+                        smoothstep(
+                            0.5,
+                            0.82,
+                            fbm(
+                                p * 3.2 +
+                                vec3(3.0)
+                            )
+                        );
+
+                    color *=
+                        1.0 -
+                        dust *
+                        band *
+                        0.48;
+
+                    float stars =
+                        step(
+                            0.9975,
+                            hash(
+                                floor(
+                                    direction *
+                                    900.0
+                                )
+                            )
+                        );
+
+                    float brightStars =
+                        step(
+                            0.99935,
+                            hash(
+                                floor(
+                                    direction *
+                                    420.0 +
+                                    17.0
+                                )
+                            )
+                        );
+
+                    color +=
+                        vec3(0.85, 0.92, 1.0) *
+                        stars *
+                        0.75;
+
+                    color +=
+                        vec3(1.0, 0.82, 0.68) *
+                        brightStars *
+                        1.35;
+
+                    gl_FragColor =
+                        vec4(
+                            color,
+                            1.0
+                        );
+                }
+            `
+        });
+
+    proceduralUniverseMesh =
+        new THREE.Mesh(
+            geometry,
+            proceduralUniverseMaterial
+        );
+
+    proceduralUniverseMesh.name =
+        "ProceduralUniverse";
+
+    scene.add(
+        proceduralUniverseMesh
+    );
+}
+
+
+function animateProceduralUniverse(
+    elapsedTime
+) {
+    if (
+        !proceduralUniverseMaterial
+    ) {
+        return;
+    }
+
+    proceduralUniverseMaterial.uniforms
+        .uTime.value =
+        elapsedTime;
+}
+
+function createRefinedStarTexture() {
+    const c=document.createElement("canvas"); c.width=256; c.height=256;
+    const x=c.getContext("2d");
+    const g=x.createRadialGradient(128,128,0,128,128,128);
+    g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(0.055,"rgba(255,255,255,1)");
+    g.addColorStop(0.14,"rgba(222,235,255,0.92)"); g.addColorStop(0.34,"rgba(130,175,255,0.32)");
+    g.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=g; x.fillRect(0,0,256,256);
+    x.save(); x.translate(128,128);
+    const b=x.createLinearGradient(-128,0,128,0);
+    b.addColorStop(0,"rgba(255,255,255,0)"); b.addColorStop(0.46,"rgba(220,235,255,0.08)");
+    b.addColorStop(0.5,"rgba(255,255,255,0.86)"); b.addColorStop(0.54,"rgba(220,235,255,0.08)"); b.addColorStop(1,"rgba(255,255,255,0)");
+    x.fillStyle=b; x.fillRect(-128,-2,256,4); x.rotate(Math.PI/2); x.fillRect(-128,-1.3,256,2.6); x.restore();
+    const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+
+function createMilkyWayRibbonTexture() {
+    const c=document.createElement("canvas"); c.width=1400; c.height=360; const x=c.getContext("2d");
+    const g=x.createLinearGradient(0,0,0,c.height);
+    g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(0.25,"rgba(90,110,170,0.035)");
+    g.addColorStop(0.47,"rgba(236,240,255,0.20)"); g.addColorStop(0.53,"rgba(255,255,255,0.26)");
+    g.addColorStop(0.72,"rgba(115,90,155,0.06)"); g.addColorStop(1,"rgba(0,0,0,0)");
+    x.fillStyle=g; x.fillRect(0,0,c.width,c.height);
+    for(let i=0;i<950;i++){ const px=randomBetween(0,c.width); const cy=c.height/2+Math.sin(px*0.008)*16; const py=cy+randomBetween(-92,92); const d=Math.abs(py-cy); const a=Math.max(0,1-d/105)*randomBetween(0.08,0.75); x.fillStyle=i%5===0?`rgba(255,224,205,${a})`:i%3===0?`rgba(204,219,255,${a})`:`rgba(255,255,255,${a})`; x.beginPath(); x.arc(px,py,randomBetween(0.45,2.3),0,Math.PI*2); x.fill(); }
+    for(let i=0;i<55;i++){ x.globalAlpha=randomBetween(0.025,0.11); x.fillStyle="#070914"; x.beginPath(); x.ellipse(randomBetween(0,c.width),c.height/2+randomBetween(-55,55),randomBetween(45,175),randomBetween(5,21),randomBetween(-0.16,0.16),0,Math.PI*2); x.fill(); }
+    x.globalAlpha=1; const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+
+function createMilkyWayRibbon(){ milkyWayRibbonGroup=new THREE.Group(); const tex=createMilkyWayRibbonTexture();
+    for(let i=0;i<REFINED_COSMIC_CONFIG.milkyWayLayers;i++){ const m=new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0.22-i*0.025,depthWrite:false,blending:THREE.AdditiveBlending}); const s=new THREE.Sprite(m); s.position.set(-8+i*3.2,-1+i*0.6,-74-i*8); s.scale.set(128+i*20,29+i*5,1); s.material.rotation=-0.26+i*0.012; s.userData={baseOpacity:m.opacity,phase:i*0.7}; milkyWayRibbonLayers.push(s); milkyWayRibbonGroup.add(s);} scene.add(milkyWayRibbonGroup); }
+
+function createCosmicDustTexture(color){ const c=document.createElement("canvas"); c.width=512;c.height=512;const x=c.getContext("2d"); for(let i=0;i<90;i++){ const px=randomBetween(30,482),py=randomBetween(30,482),r=randomBetween(16,88),a=randomBetween(0.012,0.055); const g=x.createRadialGradient(px,py,0,px,py,r); g.addColorStop(0,color.replace("{a}",a.toFixed(3))); g.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=g;x.beginPath();x.arc(px,py,r,0,Math.PI*2);x.fill(); } const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t; }
+function createCosmicDustLayers(){ cosmicDustGroup=new THREE.Group(); const ts=[createCosmicDustTexture("rgba(88,125,255,{a})"),createCosmicDustTexture("rgba(195,90,180,{a})"),createCosmicDustTexture("rgba(225,175,235,{a})")]; for(let i=0;i<REFINED_COSMIC_CONFIG.dustLayers;i++){ const m=new THREE.SpriteMaterial({map:ts[i%ts.length],transparent:true,opacity:randomBetween(0.08,0.18),depthWrite:false,blending:THREE.AdditiveBlending}); const d=new THREE.Sprite(m); d.position.set(randomBetween(-36,36),randomBetween(-18,18),randomBetween(-42,-120)); const sc=randomBetween(34,74);d.scale.set(sc,sc*randomBetween(0.62,1.2),1);d.material.rotation=randomBetween(0,Math.PI*2);d.userData={baseOpacity:m.opacity,phase:randomBetween(0,Math.PI*2)};cosmicDustLayers.push(d);cosmicDustGroup.add(d);} scene.add(cosmicDustGroup); }
+function createStarShockwaveSystem(){ starShockwaveGroup=new THREE.Group(); scene.add(starShockwaveGroup); }
+function createStarShockwave(p,color){ const r=new THREE.Mesh(new THREE.RingGeometry(0.18,0.22,48),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.75,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending})); r.position.copy(p);r.lookAt(camera.position);r.userData={age:0,duration:0.8};starShockwaves.push(r);starShockwaveGroup.add(r); }
+function triggerConstellationStarEffect(star){ if(!star)return; star.getWorldPosition(temporaryVector); const color=star.userData.glow?.material?.color?.getHex()??0xffffff; createStardustBurst(temporaryVector,color);createStarShockwave(temporaryVector,color); }
 /* ---------------------------------------------------------
    LUCES
 --------------------------------------------------------- */
@@ -2485,75 +2841,7 @@ function createConstellation() {
 /**
  * Crea una estrella que puede ser tocada.
  */
-function createConstellationStar(
-    position,
-    starIndex,
-    constellationIndex,
-    texture,
-    data
-) {
-    const starGroup = new THREE.Group();
-
-    starGroup.position.set(
-        position[0],
-        position[1],
-        position[2]
-    );
-
-    starGroup.userData = {
-        constellationIndex,
-        constellationStarIndex: starIndex,
-        baseScale: starIndex % 4 === 0 ? 0.44 : 0.32,
-        phase: starIndex * 0.72,
-        isConstellationStar: true
-    };
-
-    const core = new THREE.Mesh(
-        new THREE.SphereGeometry(
-            starIndex % 4 === 0 ? 0.11 : 0.078,
-            16,
-            12
-        ),
-        new THREE.MeshBasicMaterial({
-            color: data.color,
-            transparent: true,
-            opacity: 1
-        })
-    );
-
-    core.userData = {
-        isConstellationStar: true,
-        constellationIndex,
-        constellationStarIndex: starIndex
-    };
-
-    const glow = new THREE.Sprite(
-        new THREE.SpriteMaterial({
-            map: texture,
-            color: data.glowColor,
-            transparent: true,
-            opacity: 0.76,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending
-        })
-    );
-
-    const baseScale = starGroup.userData.baseScale;
-    glow.scale.set(baseScale, baseScale, 1);
-
-    glow.userData = {
-        isConstellationStar: true,
-        constellationIndex,
-        constellationStarIndex: starIndex
-    };
-
-    starGroup.add(core, glow);
-    starGroup.userData.core = core;
-    starGroup.userData.glow = glow;
-    starGroup.scale.setScalar(0.001);
-
-    return starGroup;
-}
+function createConstellationStar(position,starIndex,constellationIndex,texture,data){ const g=new THREE.Group();g.position.set(position[0],position[1],position[2]);g.userData={constellationIndex,constellationStarIndex:starIndex,baseScale:starIndex%4===0?0.74:0.54,phase:starIndex*0.72,isConstellationStar:true};const hit=new THREE.Mesh(new THREE.SphereGeometry(starIndex%4===0?0.2:0.15,12,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));hit.userData={isConstellationStar:true,constellationIndex,constellationStarIndex:starIndex};const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:createRefinedStarTexture(),color:data.glowColor,transparent:true,opacity:0.84,depthWrite:false,blending:THREE.AdditiveBlending}));const sc=g.userData.baseScale;glow.scale.set(sc,sc,1);glow.userData={isConstellationStar:true,constellationIndex,constellationStarIndex:starIndex};g.add(hit,glow);g.userData.core=hit;g.userData.glow=glow;g.scale.setScalar(0.001);return g;}
 
 
 /**
@@ -2889,151 +3177,10 @@ function resetShootingStar(
 }
 
 
-function createInteractiveStars() {
-    interactiveStarGroup =
-        new THREE.Group();
-
-    interactiveStarGroup.name =
-        "InteractiveStarGroup";
-
-    interactiveStars = [];
-
-    const texture =
-        createGlowTexture();
-
-    for (
-        let index = 0;
-        index < COSMIC_CONFIG
-            .interactiveStarCount;
-        index += 1
-    ) {
-        const group =
-            new THREE.Group();
-
-        const position =
-            createInteractiveStarPosition(
-                index
-            );
-
-        group.position.copy(
-            position
-        );
-
-        group.userData = {
-            basePosition:
-                position.clone(),
-
-            phase:
-                index *
-                0.83,
-
-            escaped:
-                false,
-
-            escapeProgress:
-                0,
-
-            escapeDirection:
-                new THREE.Vector3(),
-
-            isInteractiveCosmicStar:
-                true
-        };
-
-        const core =
-            new THREE.Mesh(
-                new THREE.SphereGeometry(
-                    isSmallScreen
-                        ? 0.16
-                        : 0.13,
-
-                    14,
-                    10
-                ),
-
-                new THREE.MeshBasicMaterial({
-                    color:
-                        index % 3 === 0
-                            ? 0xffffff
-                            : index % 3 === 1
-                                ? 0xbdd4ff
-                                : 0xffc8ec
-                })
-            );
-
-        core.userData = {
-            isInteractiveCosmicStar:
-                true,
-
-            starIndex:
-                index
-        };
-
-        const glow =
-            new THREE.Sprite(
-                new THREE.SpriteMaterial({
-                    map: texture,
-
-                    color:
-                        index % 3 === 0
-                            ? 0xffffff
-                            : index % 3 === 1
-                                ? 0x91b8ff
-                                : 0xf59bd2,
-
-                    transparent: true,
-                    opacity: 0.78,
-
-                    depthWrite: false,
-
-                    blending:
-                        THREE.AdditiveBlending
-                })
-            );
-
-        const glowScale =
-            isSmallScreen
-                ? 1.25
-                : 1.05;
-
-        glow.scale.set(
-            glowScale,
-            glowScale,
-            1
-        );
-
-        glow.userData = {
-            isInteractiveCosmicStar:
-                true,
-
-            starIndex:
-                index
-        };
-
-        group.add(
-            core,
-            glow
-        );
-
-        group.userData.core =
-            core;
-
-        group.userData.glow =
-            glow;
-
-        interactiveStars.push(
-            group
-        );
-
-        interactiveStarGroup.add(
-            group
-        );
-    }
-
-    scene.add(
-        interactiveStarGroup
-    );
-}
+function createInteractiveStars(){ interactiveStarGroup=new THREE.Group();interactiveStars=[];const tex=createRefinedStarTexture();
+for(let i=0;i<COSMIC_CONFIG.interactiveStarCount;i++){ const g=new THREE.Group();const p=createInteractiveStarPosition(i);g.position.copy(p);g.userData={basePosition:p.clone(),phase:i*0.83,escaped:false,escapeProgress:0,escapeDirection:new THREE.Vector3(),isInteractiveCosmicStar:true};
+const hit=new THREE.Mesh(new THREE.SphereGeometry(isSmallScreen?0.35:0.3,12,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));hit.userData={isInteractiveCosmicStar:true,starIndex:i};
+const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:i%3===0?0xffffff:i%3===1?0x9fc7ff:0xffb5de,transparent:true,opacity:randomBetween(0.72,0.94),depthWrite:false,blending:THREE.AdditiveBlending}));const sc=randomBetween(isSmallScreen?1.2:0.95,isSmallScreen?2.2:1.8);sp.scale.set(sc,sc,1);sp.userData={isInteractiveCosmicStar:true,starIndex:i,baseScale:sc};g.add(hit,sp);g.userData.core=hit;g.userData.glow=sp;interactiveStars.push(g);interactiveStarGroup.add(g);}scene.add(interactiveStarGroup);}
 
 
 function createInteractiveStarPosition(
@@ -3251,6 +3398,8 @@ function triggerInteractiveStar(
         temporaryVector,
         glowColor
     );
+
+    createStarShockwave(temporaryVector, glowColor);
 
     star.userData.escaped =
         true;
@@ -4251,58 +4400,7 @@ function createAsteroidField() {
 }
 
 
-function createDistantSun() {
-    const sunTexture =
-        createGlowTexture();
-
-    distantSun =
-        new THREE.Mesh(
-            new THREE.SphereGeometry(
-                isSmallScreen
-                    ? 2.8
-                    : 3.8,
-                48,
-                32
-            ),
-            new THREE.MeshBasicMaterial({
-                color: 0xffd49c
-            })
-        );
-
-    distantSun.position.set(
-        -34,
-        18,
-        -105
-    );
-
-    distantSunGlow =
-        new THREE.Sprite(
-            new THREE.SpriteMaterial({
-                map: sunTexture,
-                color: 0xffb86f,
-                transparent: true,
-                opacity: 0.44,
-                depthWrite: false,
-                blending:
-                    THREE.AdditiveBlending
-            })
-        );
-
-    distantSunGlow.position.copy(
-        distantSun.position
-    );
-
-    distantSunGlow.scale.set(
-        22,
-        22,
-        1
-    );
-
-    scene.add(
-        distantSun,
-        distantSunGlow
-    );
-}
+function createDistantSun(){ const radius=isSmallScreen?3.2:4.2;const c=document.createElement("canvas");c.width=512;c.height=256;const x=c.getContext("2d");const g=x.createLinearGradient(0,0,512,256);g.addColorStop(0,"#ff7a1f");g.addColorStop(0.26,"#ffb234");g.addColorStop(0.52,"#fff2a6");g.addColorStop(0.76,"#ffc14a");g.addColorStop(1,"#ff6e1c");x.fillStyle=g;x.fillRect(0,0,512,256);for(let i=0;i<260;i++){x.globalAlpha=randomBetween(0.025,0.16);x.fillStyle=i%3===0?"#fff8d7":i%3===1?"#f06c1b":"#ffd46c";x.beginPath();x.arc(randomBetween(0,512),randomBetween(0,256),randomBetween(2,16),0,Math.PI*2);x.fill();}x.globalAlpha=1;const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=THREE.RepeatWrapping;distantSun=new THREE.Mesh(new THREE.SphereGeometry(radius,64,48),new THREE.MeshBasicMaterial({map:tex,color:0xffffff}));distantSun.position.set(-34,18,-105);distantSunGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:createSolarCoronaTexture(),color:0xffaa42,transparent:true,opacity:0.42,depthWrite:false,blending:THREE.AdditiveBlending}));distantSunGlow.position.copy(distantSun.position);distantSunGlow.scale.set(25,25,1);scene.add(distantSun,distantSunGlow);}
 
 
 function createHiddenBirthdayMessage() {
@@ -6054,6 +6152,10 @@ function openConstellationPanel(
     isConstellationMessageOpen = true;
     clearConstellationHover();
 
+    const selectedStar = activeConstellationStars[selectedIndex];
+
+    triggerConstellationStarEffect(selectedStar);
+
     const activeData =
         CONSTELLATION_DATA[activeConstellationIndex];
 
@@ -6159,6 +6261,15 @@ function handleResize() {
         height,
         false
     );
+
+    if (proceduralUniverseMaterial) {
+        proceduralUniverseMaterial.uniforms
+            .uResolution.value
+            .set(
+                width,
+                height
+            );
+    }
 }
 
 
@@ -6282,7 +6393,11 @@ animateShootingStars(elapsedTime);
 animateInteractiveStars(elapsedTime);
 animateStardust(elapsedTime);
 animateDetailedStars(elapsedTime);
-animateDeepStarField(elapsedTime);
+animateProceduralUniverse(elapsedTime);
+    animateRefinedMilkyWay(elapsedTime);
+    animateCosmicDust(elapsedTime);
+    animateStarShockwaves(elapsedTime);
+    animateDeepStarField(elapsedTime);
 animateGalacticBand(elapsedTime);
 animateGalaxies(elapsedTime);
 animateAsteroids(elapsedTime);
@@ -7881,7 +7996,10 @@ function applyUniverseNavigation() {
         asteroidGroup,
         shootingStarGroup,
         interactiveStarGroup,
-        birthdayMessageGroup
+        birthdayMessageGroup,
+        milkyWayRibbonGroup,
+        cosmicDustGroup,
+        starShockwaveGroup
     ];
 
     groups.forEach(
@@ -8309,6 +8427,10 @@ function replayJourney() {
 }
 
 
+
+function animateRefinedMilkyWay(elapsedTime){ if(!milkyWayRibbonGroup)return;milkyWayRibbonGroup.rotation.y=Math.sin(elapsedTime*0.018)*0.018;milkyWayRibbonLayers.forEach((l,i)=>{l.material.opacity=l.userData.baseOpacity+Math.sin(elapsedTime*0.08+l.userData.phase)*0.02;l.position.y+=Math.sin(elapsedTime*0.04+i)*0.0007;});}
+function animateCosmicDust(elapsedTime){ if(!cosmicDustGroup)return;cosmicDustLayers.forEach((d,i)=>{d.material.opacity=d.userData.baseOpacity+Math.sin(elapsedTime*0.12+d.userData.phase)*0.018;d.material.rotation+=i%2===0?0.00005:-0.00004;});}
+function animateStarShockwaves(){ if(!starShockwaveGroup)return;for(let i=starShockwaves.length-1;i>=0;i--){const w=starShockwaves[i];w.userData.age+=0.016;const p=THREE.MathUtils.clamp(w.userData.age/w.userData.duration,0,1);w.scale.setScalar(1+p*8);w.material.opacity=0.72*(1-p);if(p>=1){starShockwaveGroup.remove(w);w.geometry.dispose();w.material.dispose();starShockwaves.splice(i,1);}}}
 /* ---------------------------------------------------------
    NARRATIVA DEL RECORRIDO
 --------------------------------------------------------- */
@@ -8649,6 +8771,14 @@ disposeObject3D(
 disposeObject3D(
     birthdayMessageGroup
 );
+
+disposeObject3D(
+    proceduralUniverseMesh
+);
+
+disposeObject3D(milkyWayRibbonGroup);
+disposeObject3D(cosmicDustGroup);
+disposeObject3D(starShockwaveGroup);
 
 disposeObject3D(
     deepStarField
