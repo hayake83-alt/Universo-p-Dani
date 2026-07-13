@@ -307,6 +307,94 @@
             Las estrellas encontraron su lugar
         </div>
 
+        <audio
+            id="backgroundMusic"
+            src="./musica.mp3"
+            preload="metadata"
+            loop
+        ></audio>
+
+        <button
+            id="audioControl"
+            class="audio-control"
+            type="button"
+            aria-pressed="false"
+            aria-label="Activar o silenciar música"
+        >
+            <span
+                id="audioControlIcon"
+                class="audio-control__icon"
+                aria-hidden="true"
+            >
+                ♪
+            </span>
+
+            <span
+                id="audioControlText"
+                class="audio-control__text"
+            >
+                Activar música
+            </span>
+        </button>
+
+        <div
+            id="audioStatus"
+            class="audio-status"
+            role="status"
+            aria-live="polite"
+        ></div>
+
+        <section
+            id="finalScene"
+            class="final-scene"
+            aria-hidden="true"
+        >
+            <div class="final-scene__card">
+                <p class="final-scene__eyebrow">
+                    Para Dani
+                </p>
+
+                <h2 class="final-scene__title">
+                    Feliz cumpleaños
+                </h2>
+
+                <div
+                    class="final-scene__orbit"
+                    aria-hidden="true"
+                >
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <p
+                    id="finalSceneMessage"
+                    class="final-scene__message"
+                >
+                    Ojalá este pequeño universo pueda recordarte
+                    lo especial que es para mí que existas.
+                </p>
+
+                <div class="final-scene__actions">
+                    <button
+                        id="replayJourneyButton"
+                        class="final-scene__button final-scene__button--primary"
+                        type="button"
+                    >
+                        Repetir el viaje
+                    </button>
+
+                    <button
+                        id="continueExploringButton"
+                        class="final-scene__button"
+                        type="button"
+                    >
+                        Seguir explorando
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <p
             id="status"
             class="sr-only"
@@ -317,6 +405,6 @@
         </p>
     </main>
 
-    <script type="module" src="./script.js?v=20"></script>
+    <script type="module" src="./script.js?v=22"></script>
 </body>
 </html>
