@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   ETAPA 9: ESTRELLAS FUGACES Y POLVO ESTELAR
+   ETAPA 10: ESCENAS NARRATIVAS Y CIERRE DEL RECORRIDO
    ========================================================= */
 
 
@@ -72,6 +72,31 @@ const constellationCounterElement =
         "constellationCounter"
     );
 
+const journeyCaption =
+    document.getElementById(
+        "journeyCaption"
+    );
+
+const journeyCaptionTitle =
+    document.getElementById(
+        "journeyCaptionTitle"
+    );
+
+const journeyCaptionText =
+    document.getElementById(
+        "journeyCaptionText"
+    );
+
+const journeyProgressBar =
+    document.getElementById(
+        "journeyProgressBar"
+    );
+
+const journeyFinalMessage =
+    document.getElementById(
+        "journeyFinalMessage"
+    );
+
 /* ---------------------------------------------------------
    VARIABLES PRINCIPALES
 --------------------------------------------------------- */
@@ -120,6 +145,10 @@ let interactiveStars = [];
 
 let stardustGroup;
 let stardustBursts = [];
+
+let lastJourneyCaptionStage = -1;
+let finalJourneyMessageShown = false;
+let journeyCaptionHideTimer = null;
 
 const cosmicRaycaster = new THREE.Raycaster();
 const cosmicPointer = new THREE.Vector2();
@@ -352,6 +381,25 @@ const COSMIC_CONFIG = {
     shootingStarMinimumDelay: 2.6,
     shootingStarMaximumDelay: 7.5
 };
+
+const JOURNEY_SCENES = [
+    {
+        title: "Un nuevo mundo",
+        text: "Todo viaje comienza con una luz que decide quedarse."
+    },
+    {
+        title: "Más cerca",
+        text: "A veces acercarse también significa aprender a mirar despacio."
+    },
+    {
+        title: "La misma órbita",
+        text: "Incluso a la distancia, algunas presencias siguen encontrando el camino."
+    },
+    {
+        title: "Entre estrellas",
+        text: "Aquí empiezan los recuerdos que guardé para ti."
+    }
+];
 
 /* ---------------------------------------------------------
    INICIO
@@ -3199,6 +3247,11 @@ nextConstellationButton.addEventListener(
     showNextConstellation
 );
 
+journeyFinalMessage.addEventListener(
+    "click",
+    hideJourneyFinalMessage
+);
+
 constellationMessage.addEventListener(
     "click",
     handleConstellationBackgroundClick
@@ -3508,6 +3561,8 @@ function openConstellationPanel(
     constellationMessageText.textContent =
         messages[selectedIndex % messages.length];
 
+    hideJourneyFinalMessage();
+
     constellationMessage.classList.add("is-visible");
     constellationMessage.setAttribute("aria-hidden", "false");
 
@@ -3713,6 +3768,7 @@ animateInteractiveStars(elapsedTime);
 animateStardust(elapsedTime);
 animateConstellation(elapsedTime);
 animateCamera(elapsedTime);
+updateJourneyNarrative();
     renderer.render(
         scene,
         camera
@@ -5135,6 +5191,155 @@ function easeInOutSine(value) {
         ) -
         1
     ) / 2;
+}
+
+
+
+/* ---------------------------------------------------------
+   NARRATIVA DEL RECORRIDO
+--------------------------------------------------------- */
+
+function updateJourneyNarrative() {
+    if (
+        !hasEntered ||
+        !journeyCaption ||
+        !journeyProgressBar
+    ) {
+        return;
+    }
+
+    const progress =
+        THREE.MathUtils.clamp(
+            journeyProgress,
+            0,
+            1
+        );
+
+    journeyProgressBar.style.transform =
+        `scaleX(${progress})`;
+
+    const stageIndex =
+        Math.max(
+            0,
+            Math.min(
+                currentJourneyStage - 1,
+                JOURNEY_SCENES.length - 1
+            )
+        );
+
+    if (
+        currentJourneyStage > 0 &&
+        stageIndex !== lastJourneyCaptionStage
+    ) {
+        lastJourneyCaptionStage =
+            stageIndex;
+
+        showJourneyCaption(
+            JOURNEY_SCENES[
+                stageIndex
+            ]
+        );
+    }
+
+    if (
+        progress >= 1 &&
+        !finalJourneyMessageShown
+    ) {
+        finalJourneyMessageShown =
+            true;
+
+        window.setTimeout(
+            showJourneyFinalMessage,
+            1000
+        );
+    }
+}
+
+
+function showJourneyCaption(
+    sceneData
+) {
+    if (
+        !sceneData ||
+        !journeyCaptionTitle ||
+        !journeyCaptionText
+    ) {
+        return;
+    }
+
+    window.clearTimeout(
+        journeyCaptionHideTimer
+    );
+
+    journeyCaptionTitle.textContent =
+        sceneData.title;
+
+    journeyCaptionText.textContent =
+        sceneData.text;
+
+    journeyCaption.classList.add(
+        "is-visible"
+    );
+
+    journeyCaption.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    journeyCaptionHideTimer =
+        window.setTimeout(
+            () => {
+                journeyCaption.classList.remove(
+                    "is-visible"
+                );
+
+                journeyCaption.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+            },
+            4300
+        );
+}
+
+
+function showJourneyFinalMessage() {
+    if (
+        !journeyFinalMessage ||
+        isConstellationMessageOpen
+    ) {
+        return;
+    }
+
+    journeyFinalMessage.classList.add(
+        "is-visible"
+    );
+
+    journeyFinalMessage.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    window.setTimeout(
+        hideJourneyFinalMessage,
+        5200
+    );
+}
+
+
+function hideJourneyFinalMessage() {
+    if (!journeyFinalMessage) {
+        return;
+    }
+
+    journeyFinalMessage.classList.remove(
+        "is-visible"
+    );
+
+    journeyFinalMessage.setAttribute(
+        "aria-hidden",
+        "true"
+    );
 }
 
 
