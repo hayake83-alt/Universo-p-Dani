@@ -3112,7 +3112,6 @@ function animateAmbientGlows(
     );
 }
 
-
 /**
  * Anima el planeta y su luna.
  */
@@ -3126,6 +3125,117 @@ function animatePlanetSystem(
     ) {
         return;
     }
+
+    const motionMultiplier =
+        prefersReducedMotion
+            ? 0.16
+            : 1;
+
+    const targetScale =
+        hasEntered
+            ? 1
+            : 0.78;
+
+    planetSystem.scale.lerp(
+        new THREE.Vector3(
+            targetScale,
+            targetScale,
+            targetScale
+        ),
+        hasEntered
+            ? 0.018
+            : 0.01
+    );
+
+    planet.rotation.y +=
+        0.00115 *
+        motionMultiplier;
+
+    if (planetClouds) {
+        planetClouds.rotation.y +=
+            0.00155 *
+            motionMultiplier;
+    }
+
+    if (moon) {
+        moon.rotation.y +=
+            0.002 *
+            motionMultiplier;
+    }
+
+    moonPivot.rotation.y +=
+        0.00125 *
+        motionMultiplier;
+
+    const planetInteractionStrength =
+        currentJourneyStage === 1
+            ? 0.018
+            : currentJourneyStage === 2
+                ? 0.026
+                : 0.032;
+
+    planetSystem.rotation.y =
+        smoothPointer.x *
+        planetInteractionStrength *
+        motionMultiplier;
+
+    planetSystem.rotation.x =
+        smoothPointer.y *
+        planetInteractionStrength *
+        0.65 *
+        motionMultiplier;
+
+    planetSystem.position.y =
+        PLANET_CONFIG.position.y +
+        Math.sin(
+            elapsedTime *
+            0.22
+        ) *
+        0.15 *
+        motionMultiplier;
+
+    if (atmosphere?.material) {
+        atmosphere.material.opacity =
+            0.105 +
+            Math.sin(
+                elapsedTime *
+                0.8
+            ) *
+            0.018 *
+            motionMultiplier;
+    }
+
+    if (outerGlow?.material) {
+        outerGlow.material.opacity =
+            0.034 +
+            Math.sin(
+                elapsedTime *
+                0.55
+            ) *
+            0.009 *
+            motionMultiplier;
+    }
+
+    if (moonGlow?.material) {
+        moonGlow.material.opacity =
+            0.18 +
+            Math.sin(
+                elapsedTime *
+                1.1
+            ) *
+            0.045 *
+            motionMultiplier;
+    }
+
+    if (moonOrbitLine?.material) {
+        moonOrbitLine.material.opacity =
+            hasEntered
+                ? 0.13
+                : 0.07;
+    }
+}
+
+
 /**
  * Muestra y anima la constelación
  * al final del recorrido.
@@ -3163,13 +3273,11 @@ function animateConstellation(
         THREE.MathUtils.clamp(
             (
                 journeyProgress -
-                CONSTELLATION_CONFIG
-                    .revealStart
+                CONSTELLATION_CONFIG.revealStart
             ) /
             (
                 1 -
-                CONSTELLATION_CONFIG
-                    .revealStart
+                CONSTELLATION_CONFIG.revealStart
             ),
             0,
             1
@@ -3197,8 +3305,7 @@ function animateConstellation(
         motionMultiplier;
 
     constellationGroup.position.y =
-        CONSTELLATION_CONFIG
-            .position.y +
+        CONSTELLATION_CONFIG.position.y +
         Math.sin(
             elapsedTime *
             0.3
@@ -3288,103 +3395,14 @@ function animateConstellation(
         );
     }
 }
-    const motionMultiplier =
-        prefersReducedMotion
-            ? 0.16
-            : 1;
 
-    const targetScale =
-        hasEntered
-            ? 1
-            : 0.78;
-
-    planetSystem.scale.lerp(
-        new THREE.Vector3(
-            targetScale,
-            targetScale,
-            targetScale
-        ),
-        hasEntered
-            ? 0.018
-            : 0.01
-    );
-
-    planet.rotation.y +=
-        0.00115 *
-        motionMultiplier;
-
-    planetClouds.rotation.y +=
-        0.00155 *
-        motionMultiplier;
-
-    moon.rotation.y +=
-        0.002 *
-        motionMultiplier;
-
-    moonPivot.rotation.y +=
-        0.00125 *
-        motionMultiplier;
-
-   const planetInteractionStrength =
-    currentJourneyStage === 1
-        ? 0.018
-        : currentJourneyStage === 2
-            ? 0.026
-            : 0.032;
-
-planetSystem.rotation.y =
-    smoothPointer.x *
-    planetInteractionStrength *
-    motionMultiplier;
-
-planetSystem.rotation.x =
-    smoothPointer.y *
-    planetInteractionStrength *
-    0.65 *
-    motionMultiplier;
-
-    planetSystem.position.y =
-        PLANET_CONFIG.position.y +
-        Math.sin(
-            elapsedTime *
-            0.22
-        ) *
-        0.15 *
-        motionMultiplier;
-
-    atmosphere.material.opacity =
-        0.105 +
-        Math.sin(
-            elapsedTime *
-            0.8
-        ) *
-        0.018 *
-        motionMultiplier;
-
-    outerGlow.material.opacity =
-        0.034 +
-        Math.sin(
-            elapsedTime *
-            0.55
-        ) *
-        0.009 *
-        motionMultiplier;
-
-    moonGlow.material.opacity =
-        0.18 +
-        Math.sin(
-            elapsedTime *
-            1.1
-        ) *
-        0.045 *
-        motionMultiplier;
-
-    moonOrbitLine.material.opacity =
-        hasEntered
-            ? 0.13
-            : 0.07;
-}
-
+     
+/**
+ * Movimiento cinematográfico de la cámara.
+ */
+function animateCamera(
+    elapsedTime
+) {
 
 /**
  * Movimiento cinematográfico de la cámara.
