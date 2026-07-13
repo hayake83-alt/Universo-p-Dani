@@ -879,3 +879,112 @@ body.constellation-hover {
         border-radius: 22px;
     }
 }
+
+
+/* =========================================================
+   ETAPA 11
+   Realismo galáctico y mensaje oculto
+   ========================================================= */
+
+.cosmic-navigation-hint {
+    position: fixed;
+    left: 50%;
+    top: max(18px, env(safe-area-inset-top));
+    z-index: 4;
+
+    padding: 8px 13px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+
+    background: rgba(6, 7, 19, 0.28);
+
+    color: rgba(255, 255, 255, 0.34);
+
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+
+    transform:
+        translateX(-50%)
+        translateY(-8px);
+
+    pointer-events: none;
+
+    opacity: 0.45;
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    transition:
+        opacity 0.4s ease,
+        transform 0.4s ease,
+        color 0.4s ease;
+}
+
+.cosmic-navigation-hint.is-active {
+    opacity: 0.9;
+
+    color: rgba(220, 232, 255, 0.78);
+
+    transform:
+        translateX(-50%)
+        translateY(0);
+}
+
+.hidden-birthday-hint {
+    position: fixed;
+    left: 50%;
+    top: 18%;
+    z-index: 9;
+
+    color: rgba(255, 245, 255, 0.75);
+
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    letter-spacing: 0.08em;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transform:
+        translateX(-50%)
+        translateY(12px);
+
+    pointer-events: none;
+
+    text-shadow:
+        0 0 18px rgba(180, 200, 255, 0.4);
+
+    transition:
+        opacity 1s ease,
+        visibility 1s ease,
+        transform 1s ease;
+}
+
+.hidden-birthday-hint.is-visible {
+    opacity: 1;
+    visibility: visible;
+
+    transform:
+        translateX(-50%)
+        translateY(0);
+}
+
+@media (max-width: 600px) {
+    .cosmic-navigation-hint {
+        top: max(12px, env(safe-area-inset-top));
+        max-width: calc(100% - 40px);
+        white-space: nowrap;
+    }
+
+    .hidden-birthday-hint {
+        top: 15%;
+        width: calc(100% - 40px);
+        text-align: center;
+    }
+}
