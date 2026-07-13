@@ -622,3 +622,62 @@ body.constellation-hover {
         white-space: nowrap;
     }
 }
+
+
+/* =========================================================
+   ETAPA 9
+   Estrellas fugaces y polvo estelar
+   ========================================================= */
+
+.cosmic-interaction-hint {
+    position: fixed;
+    right: max(22px, env(safe-area-inset-right));
+    bottom: max(22px, env(safe-area-inset-bottom));
+    z-index: 4;
+
+    padding: 9px 13px;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+
+    background: rgba(8, 9, 24, 0.34);
+
+    color: rgba(255, 250, 245, 0.42);
+
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+
+    pointer-events: none;
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    animation:
+        cosmic-hint-breathe
+        4s
+        ease-in-out
+        infinite;
+}
+
+@keyframes cosmic-hint-breathe {
+    0%,
+    100% {
+        opacity: 0.28;
+        transform: translateY(2px);
+    }
+
+    50% {
+        opacity: 0.62;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 600px) {
+    .cosmic-interaction-hint {
+        right: 50%;
+        bottom: max(70px, env(safe-area-inset-bottom));
+        transform: translateX(50%);
+        white-space: nowrap;
+    }
+}
