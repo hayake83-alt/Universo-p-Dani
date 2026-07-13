@@ -75,12 +75,7 @@ const cameraTarget = new THREE.Vector3();
 const desiredCameraPosition = new THREE.Vector3();
 const desiredLookTarget = new THREE.Vector3();
 
-const CAMERA_JOURNEY = {
-    stageOneEnd: 0.28,
-    stageTwoEnd: 0.58,
-    stageThreeEnd: 0.82,
-    journeyDuration: prefersReducedMotion ? 20 : 32
-};
+
 const pointer = {
     x: 0,
     y: 0
@@ -108,6 +103,12 @@ const prefersReducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)"
 ).matches;
 
+const CAMERA_JOURNEY = {
+    stageOneEnd: 0.28,
+    stageTwoEnd: 0.58,
+    stageThreeEnd: 0.82,
+    journeyDuration: prefersReducedMotion ? 20 : 32
+};
 
 /* ---------------------------------------------------------
    CONFIGURACIÓN
