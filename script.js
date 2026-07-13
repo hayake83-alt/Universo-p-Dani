@@ -1,3480 +1,545 @@
 /* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   Script principal
-   Three.js r166
-   MÓDULO 1A
+   UNIVERSO PERSONALIZADO PARA DANI ❤️
+   Experiencia de Regalo Galáctico (Inspirado en TikTok)
+   Three.js r166 - Código Completo y Corregido
    =========================================================== */
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
 /* ===========================================================
-   HTML
+   CONFIGURACIÓN GENERAL
    =========================================================== */
+const SETTINGS = {
+    stars: 25000,           // Más estrellas para mayor detalle
+    interactiveStars: 150, // Estrellas que reaccionan al toque
+    comets: 6,
+    particles: 5000,        // Polvo cósmico
+    galaxyRadius: 1500,
+    textFadeDelay: 6000,   // Cuánto tarda el mensaje en empezar a desvanecerse (ms)
+    fontUrl: 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json' // Fuente necesaria
+};
 
+// Paleta de Colores (Rojos, Azules, Violetas y Blancos)
+const COLORS = {
+    blue: 0x2288ff,
+    deepBlue: 0x050510,
+    violet: 0x8d63ff,
+    pink: 0xff3f9b,
+    red: 0xff2d55,
+    white: 0xffffff,
+    glow: 0xfff6e0,
+    text: 0xffffff
+};
+
+/* ===========================================================
+   ELEMENTOS HTML
+   =========================================================== */
 const canvas = document.getElementById("universo");
-
-const loader = document.getElementById("loader");
-const overlay = document.getElementById("overlay");
-const flash = document.getElementById("flash");
-
-const titulo = document.getElementById("titulo");
-const subtitulo = document.getElementById("subtitulo");
+const loader = document.getElementById("loader"); // Asumiendo que tienes un loader HTML
+const overlay = document.getElementById("overlay"); // Contenedor para mensajes finales
 
 /* ===========================================================
-   ESCENA
+   MOTOR DE THREE.JS (Escena, Cámara, Render)
    =========================================================== */
-
-const scene = new THREE.Scene();
-
-scene.background = new THREE.Color(0x000000);
-
-scene.fog = new THREE.FogExp2(
-    0x050510,
-    0.00018
-);
-
-/* ===========================================================
-   CÁMARA
-   =========================================================== */
-
-const camera = new THREE.PerspectiveCamera(
-
-    60,
-
-    window.innerWidth / window.innerHeight,
-
-    0.1,
-
-    6000
-
-);
-
-camera.position.set(
-
-    0,
-
-    8,
-
-    140
-
-);
-
-/* ===========================================================
-   RENDERER
-   =========================================================== */
-
-const renderer = new THREE.WebGLRenderer({
-
-    canvas,
-
-    antialias: true,
-
-    alpha: false,
-
-    powerPreference: "high-performance"
-
-});
-
-renderer.setSize(
-
-    window.innerWidth,
-
-    window.innerHeight
-
-);
-
-renderer.setPixelRatio(
-
-    Math.min(window.devicePixelRatio,2)
-
-);
-
-renderer.outputColorSpace =
-THREE.SRGBColorSpace;
-
-renderer.toneMapping =
-THREE.ACESFilmicToneMapping;
-
-renderer.toneMappingExposure = 1.25;
-
-renderer.shadowMap.enabled = true;
-
-renderer.shadowMap.type =
-THREE.PCFSoftShadowMap;
-
-/* ===========================================================
-   ILUMINACIÓN
-   =========================================================== */
-
-const ambientLight = new THREE.AmbientLight(
-    0xffffff,
-    0.35
-);
-
-scene.add(ambientLight);
-
-
-const blueLight = new THREE.PointLight(
-    COLORS.blue,
-    45,
-    1800
-);
-
-blueLight.position.set(
-    -250,
-    140,
-    180
-);
-
-scene.add(blueLight);
-
-
-const redLight = new THREE.PointLight(
-    COLORS.red,
-    38,
-    1800
-);
-
-redLight.position.set(
-    260,
-    -120,
-    -200
-);
-
-scene.add(redLight);
-
-
-const violetLight = new THREE.PointLight(
-    COLORS.violet,
-    40,
-    1800
-);
-
-violetLight.position.set(
-    -120,
-    -220,
-    -420
-);
-
-scene.add(violetLight);
-
-
-const moonLight = new THREE.DirectionalLight(
-    COLORS.moon,
-    1.4
-);
-
-moonLight.position.set(
-    150,
-    240,
-    90
-);
-
-scene.add(moonLight);
-
- ===========================================================
-   GRUPOS PRINCIPALES
-   =========================================================== */
-
-const universe = new THREE.Group();
-
-const starsGroup = new THREE.Group();
-
-const nebulaGroup = new THREE.Group();
-
-const planetsGroup = new THREE.Group();
-
-const particlesGroup = new THREE.Group();
-
-const cometsGroup = new THREE.Group();
-
-const effectsGroup = new THREE.Group();
-
-scene.add(universe);
-
-universe.add(starsGroup);
-
-universe.add(nebulaGroup);
-
-universe.add(planetsGroup);
-
-universe.add(particlesGroup);
-
-universe.add(cometsGroup);
-
-universe.add(effectsGroup);
-
-/* ===========================================================
-   PALETA
-   =========================================================== */
-
-const COLORS={
-
-    blue:0x6da8ff,
-
-    violet:0x8d63ff,
-
-    red:0xff5d7d,
-
-    white:0xffffff,
-
-    moon:0xe7ecff,
-
-    deep:0x050510
-
-};
-
-/* ===========================================================
-   ARRAYS GLOBALES
-   =========================================================== */
-
-const stars=[];
-
-const interactiveStars=[];
-
-const nebulas=[];
-
-const planets=[];
-
-const particles=[];
-
-const comets=[];
-
-const shootingStars=[];
-
-/* ===========================================================
-   CONTROLES
-   =========================================================== */
-
-const controls = new OrbitControls(
-
-    camera,
-
-    renderer.domElement
-
-);
-
-controls.enablePan = false;
-
-controls.enableZoom = false;
-
-controls.enableDamping = true;
-
-controls.dampingFactor = 0.04;
-
-controls.autoRotate = true;
-
-controls.autoRotateSpeed = 0.05;
-
-controls.minPolarAngle = Math.PI * 0.35;
-
-controls.maxPolarAngle = Math.PI * 0.65;
-
-/* ===========================================================
-   RELOJ
-   =========================================================== */
-
-const clock = new THREE.Clock();
-
-/* ===========================================================
-   RAYCASTER
-   =========================================================== */
-
-const raycaster = new THREE.Raycaster();
-
-const mouse = new THREE.Vector2();
-
-/* ===========================================================
-   CURSOR
-   =========================================================== */
-
-const cursor = {
-
-    x:0,
-
-    y:0,
-
-    targetX:0,
-
-    targetY:0
-
-};
-
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 2
-   SISTEMA DE ESTRELLAS
-   =========================================================== */
-
-
-/* ===========================================================
-   CREACIÓN DEL CAMPO ESTELAR
-   =========================================================== */
-
-function createStars(){
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
-    const positions = [];
-
-    const colors = [];
-
-    const sizes = [];
-
-
-    const colorPalette = [
-
-        new THREE.Color(0xffffff),
-
-        new THREE.Color(0x9ecbff),
-
-        new THREE.Color(0xffc7d8),
-
-        new THREE.Color(0xd8c5ff),
-
-        new THREE.Color(0xff8fa3)
-
-    ];
-
-
-
-    for(
-        let i = 0;
-        i < SETTINGS.stars;
-        i++
-    ){
-
-        /*
-          Distribución esférica:
-          crea profundidad en todas
-          las direcciones.
-        */
-
-
-        const radius =
-        Math.pow(
-            Math.random(),
-            0.55
-        ) *
-        SETTINGS.galaxyRadius;
-
-
-
-        const theta =
-        Math.random()
-        *
-        Math.PI
-        *
-        2;
-
-
-
-        const phi =
-        Math.acos(
-            random(-1,1)
-        );
-
-
-
-        const x =
-        radius *
-        Math.sin(phi)
-        *
-        Math.cos(theta);
-
-
-
-        const y =
-        radius *
-        Math.sin(phi)
-        *
-        Math.sin(theta);
-
-
-
-        const z =
-        radius *
-        Math.cos(phi);
-
-
-
-        positions.push(
-            x,
-            y,
-            z
-        );
-
-
-
-        const starColor =
-        colorPalette[
-            randomInt(
-                0,
-                colorPalette.length-1
-            )
-        ];
-
-
-
-        colors.push(
-            starColor.r,
-            starColor.g,
-            starColor.b
-        );
-
-
-
-        /*
-          Variación de tamaño.
-          Algunas estrellas destacan.
-        */
-
-        sizes.push(
-            random(
-                0.4,
-                2.8
-            )
-        );
-
-
-    }
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-    geometry.setAttribute(
-
-        "color",
-
-        new THREE.Float32BufferAttribute(
-            colors,
-            3
-        )
-
-    );
-
-
-    const starTexture =
-new THREE.TextureLoader().load(
-    "https://threejs.org/examples/textures/sprites/disc.png"
-);
-
-
-const material =
-new THREE.PointsMaterial({
-
-    size:1.8,
-
-    map:starTexture,
-
-    vertexColors:true,
-
-    transparent:true,
-
-    opacity:0.9,
-
-    depthWrite:false,
-
-    blending:
-    THREE.AdditiveBlending
-
-});
-
-
-
-    const starField =
-    new THREE.Points(
-        geometry,
-        material
-    );
-
-
-    starsGroup.add(
-        starField
-    );
-
-
-    stars.push(
-        starField
-    );
-
-
-}
-
-
-
-/* ===========================================================
-   ESTRELLAS DESTACADAS
-   (Preparación para interacción)
-   =========================================================== */
-
-function createInteractiveStarPoints(){
-
-    for(
-        let i = 0;
-        i < SETTINGS.interactiveStars;
-        i++
-    ){
-
-        interactiveStars.push({
-
-            id:i,
-
-            active:false,
-
-            intensity:
-            random(
-                0.8,
-                2
-            )
-
-        });
-
-    }
-
-}
-
-
-
-/* ===========================================================
-   INICIALIZAR ESTRELLAS
-   =========================================================== */
-
-createStars();
-
-createInteractiveStarPoints();
-
-
-console.log(
-    "⭐ Campo estelar creado:"
-    ,
-    SETTINGS.stars,
-    "estrellas"
-);
-/* ===========================================================
-   GALAXIA ESPIRAL
-   =========================================================== */
-
-function createGalaxySpiral(){
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
-    const positions = [];
-
-    const colors = [];
-
-
-    const starColors = [
-
-        new THREE.Color(0x4d8cff),
-
-        new THREE.Color(0xff5577),
-
-        new THREE.Color(0xb26cff),
-
-        new THREE.Color(0xffffff)
-
-    ];
-
-
-
-    const arms = 4;
-
-    const totalStars = 7000;
-
-
-    for(
-        let i = 0;
-        i < totalStars;
-        i++
-    ){
-
-
-        const radius =
-        Math.random() * 900;
-
-
-        const arm =
-        i % arms;
-
-
-        const angle =
-        (arm / arms)
-        *
-        Math.PI * 2
-        +
-        radius * 0.004;
-
-
-
-        const spread =
-        random(
-            -25,
-            25
-        );
-
-
-
-        const x =
-        Math.cos(angle)
-        *
-        radius
-        +
-        spread;
-
-
-        const z =
-        Math.sin(angle)
-        *
-        radius
-        +
-        spread;
-
-
-
-        const y =
-        random(
-            -40,
-            40
-        );
-
-
-
-        positions.push(
-            x,
-            y,
-            z
-        );
-
-
-
-        const color =
-        starColors[
-            randomInt(
-                0,
-                starColors.length-1
-            )
-        ];
-
-
-        colors.push(
-
-            color.r,
-
-            color.g,
-
-            color.b
-
-        );
-
-
-    }
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-
-    geometry.setAttribute(
-
-        "color",
-
-        new THREE.Float32BufferAttribute(
-            colors,
-            3
-        )
-
-    );
-
-
-
-    const material =
-    new THREE.PointsMaterial({
-
-        size:2,
-
-        vertexColors:true,
-
-        transparent:true,
-
-        opacity:0.8,
-
-        blending:
-        THREE.AdditiveBlending
-
-    });
-
-
-
-    const galaxy =
-    new THREE.Points(
-        geometry,
-        material
-    );
-
-
-    galaxyGroup.add(
-        galaxy
-    );
-
-
-    galaxies.push(
-        galaxy
-    );
-
-
-}
-function createGalaxyCore(){
-
-    const geometry =
-    new THREE.SphereGeometry(
-        60,
-        64,
-        64
-    );
-
-
-    const material =
-    new THREE.MeshBasicMaterial({
-
-        color:0xffb6ff,
-
-        transparent:true,
-
-        opacity:0.25,
-
-        blending:
-        THREE.AdditiveBlending
-
-    });
-
-
-    const core =
-    new THREE.Mesh(
-        geometry,
-        material
-    );
-
-
-    galaxyGroup.add(
-        core
-    );
-
-}
-createGalaxySpiral();
-
-createGalaxyCore();
-function updateGalaxy(){
-
-    galaxies.forEach(
-        (galaxy)=>{
-
-            galaxy.rotation.y +=
-            0.0002;
-
-        }
-    );
-
-}
-/*
- ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 3
-   NEBULOSAS CÓSMICAS
-   =========================================================== */
-
-
-/* ===========================================================
-   CREAR UNA NEBULOSA
-   =========================================================== */
-
-function createNebula(
-    color,
-    position,
-    size,
-    particleCount
-){
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
-    const positions = [];
-
-    const colors = [];
-
-
-
-    const nebulaColor =
-    new THREE.Color(color);
-
-
-
-    for(
-        let i = 0;
-        i < particleCount;
-        i++
-    ){
-
-        /*
-          Distribución tipo nube:
-          concentra partículas en el centro
-        */
-
-        const radius =
-        Math.pow(
-            Math.random(),
-            1.8
-        )
-        *
-        size;
-
-
-
-        const angle =
-        Math.random()
-        *
-        Math.PI
-        *
-        2;
-
-
-
-        const height =
-        random(
-            -size * 0.35,
-            size * 0.35
-        );
-
-
-
-        const x =
-        Math.cos(angle)
-        *
-        radius
-        +
-        random(
-            -15,
-            15
-        );
-
-
-
-        const y =
-        height
-        +
-        Math.sin(angle)
-        *
-        radius
-        *
-        0.35;
-
-
-
-        const z =
-        Math.sin(angle)
-        *
-        radius;
-
-
-
-        positions.push(
-            x,
-            y,
-            z
-        );
-
-
-
-        /*
-          Variación suave del color
-        */
-
-        const variation =
-        random(
-            0.55,
-            1
-        );
-
-        colors.push(
-
-            nebulaColor.r *
-            variation,
-
-            nebulaColor.g *
-            variation,
-
-            nebulaColor.b *
-            variation
-
-        );
-
-    }
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-
-    geometry.setAttribute(
-
-        "color",
-
-        new THREE.Float32BufferAttribute(
-            colors,
-            3
-        )
-
-    );
-
-
-
-    const material =
-    new THREE.PointsMaterial({
-
-        size:
-        random(
-            2,
-            5
-        ),
-
-        transparent:true,
-
-        opacity:0.12,
-
-        vertexColors:true,
-
-        depthWrite:false,
-
-        blending:
-        THREE.AdditiveBlending
-
-    });
-
-
-
-    const nebula =
-    new THREE.Points(
-        geometry,
-        material
-    );
-
-
-
-    nebula.position.copy(
-        position
-    );
-
-
-    nebula.rotation.set(
-
-        random(
-            0,
-            Math.PI
-        ),
-
-        random(
-            0,
-            Math.PI
-        ),
-
-        random(
-            0,
-            Math.PI
-        )
-
-    );
-
-
-
-    nebulaGroup.add(
-        nebula
-    );
-
-
-    nebulas.push(
-        nebula
-    );
-
-
-}
-
-
-/* ===========================================================
-   CREACIÓN DE NEBULOSAS
-   =========================================================== */
-
-function createNebulas(){
-
-
-    createNebula(
-
-        COLORS.red,
-
-        new THREE.Vector3(
-            -350,
-            120,
-            -300
-        ),
-
-        350,
-
-        900
-
-    );
-
-
-
-    createNebula(
-
-        COLORS.blue,
-
-        new THREE.Vector3(
-            300,
-            -80,
-            -450
-        ),
-
-        420,
-
-        1100
-
-    );
-
-
-
-    createNebula(
-
-        COLORS.violet,
-
-        new THREE.Vector3(
-            0,
-            250,
-            -700
-        ),
-
-        500,
-
-        1400
-
-    );
-
-
-
-    createNebula(
-
-        0xff3f9b,
-
-        new THREE.Vector3(
-            450,
-            100,
-            200
-        ),
-
-        300,
-
-        700
-
-    );
-
-
-}
-
-
-
-/* ===========================================================
-   MOVIMIENTO DE NEBULOSAS
-   =========================================================== */
-
-function updateNebulas(){
-
-    nebulas.forEach(
-        (nebula,index)=>{
-
-            nebula.rotation.y +=
-            0.0003 +
-            index *
-            0.00005;
-
-
-            nebula.rotation.x +=
-            0.00008;
-
-
-        }
-    );
-
-}
-
-
-
-/* ===========================================================
-   INICIAR
-   =========================================================== */
-
-createNebulas();
-
-
-console.log(
-    "☁️ Nebulosas creadas."
-);
-/* ===========================================================
-   NEBULOSA AVANZADA CON SHADER
-   =========================================================== */
-
-
-function createShaderNebula(){
-
-
-const geometry =
-new THREE.PlaneGeometry(
-    900,
-    900,
-    128,
-    128
-);
-
-
-
-const material =
-new THREE.ShaderMaterial({
-
-    transparent:true,
-
-    depthWrite:false,
-
-    blending:
-    THREE.AdditiveBlending,
-
-
-    uniforms:{
-
-        uTime:{
-            value:0
-        },
-
-
-        uColor1:{
-            value:
-            new THREE.Color(
-                0xff3366
-            )
-        },
-
-
-        uColor2:{
-            value:
-            new THREE.Color(
-                0x6644ff
-            )
-        },
-
-
-        uColor3:{
-            value:
-            new THREE.Color(
-                0x2288ff
-            )
-        }
-
-    },
-
-
-    vertexShader:`
-
-        varying vec2 vUv;
-
-
-        void main(){
-
-            vUv = uv;
-
-
-            vec3 pos =
-            position;
-
-
-            pos.z +=
-            sin(
-                pos.x * 0.01 +
-                pos.y * 0.01
-            ) * 20.0;
-
-
-            gl_Position =
-            projectionMatrix *
-            modelViewMatrix *
-            vec4(
-                pos,
-                1.0
-            );
-
-        }
-
-    `,
-
-
-    fragmentShader:`
-
-        uniform float uTime;
-
-
-        uniform vec3 uColor1;
-        uniform vec3 uColor2;
-        uniform vec3 uColor3;
-
-
-        varying vec2 vUv;
-
-
-        void main(){
-
-
-            float wave =
-            sin(
-                vUv.x * 8.0 +
-                uTime
-            );
-
-
-            vec3 color =
-            mix(
-                uColor1,
-                uColor2,
-                wave
-            );
-
-
-            color =
-            mix(
-                color,
-                uColor3,
-                vUv.y
-            );
-
-
-            float alpha =
-            0.25 *
-            sin(
-                vUv.x *
-                3.14
-            );
-
-
-            gl_FragColor =
-            vec4(
-                color,
-                alpha
-            );
-
-
-        }
-
-    `
-
-});
-
-
-
-const nebula =
-new THREE.Mesh(
-    geometry,
-    material
-);
-
-
-
-nebula.rotation.x =
-- Math.PI / 2;
-
-
-
-nebula.position.z =
--500;
-
-
-
-nebulaGroup.add(
-    nebula
-);
-
-
-
-shaderNebulas.push(
-    nebula
-);
-
-
-}
-createShaderNebula();
-function updateShaderNebulas(){
-
-    shaderNebulas.forEach(
-        (nebula)=>{
-
-            nebula.material
-            .uniforms
-            .uTime
-            .value =
-            elapsedTime;
-
-
-        }
-    );
-
-}
-/* ===========================================================
-   PLANETAS PRINCIPALES
-   =========================================================== */
-
-const planetOne =
-createPlanet({
-
-    name:"Planeta azul",
-
-    size:18,
-
-    color:0x2979ff,
-
-    position:new THREE.Vector3(
-        -230,
-        40,
-        -450
-    ),
-
-    rotationSpeed:0.0015
-
-});
-
-
-
-const planetTwo =
-createPlanet({
-
-    name:"Planeta rojo",
-
-    size:12,
-
-    color:0xff1744,
-
-    position:new THREE.Vector3(
-        250,
-        -40,
-        -600
-    ),
-
-    rotationSpeed:0.0025
-
-});
-
-
-
-const planetThree =
-createPlanet({
-
-    name:"Planeta violeta",
-
-    size:25,
-
-    color:0x9c27ff,
-
-    position:new THREE.Vector3(
-        100,
-        180,
-        -900
-    ),
-
-    rotationSpeed:0.001
-
-});
-
-
-
-const planetFour =
-createPlanet({
-
-    name:"Planeta oscuro",
-
-    size:9,
-
-    color:0xdde7ff,
-
-    position:new THREE.Vector3(
-        -500,
-        -130,
-        -700
-    ),
-
-    rotationSpeed:0.003
-
-});
-
-
-
-/* ===========================================================
-   ANILLO PLANETARIO
-   =========================================================== */
-
-function addRing(planet){
-
-
-    const geometry =
-    new THREE.RingGeometry(
-
-        planet.geometry.parameters.radius * 1.5,
-
-        planet.geometry.parameters.radius * 2.2,
-
-        96
-
-    );
-
-
-
-    const material =
-    new THREE.MeshBasicMaterial({
-
-        color:0xd7c8ff,
-
-        side:THREE.DoubleSide,
-
-        transparent:true,
-
-        opacity:0.55
-
-    });
-
-
-
-    const ring =
-    new THREE.Mesh(
-
-        geometry,
-
-        material
-
-    );
-
-
-
-    ring.rotation.x =
-    Math.PI / 2.5;
-
-
-
-    planet.add(
-        ring
-    );
-
-
-}
-
-
-addRing(
-    planetThree
-);
-
-
-
-/* ===========================================================
-   LUNA
-   =========================================================== */
-
-function createMoon(parent){
-
-
-    const moonGroup =
-    new THREE.Group();
-
-
-
-    const geometry =
-    new THREE.SphereGeometry(
-
-        4,
-
-        48,
-
-        48
-
-    );
-
-
-
-    const material =
-    new THREE.MeshStandardMaterial({
-
-        color:0xcfd7ff,
-
-        roughness:1
-
-    });
-
-
-
-    const moon =
-    new THREE.Mesh(
-
-        geometry,
-
-        material
-
-    );
-
-
-
-    moon.position.x =
-    32;
-
-
-
-    moonGroup.add(
-        moon
-    );
-
-
-    parent.add(
-        moonGroup
-    );
-
-
-    moonGroup.orbitSpeed =
-    0.004;
-
-
-    moonGroup.moon =
-    moon;
-
-
-
-    planets.push(
-        moonGroup
-    );
-
-}
-
-
-createMoon(
-    planetOne
-);
-
-
-
-/* ===========================================================
-   ACTUALIZACIÓN DE PLANETAS
-   =========================================================== */
-
-function updatePlanets(){
-
-    planets.forEach(
-        (planet)=>{
-
-
-            if(
-                planet.rotationSpeed
-            ){
-
-                planet.rotation.y +=
-                planet.rotationSpeed;
-
-            }
-
-
-            if(
-                planet.orbitSpeed
-            ){
-
-                planet.rotation.y +=
-                planet.orbitSpeed;
-
-            }
-
-
-        }
-    );
-
-}
-/* ===========================================================
-   ANIMACIÓN DEL HALO DE PLANETAS
-   =========================================================== */
-
-function updatePlanetGlow(){
-
-    planets.forEach((planet)=>{
-
-
-        if(
-            planet.children.length > 0
-        ){
-
-            const glow =
-            planet.children[0];
-
-
-            const pulse =
-            1 +
-            Math.sin(
-                elapsedTime * 2
-            ) * 0.03;
-
-
-            glow.scale.set(
-                pulse,
-                pulse,
-                pulse
-            );
-
-        }
-
-
-    });
-
-}
-
-
-/* ===========================================================
-   INICIO
-   =========================================================== */
-
-console.log(
-    "🪐 Planetas y luna creados."
-);
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 6
-   COMETAS · ESTRELLAS FUGACES · EFECTOS
-   =========================================================== */
-
-
-/* ===========================================================
-   CREAR COMETA
-   =========================================================== */
-
-function createComet(){
-
-    const cometGroup =
-    new THREE.Group();
-
-
-    const headGeometry =
-    new THREE.SphereGeometry(
-        2.5,
-        32,
-        32
-    );
-
-
-    const headMaterial =
-    new THREE.MeshBasicMaterial({
-
-        color:0xffffff
-
-    });
-
-
-    const head =
-    new THREE.Mesh(
-        headGeometry,
-        headMaterial
-    );
-
-
-    cometGroup.add(head);
-
-
-
-    const tailGeometry =
-    new THREE.BufferGeometry();
-
-
-    const tailPositions = [];
-
-
-    for(
-        let i = 0;
-        i < 80;
-        i++
-    ){
-
-        tailPositions.push(
-
-            -i * 1.8,
-
-            random(
-                -0.8,
-                0.8
-            ),
-
-            random(
-                -0.8,
-                0.8
-            )
-
-        );
-
-    }
-
-
-
-    tailGeometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            tailPositions,
-            3
-        )
-
-    );
-
-
-
-    const tailMaterial =
-    new THREE.PointsMaterial({
-
-        color:0x9ecbff,
-
-        size:1.5,
-
-        transparent:true,
-
-        opacity:0.65,
-
-        blending:
-        THREE.AdditiveBlending,
-
-        depthWrite:false
-
-    });
-
-
-
-    const tail =
-    new THREE.Points(
-        tailGeometry,
-        tailMaterial
-    );
-
-
-    cometGroup.add(tail);
-
-
-
-    cometGroup.position.set(
-
-        random(-900,900),
-
-        random(-400,400),
-
-        random(-1200,-600)
-
-    );
-
-
-
-    cometGroup.velocity =
-    new THREE.Vector3(
-
-        random(0.4,1),
-
-        random(-0.15,0.15),
-
-        random(0.1,0.4)
-
-    );
-
-
-
-    cometsGroup.add(
-        cometGroup
-    );
-
-
-    comets.push(
-        cometGroup
-    );
-
-}
-
-
-
-/* ===========================================================
-   CREAR VARIOS COMETAS
-   =========================================================== */
-
-function createComets(){
-
-    for(
-        let i = 0;
-        i < SETTINGS.comets;
-        i++
-    ){
-
-        createComet();
-
-    }
-
-}
-
-
-
-/* ===========================================================
-   ESTRELLAS FUGACES
-   =========================================================== */
-
-function createShootingStar(){
-
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
-    const positions = [
-
-        0,0,0,
-
-        -60,
-        15,
-        0
-
-    ];
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-
-    const material =
-    new THREE.LineBasicMaterial({
-
-        color:0xffffff,
-
-        transparent:true,
-
-        opacity:0.8
-
-    });
-
-
-
-    const line =
-    new THREE.Line(
-
-        geometry,
-
-        material
-
-    );
-
-
-
-    line.position.set(
-
-        random(-600,600),
-
-        random(-300,300),
-
-        random(-800,-300)
-
-    );
-
-
-    line.speed =
-    random(
-        0.8,
-        2
-    );
-
-
-    effectsGroup.add(
-        line
-    );
-
-
-    shootingStars.push(
-        line
-    );
-
-}
-
-
-
-/* ===========================================================
-   ACTUALIZAR COMETAS
-   =========================================================== */
-
-function updateComets(){
-
-    comets.forEach(
-        (comet)=>{
-
-
-            comet.position.add(
-                comet.velocity
-            );
-
-
-            if(
-                comet.position.x > 1000
-            ){
-
-                comet.position.x =
-                -1000;
-
-            }
-
-        }
-    );
-
-}
-
-
-
-/* ===========================================================
-   ACTUALIZAR ESTRELLAS FUGACES
-   =========================================================== */
-
-function updateShootingStars(){
-
-    shootingStars.forEach(
-        (star)=>{
-
-            star.position.x +=
-            star.speed;
-
-
-            if(
-                star.position.x > 800
-            ){
-
-                star.position.x =
-                -800;
-
-                star.position.y =
-                random(
-                    -300,
-                    300
-                );
-
-            }
-
-        }
-    );
-
-}
-
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 4
-   POLVO CÓSMICO · PARTÍCULAS AMBIENTALES
-   =========================================================== */
-
-
-/* ===========================================================
-   CREAR POLVO ESTELAR
-   =========================================================== */
-
-function createCosmicDust(){
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
-    const positions = [];
-
-    const colors = [];
-
-
-    const dustColors = [
-
-        new THREE.Color(0x8db8ff),
-
-        new THREE.Color(0xcbb7ff),
-
-        new THREE.Color(0xff9fb5),
-
-        new THREE.Color(0xffffff)
-
-    ];
-
-
-
-    for(
-        let i = 0;
-        i < SETTINGS.particles;
-        i++
-    ){
-
-        const radius =
-        random(
-            200,
-            1400
-        );
-
-
-        const angle =
-        Math.random()
-        *
-        Math.PI
-        *
-        2;
-
-
-
-        const spread =
-        random(
-            -500,
-            500
-        );
-
-
-
-        const x =
-        Math.cos(angle)
-        *
-        radius
-        +
-        spread;
-
-
-
-        const y =
-        random(
-            -600,
-            600
-        );
-
-
-
-        const z =
-        Math.sin(angle)
-        *
-        radius
-        +
-        spread;
-
-
-
-        positions.push(
-            x,
-            y,
-            z
-        );
-
-
-
-        const color =
-        dustColors[
-            randomInt(
-                0,
-                dustColors.length - 1
-            )
-        ];
-
-
-
-        colors.push(
-
-            color.r,
-
-            color.g,
-
-            color.b
-
-        );
-
-    }
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-
-    geometry.setAttribute(
-
-        "color",
-
-        new THREE.Float32BufferAttribute(
-            colors,
-            3
-        )
-
-    );
-
-
-
-    const material =
-    new THREE.PointsMaterial({
-
-        size:1.8,
-
-        vertexColors:true,
-
-        transparent:true,
-
-        opacity:0.35,
-
-        depthWrite:false,
-
-        blending:
-        THREE.AdditiveBlending
-
-    });
-
-
-
-    const dust =
-    new THREE.Points(
-        geometry,
-        material
-    );
-
-
-
-    particlesGroup.add(
-        dust
-    );
-
-
-    particles.push(
-        dust
-    );
-
-}
-
-
-
-/* ===========================================================
-   PARTÍCULAS DE LUZ PEQUEÑAS
-   =========================================================== */
-
-function createLightParticles(){
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
-    const positions = [];
-
-
-
-    for(
-        let i = 0;
-        i < 700;
-        i++
-    ){
-
-        positions.push(
-
-            random(
-                -900,
-                900
-            ),
-
-            random(
-                -500,
-                500
-            ),
-
-            random(
-                -900,
-                900
-            )
-
-        );
-
-    }
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-
-    const material =
-    new THREE.PointsMaterial({
-
-        color:0xffffff,
-
-        size:1.2,
-
-        transparent:true,
-
-        opacity:0.22,
-
-        depthWrite:false,
-
-        blending:
-        THREE.AdditiveBlending
-
-    });
-
-
-
-    const particlesLight =
-    new THREE.Points(
-        geometry,
-        material
-    );
-
-
-
-    effectsGroup.add(
-        particlesLight
-    );
-
-
-    particles.push(
-        particlesLight
-    );
-
-}
-
-
-
-/* ===========================================================
-   ANIMACIÓN DE PARTÍCULAS
-   =========================================================== */
-
-function updateParticles(){
-
-    particles.forEach(
-        (particle,index)=>{
-
-            particle.rotation.y +=
-            0.00015 +
-            index * 0.00002;
-
-
-            particle.rotation.x +=
-            0.00005;
-
-
-        }
-    );
-
-}
-
-
-
-/* ===========================================================
-   INICIAR PARTÍCULAS
-   =========================================================== */
-
-createCosmicDust();
-
-createLightParticles();
-
-
-console.log(
-    "✨ Polvo cósmico generado."
-);
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 5
-   PLANETAS · LUNA · CUERPOS CELESTES
-   =========================================================== */
-
-
-/* ===========================================================
-   CREAR PLANETA
-   =========================================================== */
-
-function createPlanet(options){
-
-
-    const geometry =
-    new THREE.SphereGeometry(
-
-        options.size,
-
-        64,
-
-        64
-
-    );
-
-
-
-    const material =
-new THREE.MeshStandardMaterial({
-
-    color: options.color,
-
-    emissive: options.color,
-
-    emissiveIntensity: 0.5,
-
-    roughness:0.35,
-
-    metalness:0.15
-
-});
-
-
-
-    const planet =
-    new THREE.Mesh(
-
-        geometry,
-
-        material
-
-    );
-
-
-
-    planet.position.copy(
-        options.position
-    );
-    /* ===========================================================
-   HALO LUMINOSO DEL PLANETA
-   =========================================================== */
-
-
-const glowGeometry =
-new THREE.SphereGeometry(
-
-    options.size * 1.35,
-
-    64,
-
-    64
-
-);
-
-
-
-const glowMaterial =
-new THREE.MeshBasicMaterial({
-
-    color:options.color,
-
-    transparent:true,
-
-    opacity:0.12,
-
-    side:
-    THREE.BackSide,
-
-    blending:
-    THREE.AdditiveBlending
-
-});
-
-
-
-const glow =
-new THREE.Mesh(
-
-    glowGeometry,
-
-    glowMaterial
-
-);
-
-
-
-planet.add(
-    glow
-);
-
-
-    planet.rotationSpeed =
-    options.rotationSpeed ||
-    0.002;
-
-
-
-    planet.name =
-    options.name;
-
-
-
-    planetsGroup.add(
-        planet
-    );
-
-
-    planets.push(
-        planet
-    );
-
-
-
-    return planet;
-
-}
-
-
-
-
-/* ===========================================================
-   INICIO
-   =========================================================== */
-
-for(
-    let i = 0;
-    i < 3;
-    i++
-){
-
-    createShootingStar();
-
-}
-
-
-createComets();
-
-
-console.log(
-    "☄️ Cometas y estrellas fugaces creados."
-);
-
-/* ===========================================================
-   CONFIGURACIÓN
-   =========================================================== */
-
-const SETTINGS={
-
-    stars:18000,
-
-    interactiveStars:120,
-
-    nebulas:8,
-
-    planets:7,
-
-    comets:5,
-
-    particles:3500,
-
-    galaxyRadius:1300
-
-};
-
-console.log("🌌 Universo inicializado");
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 1B (CORREGIDO)
-   Luces · Utilidades · Eventos · Preparación del motor
-   =========================================================== */
-
-
-
-
-
-/* ===========================================================
-   VARIABLES DEL MOTOR
-   =========================================================== */
-
+let scene, camera, renderer, controls, clock, raycaster, mouse;
 let elapsedTime = 0;
 
-let universeRotation = 0;
+// Grupos para organizar la escena
+const universeGroup = new THREE.Group();
+const starsGroup = new THREE.Group();
+const interactiveStarsGroup = new THREE.Group();
+const nebulaGroup = new THREE.Group();
+const planetsGroup = new THREE.Group();
+const effectsGroup = new THREE.Group();
+const textGroup = new THREE.Group(); // Grupo especial para los mensajes que se desvanecen
 
-let introFinished = false;
-
-let allowInteraction = false;
-
+// Arrays para gestión de animaciones
+const stars = [];
+const nebulas = [];
+const planets = [];
+const interactiveStarMeshes = [];
+const comets = [];
+const particles = [];
+const textsToFade = []; // Array para controlar el desvanecimiento del texto
 
 /* ===========================================================
    FUNCIONES AUXILIARES
    =========================================================== */
+const random = (min, max) => Math.random() * (max - min) + min;
+const randomInt = (min, max) => Math.floor(random(min, max + 1));
+const lerp = (start, end, amount) => start + (end - start) * amount;
 
-function random(min,max){
+/* ===========================================================
+   1. INICIALIZACIÓN DEL MOTOR
+   =========================================================== */
+function initEngine() {
+    // Escena y Niebla profunda
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(COLORS.deepBlue);
+    scene.fog = new THREE.FogExp2(COLORS.deepBlue, 0.00015);
 
-    return Math.random() * (max-min) + min;
+    // Cámara
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 8000);
+    camera.position.set(0, 15, 200); // Empezamos un poco lejos para la intro
 
+    // Renderer de alta performance
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.3;
+
+    // Controles de orbita (suaves)
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;
+    controls.enableZoom = false; // Zoom desactivado para mantener la inmersión
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.08; // Rotación global lenta
+    controls.minPolarAngle = Math.PI * 0.30;
+    controls.maxPolarAngle = Math.PI * 0.65;
+
+    // Utilidades
+    clock = new THREE.Clock();
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
+
+    // Añadir grupos a la escena
+    scene.add(universeGroup);
+    universeGroup.add(starsGroup, interactiveStarsGroup, nebulaGroup, planetsGroup, effectsGroup, textGroup);
+
+    // Luces ambientales y de acento
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambientLight);
+
+    const mainLight = new THREE.DirectionalLight(COLORS.glow, 0.8);
+    mainLight.position.set(100, 100, 50);
+    scene.add(mainLight);
+
+    // Eventos
+    window.addEventListener("resize", onWindowResize);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("click", onStarClick);
+    window.addEventListener("touchstart", onStarTouch, { passive: false });
 }
 
-
-function randomInt(min,max){
-
-    return Math.floor(
-        random(min,max+1)
-    );
-
-}
-
-
-function lerp(start,end,amount){
-
-    return start + (end-start)*amount;
-
-}
-
-
-function clamp(value,min,max){
-
-    return Math.min(
-        Math.max(value,min),
-        max
-    );
-
-}
-
-
-function degrees(value){
-
-    return value * Math.PI / 180;
-
-}
-
-
 /* ===========================================================
-   MOVIMIENTO DE CÁMARA
+   2. CREACIÓN DEL CAMPO ESTELAR DETALLADO
    =========================================================== */
-
-function updateCamera(){
-
-    cursor.x = lerp(
-        cursor.x,
-        cursor.targetX,
-        0.03
-    );
-
-
-    cursor.y = lerp(
-        cursor.y,
-        cursor.targetY,
-        0.03
-    );
-
-
-    camera.position.x +=
-        (cursor.x * 12 - camera.position.x)
-        * 0.01;
-
-
-    camera.position.y +=
-        (cursor.y * 8 + 8 - camera.position.y)
-        * 0.01;
-
-
-}
-
-
-/* ===========================================================
-   EVENTOS DEL MOUSE
-   =========================================================== */
-
-window.addEventListener(
-    "pointermove",
-    (event)=>{
-
-        cursor.targetX =
-        (event.clientX / window.innerWidth)
-        * 2 - 1;
-
-
-        cursor.targetY =
-        -(event.clientY / window.innerHeight)
-        * 2 + 1;
-
-
-        mouse.x = cursor.targetX;
-
-        mouse.y = cursor.targetY;
-
-    }
-);
-
-
-
-/* ===========================================================
-   REDIMENSIONAR PANTALLA
-   =========================================================== */
-
-window.addEventListener(
-    "resize",
-    ()=>{
-
-        camera.aspect =
-        window.innerWidth /
-        window.innerHeight;
-
-
-        camera.updateProjectionMatrix();
-
-
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
-
-
-        renderer.setPixelRatio(
-            Math.min(
-                window.devicePixelRatio,
-                2
-            )
-        );
-
-    }
-);
-
-
-/* ===========================================================
-   CARGA INICIAL
-   =========================================================== */
-
-function finishLoading(){
-
-    loader.classList.add(
-        "ocultar"
-    );
-
-
-    setTimeout(()=>{
-
-        overlay.classList.add(
-            "mostrar"
-        );
-
-
-        introFinished = true;
-
-        allowInteraction = true;
-
-
-    },1500);
-
-}
-
-
-
-
-
-/* ===========================================================
-   PREPARACIÓN
-   =========================================================== */
-
-init();
-
-
-console.log(
-    "💡 Módulo 1B corregido correctamente."
-);
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 1C
-   Animación · Loop principal · Táctil · Inicio
-   =========================================================== */
-
-
-/* ===========================================================
-   EVENTOS TÁCTILES
-   =========================================================== */
-
-let touchStartX = 0;
-let touchStartY = 0;
-
-
-window.addEventListener(
-    "touchstart",
-    (event)=>{
-
-        touchStartX =
-        event.touches[0].clientX;
-
-
-        touchStartY =
-        event.touches[0].clientY;
-
-    },
-    {passive:true}
-);
-
-
-
-window.addEventListener(
-    "touchmove",
-    (event)=>{
-
-        const touch =
-        event.touches[0];
-
-
-        const deltaX =
-        touch.clientX - touchStartX;
-
-
-        const deltaY =
-        touch.clientY - touchStartY;
-
-
-        cursor.targetX +=
-        deltaX * 0.0005;
-
-
-        cursor.targetY -=
-        deltaY * 0.0005;
-
-
-        touchStartX =
-        touch.clientX;
-
-
-        touchStartY =
-        touch.clientY;
-
-    },
-    {passive:true}
-);
-
-
-
-/* ===========================================================
-   LOOP DE ANIMACIÓN PRINCIPAL
-   =========================================================== */
-
-function animate(){
-
-    requestAnimationFrame(
-        animate
-    );
-
-
-    elapsedTime =
-    clock.getElapsedTime();
-
-
-
-    /*
-       Movimiento global suave.
-       Más adelante aquí conectaremos:
-       - estrellas
-       - nebulosas
-       - planetas
-       - partículas
-    */
-
-    universeRotation += 0.00008;
-
-
-    universe.rotation.y =
-    universeRotation;
-
-
-
-    updateCamera();
-
-
-    controls.update();
-
-
-
-    renderer.render(
-        scene,
-        camera
-    );
-
-}
-
-
-
-/* ===========================================================
-   INTRODUCCIÓN
-   =========================================================== */
-
-function startUniverse(){
-
-    animate();
-
-
-    setTimeout(()=>{
-
-        finishLoading();
-
-    },2200);
-
-}
-
-
-
-/* ===========================================================
-   INICIO DEFINITIVO
-   =========================================================== */
-
-startUniverse();
-
-
-
-console.log(
-    "🎬 Motor de animación iniciado."
-);
-
-console.log(
-    "🌌 Universo preparado para recibir estrellas."
-);
-
-
-
-
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 7
-   INTERACCIÓN CON ESTRELLAS · EFECTOS
-   =========================================================== */
-
-
-/* ===========================================================
-   PARTÍCULAS DE DESTELLO
-   =========================================================== */
-
-function createStarBurst(position){
-
-
-    const geometry =
-    new THREE.BufferGeometry();
-
-
+function createStars() {
+    const geometry = new THREE.BufferGeometry();
     const positions = [];
-
-
-    for(
-        let i = 0;
-        i < 80;
-        i++
-    ){
-
-        positions.push(
-
-            random(
-                -2,
-                2
-            ),
-
-            random(
-                -2,
-                2
-            ),
-
-            random(
-                -2,
-                2
-            )
-
-        );
-
-    }
-
-
-
-    geometry.setAttribute(
-
-        "position",
-
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-
-    );
-
-
-
-    const material =
-    new THREE.PointsMaterial({
-
-        color:0xffffff,
-
-        size:2.5,
-
-        transparent:true,
-
-        opacity:1,
-
-        blending:
-        THREE.AdditiveBlending,
-
-        depthWrite:false
-
-    });
-
-
-
-    const burst =
-    new THREE.Points(
-        geometry,
-        material
-    );
-
-
-    burst.position.copy(
-        position
-    );
-
-
-    burst.userData.life =
-    1;
-
-
-
-    effectsGroup.add(
-        burst
-    );
-
-
-    particles.push(
-        burst
-    );
-
-}
-
-
-
-/* ===========================================================
-   EFECTO AL TOCAR ESTRELLA
-   =========================================================== */
-
-function activateStar(star){
-
-
-    if(
-        !star
-    ) return;
-
-
-
-    createStarBurst(
-        star.position
-    );
-
-
-
-    star.scale.setScalar(
-        3
-    );
-
-
-    setTimeout(()=>{
-
-        star.scale.setScalar(
-            1
-        );
-
-    },500);
-
-
-}
-
-
-
-/* ===========================================================
-   DETECCIÓN DE CLIC / TOQUE
-   =========================================================== */
-
-function checkStarInteraction(event){
-
-
-    const rect =
-    renderer.domElement.getBoundingClientRect();
-
-
-
-    mouse.x =
-    ((event.clientX - rect.left)
-    / rect.width)
-    * 2 - 1;
-
-
-
-    mouse.y =
-    -((event.clientY - rect.top)
-    / rect.height)
-    * 2 + 1;
-
-
-
-    raycaster.setFromCamera(
-        mouse,
-        camera
-    );
-
-
-
-    const hits =
-    raycaster.intersectObjects(
-        interactiveStars,
-        true
-    );
-
-
-
-    if(
-        hits.length > 0
-    ){
-
-        activateStar(
-            hits[0].object
-        );
-
-    }
-
-}
-
-
-
-/* ===========================================================
-   EVENTOS
-   =========================================================== */
-
-window.addEventListener(
-
-    "click",
-
-    checkStarInteraction
-
-);
-
-
-
-window.addEventListener(
-
-    "pointerdown",
-
-    (event)=>{
-
-        checkStarInteraction(
-            event
-        );
-
-    }
-
-);
-
-
-
-/* ===========================================================
-   MENSAJES OCULTOS
-   =========================================================== */
-
-const starMessages = [
-
-    "Algunas luces permanecen incluso en la distancia.",
-
-    "Cada universo tiene una estrella especial.",
-
-    "Hay personas que hacen más brillante nuestro cielo."
-
-];
-
-
-
-function showStarMessage(){
-
-
-    const message =
-    starMessages[
-        randomInt(
-            0,
-            starMessages.length - 1
-        )
+    const colors = [];
+    const sizes = [];
+
+    const starColors = [
+        new THREE.Color(COLORS.white),
+        new THREE.Color(COLORS.blue),
+        new THREE.Color(COLORS.pink),
+        new THREE.Color(COLORS.violet)
     ];
 
-
-
-    subtitulo.innerText =
-    message;
-
-
-
-    overlay.classList.add(
-        "mostrar"
-    );
-
-}
-
-
-
-/* ===========================================================
-   ACTUALIZAR DESTELLOS
-   =========================================================== */
-
-function updateStarBursts(){
-
-
-    particles.forEach(
-        (particle,index)=>{
-
-
-            if(
-                particle.userData &&
-                particle.userData.life
-            ){
-
-                particle.userData.life -=
-                0.015;
-
-
-                particle.material.opacity =
-                particle.userData.life;
-
-
-                particle.scale.multiplyScalar(
-                    1.02
-                );
-
-
-                if(
-                    particle.userData.life <= 0
-                ){
-
-                    effectsGroup.remove(
-                        particle
-                    );
-
-                }
-
-            }
-
-
-        }
-    );
-
-}
-
-
-console.log(
-    "✨ Interacción estelar preparada."
-);
-/* ===========================================================
-   UNIVERSO PARA DANI ❤️
-   MÓDULO 8
-   INTEGRACIÓN FINAL · ANIMACIÓN COMPLETA
-   =========================================================== */
-
-
-/* ===========================================================
-   ACTUALIZACIÓN DE ESTRELLAS
-   =========================================================== */
-
-function updateStars(){
-
-    stars.forEach((star)=>{
-
-        star.rotation.y += 0.00005;
-
-    });
-
-}
-
-
-
-/* ===========================================================
-   MOVIMIENTO SUAVE DEL UNIVERSO
-   =========================================================== */
-
-function updateUniverse(){
-
-    universe.rotation.y += 0.00003;
-
-    universe.rotation.x =
-    Math.sin(elapsedTime * 0.05)
-    * 0.002;
-
-}
-
-
-
-/* ===========================================================
-   EFECTO DE PARPADEO DE ESTRELLAS
-   =========================================================== */
-
-function twinkleStars(){
-
-    stars.forEach((field)=>{
-
-        if(field.material){
-
-            field.material.opacity =
-            0.75 +
-            Math.sin(elapsedTime * 2)
-            * 0.15;
-
-        }
-
-    });
-
-}
-
-
-
-/* ===========================================================
-   ANIMACIÓN DE PLANETAS
-   =========================================================== */
-
-function animatePlanets(){
-
-    updatePlanets();
-
-}
-
-
-
-/* ===========================================================
-   ANIMACIÓN GENERAL
-   =========================================================== */
-
-function updateWorld(){
-   
-    updatePlanetGlow();
-    
-    updateGalaxy();
-
-    updateUniverse();
-
-    updateStars();
-
-    updateNebulas();
-
-    updateParticles();
-
-    updateComets();
-
-    updateShootingStars();
-
-    animatePlanets();
-
-    updateStarBursts();
-   
-    updateShaderNebulas();
-
-    twinkleStars();
-
-}
-
-
-
-/* ===========================================================
-   NUEVO LOOP PRINCIPAL
-   =========================================================== */
-
-function animateUniverse(){
-
-    requestAnimationFrame(
-        animateUniverse
-    );
-
-
-    elapsedTime =
-    clock.getElapsedTime();
-
-
-
-    controls.update();
-
-
-    updateCamera();
-
-
-    updateWorld();
-
-
-
-    renderer.render(
-        scene,
-        camera
-    );
-
-}
-
-
-
-/* ===========================================================
-   INTRO CINEMÁTICA
-   =========================================================== */
-
-function cinematicStart(){
-
-    camera.position.set(
-        0,
-        20,
-        220
-    );
-
-
-    const startPosition =
-    new THREE.Vector3(
-        0,
-        8,
-        140
-    );
-
-
-
-    const duration = 5000;
-
-    const startTime =
-    performance.now();
-
-
-
-    function cameraIntro(){
-
-        const progress =
-        Math.min(
-            (performance.now()
-            - startTime)
-            / duration,
-            1
+    for (let i = 0; i < SETTINGS.stars; i++) {
+        // Distribución esférica expansiva
+        const radius = Math.pow(Math.random(), 0.6) * SETTINGS.galaxyRadius;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(random(-1, 1));
+
+        positions.push(
+            radius * Math.sin(phi) * Math.cos(theta),
+            radius * Math.sin(phi) * Math.sin(theta) * 0.5, // Un poco aplanada
+            radius * Math.cos(phi)
         );
 
-
-
-        camera.position.lerpVectors(
-
-            new THREE.Vector3(
-                0,
-                20,
-                220
-            ),
-
-            startPosition,
-
-            progress
-
-        );
-
-
-
-        if(progress < 1){
-
-            requestAnimationFrame(
-                cameraIntro
-            );
-
-        }
-
+        const color = starColors[randomInt(0, starColors.length - 1)];
+        colors.push(color.r, color.g, color.b);
+        sizes.push(random(0.5, 3.0)); // Variación de tamaño
     }
 
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
 
-    cameraIntro();
+    // Material de puntos con textura de destello (sprite)
+    const starTexture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/sprites/disc.png");
+    const material = new THREE.PointsMaterial({
+        size: 2.0,
+        map: starTexture,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
 
+    const starField = new THREE.Points(geometry, material);
+    starsGroup.add(starField);
+    stars.push(starField);
 }
 
 /* ===========================================================
-   FUNCIÓN INIT
+   3. ESTRELLAS INTERACTIVAS (Sorpresas al tocar)
    =========================================================== */
+function createInteractiveStars() {
+    const geometry = new THREE.SphereGeometry(1.5, 12, 12); // Esferas pequeñas invisibles para click
+    
+    // Material básico brillante
+    const material = new THREE.MeshBasicMaterial({
+        color: COLORS.white,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending
+    });
 
-function init(){
+    for (let i = 0; i < SETTINGS.interactiveStars; i++) {
+        const star = new THREE.Mesh(geometry, material.clone());
+        
+        // Posicionarlas en zonas visibles pero dispersas
+        star.position.set(
+            random(-400, 400),
+            random(-150, 150),
+            random(-300, 300)
+        );
+        
+        // Datos personalizados para la animación
+        star.userData = {
+            baseScale: random(0.8, 1.5),
+            twinkleSpeed: random(1, 3),
+            interacting: false
+        };
+        star.scale.setScalar(star.userData.baseScale);
+        
+        interactiveStarsGroup.add(star);
+        interactiveStarMeshes.push(star);
+    }
+}
 
-    console.log(
-        "🌌 Iniciando universo..."
-    );
+// Lógica de Interacción Surprise (Click/Toque)
+function interactWithStar(star) {
+    if (star.userData.interacting) return;
+    star.userData.interacting = true;
 
+    // Efecto 1: Brillo intenso y escalado rápido
+    star.material.color.set(COLORS.glow);
+    star.scale.setScalar(star.userData.baseScale * 4);
 
-    createStars();
+    // Efecto 2: Soltar brillos (Burst)
+    createStarBurst(star.position);
 
-    createNebulas();
+    // Efecto 3: Pequeño temblor (Shake) - Implementado en el update loop
 
-    createPlanets();
+    // Resetear tras un tiempo
+    setTimeout(() => {
+        star.material.color.set(COLORS.white);
+        star.scale.setScalar(star.userData.baseScale);
+        star.userData.interacting = false;
+    }, 800);
+}
 
-    createComets();
+// Explosión de partículas (Brillos)
+function createStarBurst(position) {
+    const particleCount = 50;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = [];
 
+    for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = position.x;
+        positions[i * 3 + 1] = position.y;
+        positions[i * 3 + 2] = position.z;
 
-    composer.render(
-    );
+        // Velocidad explosiva aleatoria
+        velocities.push(new THREE.Vector3(
+            random(-1.5, 1.5),
+            random(-1.5, 1.5),
+            random(-1.5, 1.5)
+        ));
+    }
 
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    
+    const material = new THREE.PointsMaterial({
+        color: COLORS.glow,
+        size: 2.0,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    const burstParticles = new THREE.Points(geometry, material);
+    burstParticles.userData = { velocities: velocities, life: 1.0 }; // life de 1 a 0
+    effectsGroup.add(burstParticles);
+    particles.push(burstParticles);
 }
 
 /* ===========================================================
-   INICIO FINAL
+   4. NEBULOSAS AVANZADAS (Tonos Rojos, Azules, Violetas)
    =========================================================== */
+function createNebulas() {
+    // Definición de las nebulosas principales
+    const nebulaConfigs = [
+        { color: COLORS.red, pos: [-350, 50, -400], size: 400, scaleY: 0.4 },
+        { color: COLORS.blue, pos: [300, -50, -500], size: 450, scaleY: 0.5 },
+        { color: COLORS.violet, pos: [0, 150, -600], size: 500, scaleY: 0.3 },
+        { color: COLORS.pink, pos: [450, 80, 100], size: 350, scaleY: 0.6 }
+    ];
 
-function launchUniverse(){
-
-    cinematicStart();
-
-    animateUniverse();
-
-
-    setTimeout(()=>{
-
-        finishLoading();
-
-    },2500);
-
-
+    nebulaConfigs.forEach(config => {
+        createNebulaCloud(config.color, new THREE.Vector3(...config.pos), config.size, config.scaleY);
+    });
 }
 
+function createNebulaCloud(color, position, size, scaleY) {
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const colors = [];
+    const nebulaColor = new THREE.Color(color);
 
+    // Crear miles de partículas pequeñas por nube
+    const particleCount = 1500;
 
-launchUniverse();
+    for (let i = 0; i < particleCount; i++) {
+        // Distribución Gaussian (concentrada en el centro)
+        const radius = Math.pow(Math.random(), 1.5) * size;
+        const angle = Math.random() * Math.PI * 2;
+        
+        positions.push(
+            Math.cos(angle) * radius + random(-20, 20),
+            (random(-size, size) * 0.2 + random(-10, 10)) * scaleY, // Aplanada en Y
+            Math.sin(angle) * radius
+        );
 
+        // Variación sutil de color y opacidad
+        const variation = random(0.6, 1.0);
+        colors.push(nebulaColor.r * variation, nebulaColor.g * variation, nebulaColor.b * variation);
+    }
 
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
 
-console.log(
-    "🌌 Universo completamente integrado."
-);
+    const material = new THREE.PointsMaterial({
+        size: random(3, 7),
+        transparent: true,
+        opacity: 0.08, // Muy sutil para que se acumule
+        vertexColors: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
 
-console.log(
-    "✨ Sistema listo."
-);
+    const nebula = new THREE.Points(geometry, material);
+    nebula.position.copy(position);
+    nebula.rotation.set(random(0, Math.PI), random(0, Math.PI), 0);
+    
+    nebulaGroup.add(nebula);
+    nebulas.push(nebula);
+}
 
+/* ===========================================================
+   5. TEXTO DE ESTRELLAS: "Dani" y "Feliz Cumpleaños"
+   =========================================================== */
+function createBirthdayMessages() {
+    const loader = new FontLoader();
+    
+    loader.load(SETTINGS.fontUrl, (font) => {
+        // 1. Nombre "Dani" (Cerca, impacto inicial)
+        createStarText("Dani", font, new THREE.Vector3(0, 10, 50), 12, COLORS.white, false);
+
+        // 2. Mensaje "Feliz Cumpleaños" (Más lejos, se desvanece)
+        // Usamos setTimeout para que aparezca un poco después
+        setTimeout(() => {
+            createStarText("Feliz Cumpleaños", font, new THREE.Vector3(0, -15, -50), 8, COLORS.glow, true);
+        }, 2000);
+    });
+}
+
+/**
+ * Crea texto formado por partículas estelares.
+ * @param {boolean} shouldFade - Si el texto debe desvanecerse y dispersarse
+ */
+function createStarText(text, font, position, size, color, shouldFade) {
+    const textGeometry = new TextGeometry(text, {
+        font: font,
+        size: size,
+        height: 1,
+        curveSegments: 12,
+        bevelEnabled: false
+    });
+
+    // Centrar geométricamente
+    textGeometry.computeBoundingBox();
+    const centerOffset = -0.5 * (textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
+    
+    // En lugar de un Mesh, extraemos los vértices para crear puntos (estrellas)
+    const pointsGeometry = new THREE.BufferGeometry();
+    const positions = textGeometry.attributes.position.array;
+    pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    // Material de estrellas para el texto
+    const material = new THREE.PointsMaterial({
+        color: color,
+        size: shouldFade ? 1.5 : 1.8, // Texto de cumple un poco más sutil
+        transparent: true,
+        opacity: 1.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    const starText = new THREE.Points(pointsGeometry, material);
+    starText.position.set(position.x + centerOffset, position.y, position.z);
+    
+    textGroup.add(starText);
+
+    // Preparar lógica de desvanecimiento
+    if (shouldFade) {
+        starText.userData = {
+            isText: true,
+            createdAt: elapsedTime,
+            fading: false,
+            // Guardar posiciones originales para dispersión
+            originalPositions: pointsGeometry.attributes.position.clone()
+        };
+        textsToFade.push(starText);
+    }
+}
+
+// Lógica de desvanecimiento y dispersión de texto (Aurora estelar)
+function updateTextFading(delta) {
+    textsToFade.forEach(textObj => {
+        const userData = textObj.userData;
+        const positions = textObj.geometry.attributes.position;
+        const count = positions.count;
+
+        // Comprobar si es hora de empezar a desvanecerse
+        if (!userData.fading && (elapsedTime - userData.createdAt) > (SETTINGS.textFadeDelay / 1000)) {
+            userData.fading = true;
+        }
+
+        if (userData.fading) {
+            // 1. Reducir opacidad
+            textObj.material.opacity -= delta * 0.25; // Velocidad de desvanecimiento
+
+            // 2. Dispersar vértices (Efecto Aurora/Escapada)
+            for (let i = 0; i < count; i++) {
+                // Mover cada "estrella" del texto aleatoriamente hacia afuera
+                positions.array[i * 3] += (Math.random() - 0.5) * 0.5;     // X
+                positions.array[i * 3 + 1] += (Math.random() + 0.1) * 0.3; // Y (subiendo)
+                positions.array[i * 3 + 2] += (Math.random() - 0.5) * 0.5; // Z
+            }
+            positions.needsUpdate = true;
+
+            // Eliminar si es invisible
+            if (textObj.material.opacity <= 0) {
+                textGroup.remove(textObj);
+                textsToFade.splice(textsToFade.indexOf(textObj), 1);
+            }
+        }
+    });
+}
+
+/* ===========================================================
+   6. PLANETAS Y OTROS EFECTOS
+   =========================================================== */
+function createPlanets() {
+    // Un solo planeta principal elegante (Violeta/Azul)
+    const geometry = new THREE.SphereGeometry(20, 64, 64);
+    const material = new THREE.MeshStandardMaterial({
+        color: COLORS.violet,
+        emissive: 0x110022,
+        roughness: 0.6,
+        metalness: 0.2
+    });
+    const mainPlanet = new THREE.Mesh(geometry, material);
+    mainPlanet.position.set(-200, -30, -300);
+    planetsGroup.add(mainPlanet);
+    planets.push(mainPlanet);
+
+    // Añadir anillo elegante (Rojizo/Blanco)
+    const ringGeometry = new THREE.RingGeometry(25, 40, 64);
+    const ringMaterial = new THREE.MeshBasicMaterial({
+        color: COLORS.red,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.4,
+        blending: THREE.AdditiveBlending
+    });
+    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    ring.rotation.x = Math.PI / 2.2;
+    mainPlanet.add(ring);
+}
+
+// Polvo Cósmico Ambiental
+function createCosmicDust() {
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const colors = [];
+
+    const dustColors = [new THREE.Color(COLORS.blue), new THREE.Color(COLORS.violet)];
+
+    for (let i = 0; i < SETTINGS.particles; i++) {
+        positions.push(random(-800, 800), random(-400, 400), random(-800, 800));
+        const color = dustColors[randomInt(0, 1)];
+        colors.push(color.r, color.g, color.b);
+    }
+
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+        size: 1.2,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.2,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
+
+    const dust = new THREE.Points(geometry, material);
+    effectsGroup.add(dust);
+}
+
+/* ===========================================================
+   7. BUCLE DE ANIMACIÓN Y LÓGICA DE ACTUALIZACIÓN
+   =========================================================== */
+function animate() {
+    requestAnimationFrame(animate);
+    
+    const delta = clock.getDelta();
+    elapsedTime = clock.getElapsedTime();
+
+    // Actualizar controles (requerido para damping)
+    controls.update();
+
+    // 1. Animación Estrellas Interactivas (Parpadeo y Sorpresas)
+    interactiveStarMeshes.forEach(star => {
+        // Parpadeo base
+        const twinkle = 1 + Math.sin(elapsedTime * star.userData.twinkleSpeed) * 0.1;
+        
+        if (star.userData.interacting) {
+            // Efecto temblor si se está tocando
+            star.position.x += (Math.random() - 0.5) * 0.5;
+            star.position.y += (Math.random() - 0.5) * 0.5;
+        } else {
+            star.scale.setScalar(star.userData.baseScale * twinkle);
+        }
+    });
+
+    // 2. Actualizar Ráfagas de Brillos (Burst particles)
+    particles.forEach(burst => {
+        const userData = burst.userData;
+        const positions = burst.geometry.attributes.position;
+        
+        userData.life -= delta * 1.2; // La vida cae
+        burst.material.opacity = userData.life;
+
+        for (let i = 0; i < positions.count; i++) {
+            positions.array[i * 3] += userData.velocities[i].x;
+            positions.array[i * 3 + 1] += userData.velocities[i].y;
+            positions.array[i * 3 + 2] += userData.velocities[i].z;
+            
+            // Gravedad sutil hacia abajo
+            userData.velocities[i].y -=
