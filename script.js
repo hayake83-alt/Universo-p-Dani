@@ -4225,3 +4225,4 @@ function disposeMaterial(material) {
     material.dispose?.();
 }
 }
+}
