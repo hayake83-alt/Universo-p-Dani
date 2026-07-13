@@ -1,35 +1,33 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Para Dani ❤️</title>
-
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universo para Dani</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050510; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        /* Loader simple */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050510; color: white; display: flex;
+            justify-content: center; align-items: center;
+            font-family: sans-serif; z-index: 999;
+        }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.166.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.166.0/examples/jsm/"
+        }
+      }
+    </script>
 </head>
-
 <body>
+    <div id="loader">Cargando el universo...</div>
+    <canvas id="universo"></canvas>
 
-  <canvas id="universo"></canvas>
-
-  <div id="mensaje">
-      <h1>Feliz cumpleaños, Dani ♡</h1>
-  </div>
-
-  <!-- Three.js -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.166.1/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.166.1/examples/jsm/"
-    }
-  }
-  </script>
-
-  <script type="module" src="script.js"></script>
-
+    <script type="module" src="main.js"></script>
 </body>
-
 </html>
