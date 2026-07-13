@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -11,10 +10,17 @@
     <title>Para Dani ❤️</title>
 
     <meta name="theme-color" content="#03030a">
-    <meta name="description" content="Un pequeño universo creado para Dani.">
+    <meta
+        name="description"
+        content="Un pequeño universo creado para Dani."
+    >
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
 
     <link
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@300;400;500&display=swap"
@@ -26,37 +32,42 @@
 
 <body>
     <main id="app">
-
-        <!-- Canvas donde Three.js dibuja el universo -->
         <canvas
             id="universe"
             aria-label="Universo animado"
         ></canvas>
 
-        <!-- Oscurecimiento suave de los bordes -->
         <div class="vignette" aria-hidden="true"></div>
+        <div
+            class="ambient-glow ambient-glow--blue"
+            aria-hidden="true"
+        ></div>
+        <div
+            class="ambient-glow ambient-glow--pink"
+            aria-hidden="true"
+        ></div>
 
-        <!-- Brillo ambiental -->
-        <div class="ambient-glow ambient-glow--blue" aria-hidden="true"></div>
-        <div class="ambient-glow ambient-glow--pink" aria-hidden="true"></div>
-
-        <!-- Pantalla inicial -->
         <section
             id="intro"
             class="intro"
             aria-labelledby="introTitle"
         >
             <div class="intro__content">
-
                 <p class="intro__eyebrow">
                     Un pequeño universo
                 </p>
 
-                <h1 id="introTitle" class="intro__title">
+                <h1
+                    id="introTitle"
+                    class="intro__title"
+                >
                     Para Dani
                 </h1>
 
-                <div class="intro__line" aria-hidden="true"></div>
+                <div
+                    class="intro__line"
+                    aria-hidden="true"
+                ></div>
 
                 <p class="intro__message">
                     Entre millones de estrellas,
@@ -84,25 +95,30 @@
                 <p class="intro__hint">
                     Toca la pantalla o mueve suavemente el cursor
                 </p>
-
             </div>
         </section>
 
-        <!-- Indicador inicial de carga -->
         <div
             id="loader"
             class="loader"
             role="status"
             aria-live="polite"
         >
-            <div class="loader__star" aria-hidden="true">✦</div>
+            <div
+                class="loader__star"
+                aria-hidden="true"
+            >
+                ✦
+            </div>
 
-            <p id="loaderText" class="loader__text">
+            <p
+                id="loaderText"
+                class="loader__text"
+            >
                 Creando estrellas…
             </p>
         </div>
 
-        <!-- Mensaje visible si ocurre un error -->
         <div
             id="errorPanel"
             class="error-panel"
@@ -114,73 +130,112 @@
                 No se pudo cargar el universo
             </p>
 
-            <p id="errorMessage" class="error-panel__message">
+            <p
+                id="errorMessage"
+                class="error-panel__message"
+            >
                 Ocurrió un error inesperado.
             </p>
         </div>
-<!-- Mensaje oculto de la constelación -->
-<section
-    id="constellationMessage"
-    class="constellation-message"
-    aria-hidden="true"
->
-    <div class="constellation-message__card">
 
-        <button
-            id="closeConstellationMessage"
-            class="constellation-message__close"
-            type="button"
-            aria-label="Cerrar mensaje"
+        <section
+            id="constellationMessage"
+            class="constellation-message"
+            aria-hidden="true"
         >
-            ×
-        </button>
+            <div class="constellation-message__card">
+                <button
+                    id="closeConstellationMessage"
+                    class="constellation-message__close"
+                    type="button"
+                    aria-label="Cerrar mensaje"
+                >
+                    ×
+                </button>
 
-        <p class="constellation-message__eyebrow">
-            Entre las estrellas
-        </p>
+                <p class="constellation-message__eyebrow">
+                    Entre las estrellas
+                </p>
 
-        <h2 class="constellation-message__title">
-            Siempre tú
-        </h2>
+                <h2 class="constellation-message__title">
+                    Siempre tú
+                </h2>
+
+                <div
+                    class="constellation-message__line"
+                    aria-hidden="true"
+                ></div>
+
+                <p
+                    id="constellationMessageText"
+                    class="constellation-message__text"
+                >
+                    Incluso si el universo fuera infinito,
+                    seguiría encontrando el camino hacia ti.
+                </p>
+
+                <p class="constellation-message__signature">
+                    Para Dani ✦
+                </p>
+            </div>
+        </section>
 
         <div
-            class="constellation-message__line"
+            id="constellationHint"
+            class="constellation-hint"
             aria-hidden="true"
-        ></div>
-
-        <p
-            id="constellationMessageText"
-            class="constellation-message__text"
         >
-            Incluso si el universo fuera infinito,
-            seguiría encontrando el camino hacia ti.
-        </p>
+            <span
+                class="constellation-hint__star"
+                aria-hidden="true"
+            >
+                ✦
+            </span>
 
-        <p class="constellation-message__signature">
-            Para Dani ✦
-        </p>
+            <span>Toca una estrella</span>
+        </div>
 
-    </div>
-</section>
+        <nav
+            id="constellationNavigation"
+            class="constellation-navigation"
+            aria-label="Navegación entre constelaciones"
+            aria-hidden="true"
+        >
+            <button
+                id="previousConstellation"
+                class="constellation-navigation__button"
+                type="button"
+                aria-label="Constelación anterior"
+            >
+                ‹
+            </button>
 
-<!-- Instrucción que aparece al llegar a la constelación -->
-<div
-    id="constellationHint"
-    class="constellation-hint"
-    aria-hidden="true"
->
-    <span
-        class="constellation-hint__star"
-        aria-hidden="true"
-    >
-        ✦
-    </span>
+            <div class="constellation-navigation__information">
+                <p
+                    id="constellationName"
+                    class="constellation-navigation__name"
+                >
+                    Encuentro
+                </p>
 
-    <span>
-        Toca una estrella
-    </span>
-</div>
-        <!-- Aviso de estado para accesibilidad -->
+                <p
+                    id="constellationCounter"
+                    class="constellation-navigation__counter"
+                >
+                    1 / 3
+                </p>
+            </div>
+
+            <button
+                id="nextConstellation"
+                class="constellation-navigation__button"
+                type="button"
+                aria-label="Siguiente constelación"
+            >
+                ›
+            </button>
+        </nav>
+
         <p
             id="status"
             class="sr-only"
@@ -189,7 +244,6 @@
         >
             Preparando el universo.
         </p>
-
     </main>
 
     <script type="module" src="./script.js"></script>
