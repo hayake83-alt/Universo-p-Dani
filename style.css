@@ -681,3 +681,201 @@ body.constellation-hover {
         white-space: nowrap;
     }
 }
+
+
+/* =========================================================
+   ETAPA 10
+   Escenas narrativas y cierre del recorrido
+   ========================================================= */
+
+.journey-caption {
+    position: fixed;
+    left: max(28px, env(safe-area-inset-left));
+    bottom: max(88px, env(safe-area-inset-bottom));
+    z-index: 5;
+
+    width: min(420px, calc(100% - 56px));
+
+    padding-left: 18px;
+
+    border-left: 1px solid rgba(255, 255, 255, 0.26);
+
+    opacity: 0;
+    visibility: hidden;
+
+    transform: translateY(14px);
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.8s ease,
+        visibility 0.8s ease,
+        transform 0.8s ease;
+}
+
+.journey-caption.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.journey-caption__title {
+    margin: 0 0 6px;
+
+    color: rgba(255, 250, 245, 0.92);
+
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+
+    font-size: clamp(1.6rem, 4vw, 2.35rem);
+    font-weight: 400;
+    line-height: 1;
+}
+
+.journey-caption__text {
+    margin: 0;
+
+    color: rgba(255, 250, 245, 0.54);
+
+    font-size: 0.72rem;
+    line-height: 1.65;
+    letter-spacing: 0.05em;
+}
+
+.journey-progress {
+    position: fixed;
+    left: 50%;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    z-index: 5;
+
+    width: min(340px, calc(100% - 64px));
+    height: 1px;
+
+    background: rgba(255, 255, 255, 0.08);
+
+    transform: translateX(-50%);
+
+    pointer-events: none;
+}
+
+.journey-progress__bar {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(125, 164, 255, 0.8),
+            rgba(244, 164, 220, 0.9)
+        );
+
+    box-shadow:
+        0 0 14px rgba(150, 170, 255, 0.44);
+
+    transform: scaleX(0);
+    transform-origin: left center;
+
+    transition: transform 0.1s linear;
+}
+
+.journey-final-message {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    z-index: 8;
+
+    width: min(560px, calc(100% - 40px));
+
+    padding: 28px 30px;
+
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 24px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.07),
+            rgba(255, 255, 255, 0.015)
+        ),
+        rgba(7, 8, 24, 0.7);
+
+    text-align: center;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transform:
+        translate(-50%, -50%)
+        scale(0.96);
+
+    pointer-events: none;
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    transition:
+        opacity 0.9s ease,
+        visibility 0.9s ease,
+        transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.journey-final-message.is-visible {
+    opacity: 1;
+    visibility: visible;
+
+    transform:
+        translate(-50%, -50%)
+        scale(1);
+
+    pointer-events: auto;
+}
+
+.journey-final-message__eyebrow {
+    margin: 0 0 10px;
+
+    color: rgba(190, 205, 255, 0.56);
+
+    font-size: 0.62rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+}
+
+.journey-final-message__text {
+    margin: 0;
+
+    color: rgba(255, 250, 245, 0.88);
+
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+
+    font-size: clamp(1.45rem, 4.4vw, 2rem);
+    line-height: 1.35;
+}
+
+@media (max-width: 600px) {
+    .journey-caption {
+        left: 20px;
+        bottom: max(108px, env(safe-area-inset-bottom));
+
+        width: calc(100% - 40px);
+    }
+
+    .journey-caption__text {
+        max-width: 300px;
+    }
+
+    .journey-progress {
+        bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    .journey-final-message {
+        padding: 24px 22px;
+        border-radius: 22px;
+    }
+}
