@@ -22,7 +22,25 @@ const statusElement = document.getElementById("status");
 
 const errorPanel = document.getElementById("errorPanel");
 const errorMessage = document.getElementById("errorMessage");
+const constellationMessage =
+    document.getElementById(
+        "constellationMessage"
+    );
 
+const constellationMessageText =
+    document.getElementById(
+        "constellationMessageText"
+    );
+
+const closeConstellationMessage =
+    document.getElementById(
+        "closeConstellationMessage"
+    );
+
+const constellationHint =
+    document.getElementById(
+        "constellationHint"
+    );
 
 /* ---------------------------------------------------------
    VARIABLES PRINCIPALES
@@ -51,6 +69,17 @@ let moonPivot;
 let moon;
 let moonGlow;
 let moonOrbitLine;
+let constellationGroup;
+let constellationStars = [];
+let constellationLines;
+
+let isConstellationVisible = false;
+let isConstellationMessageOpen = false;
+let hoveredConstellationStar = null;
+
+const raycaster = new THREE.Raycaster();
+const constellationPointer =
+    new THREE.Vector2();
 
 let keyLight;
 let fillLight;
@@ -109,7 +138,25 @@ const CAMERA_JOURNEY = {
     stageThreeEnd: 0.82,
     journeyDuration: prefersReducedMotion ? 20 : 32
 };
+const CONSTELLATION_CONFIG = {
+    position: isSmallScreen
+        ? new THREE.Vector3(
+            -3.8,
+            0.4,
+            -24
+        )
+        : new THREE.Vector3(
+            -5.5,
+            0.5,
+            -28
+        ),
 
+    scale: isSmallScreen
+        ? 0.82
+        : 1,
+
+    revealStart: 0.78
+};
 /* ---------------------------------------------------------
    CONFIGURACIÓN
 --------------------------------------------------------- */
@@ -186,11 +233,15 @@ async function initializeUniverse() {
         createNebulas();
         createAmbientGlows();
 
-        updateLoaderText("Creando un nuevo mundo…");
+       updateLoaderText("Creando un nuevo mundo…");
 
-        createPlanetSystem();
+createPlanetSystem();
 
-        createEventListeners();
+updateLoaderText("Uniendo estrellas…");
+
+createConstellation();
+
+createEventListeners();
         handleResize();
 
         clock = new THREE.Clock();
@@ -213,15 +264,19 @@ async function initializeUniverse() {
 
 function validateRequiredElements() {
     const requiredElements = [
-        canvas,
-        intro,
-        startButton,
-        loader,
-        loaderText,
-        statusElement,
-        errorPanel,
-        errorMessage
-    ];
+    canvas,
+    intro,
+    startButton,
+    loader,
+    loaderText,
+    statusElement,
+    errorPanel,
+    errorMessage,
+    constellationMessage,
+    constellationMessageText,
+    closeConstellationMessage,
+    constellationHint
+];
 
     const missingElement = requiredElements.some(
         (element) => !element
@@ -2031,7 +2086,303 @@ function createMoonOrbit() {
     );
 }
 
+/* ---------------------------------------------------------
+   CONSTELACIÓN INTERACTIVA
+--------------------------------------------------------- */
 
+/**
+ * Crea una constelación formada por
+ * estrellas individuales y líneas.
+ */
+function createConstellation() {
+    constellationGroup =
+        new THREE.Group();
+
+    constellationGroup.name =
+        "ConstellationGroup";
+
+    constellationGroup.position.copy(
+        CONSTELLATION_CONFIG.position
+    );
+
+    constellationGroup.scale.setScalar(
+        CONSTELLATION_CONFIG.scale
+    );
+
+    constellationGroup.visible = false;
+
+    const starTexture =
+        createGlowTexture();
+
+    const starPositions = [
+        [-3.4, 1.1, 0],
+        [-2.1, 2.3, 0.15],
+        [-0.7, 1.55, -0.1],
+        [0.45, 2.65, 0.1],
+        [1.85, 1.75, 0],
+        [3.25, 2.35, -0.15],
+        [2.55, 0.55, 0.1],
+        [1.15, -0.4, 0],
+        [-0.3, 0.25, 0.12],
+        [-1.8, -0.55, -0.1],
+        [-2.85, -1.85, 0],
+        [-0.55, -2.05, 0.1],
+        [1.65, -1.75, -0.1],
+        [3.15, -0.95, 0]
+    ];
+
+    const connectionIndexes = [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 4],
+        [4, 5],
+
+        [4, 6],
+        [6, 7],
+        [7, 8],
+        [8, 2],
+
+        [8, 9],
+        [9, 10],
+        [9, 11],
+        [11, 12],
+        [12, 13],
+        [13, 6]
+    ];
+
+    constellationStars = [];
+
+    starPositions.forEach(
+        (
+            position,
+            index
+        ) => {
+            const star =
+                createConstellationStar(
+                    position,
+                    index,
+                    starTexture
+                );
+
+            constellationStars.push(
+                star
+            );
+
+            constellationGroup.add(
+                star
+            );
+        }
+    );
+
+    constellationLines =
+        createConstellationLines(
+            starPositions,
+            connectionIndexes
+        );
+
+    constellationGroup.add(
+        constellationLines
+    );
+
+    scene.add(
+        constellationGroup
+    );
+}
+
+
+/**
+ * Crea una estrella que puede ser tocada.
+ */
+function createConstellationStar(
+    position,
+    index,
+    texture
+) {
+    const starGroup =
+        new THREE.Group();
+
+    starGroup.position.set(
+        position[0],
+        position[1],
+        position[2]
+    );
+
+    starGroup.userData = {
+        constellationIndex: index,
+        baseScale:
+            index % 4 === 0
+                ? 0.42
+                : 0.31,
+
+        phase:
+            index * 0.72,
+
+        isConstellationStar: true
+    };
+
+    const coreGeometry =
+        new THREE.SphereGeometry(
+            index % 4 === 0
+                ? 0.105
+                : 0.075,
+
+            16,
+            12
+        );
+
+    const coreMaterial =
+        new THREE.MeshBasicMaterial({
+            color:
+                index % 3 === 0
+                    ? 0xf4d9ff
+                    : index % 3 === 1
+                        ? 0xc5d7ff
+                        : 0xffffff
+        });
+
+    const core =
+        new THREE.Mesh(
+            coreGeometry,
+            coreMaterial
+        );
+
+    core.userData.isConstellationStar =
+        true;
+
+    core.userData.constellationIndex =
+        index;
+
+    starGroup.add(
+        core
+    );
+
+    const glowMaterial =
+        new THREE.SpriteMaterial({
+            map: texture,
+
+            color:
+                index % 3 === 0
+                    ? 0xd9a8ff
+                    : index % 3 === 1
+                        ? 0x9fbbff
+                        : 0xffffff,
+
+            transparent: true,
+            opacity: 0.76,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+    const glow =
+        new THREE.Sprite(
+            glowMaterial
+        );
+
+    const baseScale =
+        starGroup.userData.baseScale;
+
+    glow.scale.set(
+        baseScale,
+        baseScale,
+        1
+    );
+
+    glow.userData.isConstellationStar =
+        true;
+
+    glow.userData.constellationIndex =
+        index;
+
+    starGroup.add(
+        glow
+    );
+
+    starGroup.userData.core =
+        core;
+
+    starGroup.userData.glow =
+        glow;
+
+    starGroup.scale.setScalar(
+        0.001
+    );
+
+    return starGroup;
+}
+
+
+/**
+ * Une las estrellas mediante líneas.
+ */
+function createConstellationLines(
+    positions,
+    connections
+) {
+    const linePoints = [];
+
+    connections.forEach(
+        (
+            connection
+        ) => {
+            const first =
+                positions[
+                    connection[0]
+                ];
+
+            const second =
+                positions[
+                    connection[1]
+                ];
+
+            linePoints.push(
+                new THREE.Vector3(
+                    first[0],
+                    first[1],
+                    first[2]
+                )
+            );
+
+            linePoints.push(
+                new THREE.Vector3(
+                    second[0],
+                    second[1],
+                    second[2]
+                )
+            );
+        }
+    );
+
+    const geometry =
+        new THREE.BufferGeometry()
+            .setFromPoints(
+                linePoints
+            );
+
+    const material =
+        new THREE.LineBasicMaterial({
+            color: 0xaec4ff,
+
+            transparent: true,
+            opacity: 0,
+
+            depthWrite: false,
+
+            blending:
+                THREE.AdditiveBlending
+        });
+
+    const lines =
+        new THREE.LineSegments(
+            geometry,
+            material
+        );
+
+    return lines;
+}
 /* ---------------------------------------------------------
    EVENTOS
 --------------------------------------------------------- */
@@ -2065,7 +2416,21 @@ function createEventListeners() {
         "click",
         handleStartButtonClick
     );
+window.addEventListener(
+    "pointerdown",
+    handleConstellationPointerDown,
+    { passive: true }
+);
 
+closeConstellationMessage.addEventListener(
+    "click",
+    closeConstellationPanel
+);
+
+constellationMessage.addEventListener(
+    "click",
+    handleConstellationBackgroundClick
+);
     document.addEventListener(
         "visibilitychange",
         handleVisibilityChange
@@ -2104,6 +2469,12 @@ function handlePointerMove(event) {
             2 -
             1
         );
+   updateConstellationPointer(
+    event.clientX,
+    event.clientY
+);
+
+checkConstellationHover();
 }
 
 
@@ -2134,7 +2505,269 @@ function handleTouchMove(event) {
         );
 }
 
+/**
+ * Convierte las coordenadas de pantalla
+ * a coordenadas utilizadas por Three.js.
+ */
+function updateConstellationPointer(
+    clientX,
+    clientY
+) {
+    constellationPointer.x =
+        (
+            clientX /
+            window.innerWidth
+        ) *
+        2 -
+        1;
 
+    constellationPointer.y =
+        -(
+            (
+                clientY /
+                window.innerHeight
+            ) *
+            2 -
+            1
+        );
+}
+
+
+/**
+ * Comprueba si el cursor está sobre
+ * una estrella de la constelación.
+ */
+function checkConstellationHover() {
+    if (
+        !isConstellationVisible ||
+        !constellationGroup ||
+        isConstellationMessageOpen
+    ) {
+        clearConstellationHover();
+        return;
+    }
+
+    raycaster.setFromCamera(
+        constellationPointer,
+        camera
+    );
+
+    const intersections =
+        raycaster.intersectObjects(
+            constellationStars,
+            true
+        );
+
+    const firstIntersection =
+        intersections.find(
+            (
+                intersection
+            ) =>
+                intersection.object
+                    ?.userData
+                    ?.isConstellationStar
+        );
+
+    if (!firstIntersection) {
+        clearConstellationHover();
+        return;
+    }
+
+    const selectedIndex =
+        firstIntersection.object
+            .userData
+            .constellationIndex;
+
+    const selectedStar =
+        constellationStars[
+            selectedIndex
+        ];
+
+    if (
+        hoveredConstellationStar !==
+        selectedStar
+    ) {
+        clearConstellationHover();
+
+        hoveredConstellationStar =
+            selectedStar;
+
+        document.body.classList.add(
+            "constellation-hover"
+        );
+    }
+}
+
+
+/**
+ * Quita el estado de selección visual.
+ */
+function clearConstellationHover() {
+    hoveredConstellationStar = null;
+
+    document.body.classList.remove(
+        "constellation-hover"
+    );
+}
+
+
+/**
+ * Detecta el toque o clic sobre una estrella.
+ */
+function handleConstellationPointerDown(
+    event
+) {
+    if (
+        !isConstellationVisible ||
+        isConstellationMessageOpen
+    ) {
+        return;
+    }
+
+    updateConstellationPointer(
+        event.clientX,
+        event.clientY
+    );
+
+    raycaster.setFromCamera(
+        constellationPointer,
+        camera
+    );
+
+    const intersections =
+        raycaster.intersectObjects(
+            constellationStars,
+            true
+        );
+
+    const selectedIntersection =
+        intersections.find(
+            (
+                intersection
+            ) =>
+                intersection.object
+                    ?.userData
+                    ?.isConstellationStar
+        );
+
+    if (!selectedIntersection) {
+        return;
+    }
+
+    const selectedIndex =
+        selectedIntersection.object
+            .userData
+            .constellationIndex;
+
+    openConstellationPanel(
+        selectedIndex
+    );
+}
+
+
+/**
+ * Abre el mensaje oculto.
+ */
+function openConstellationPanel(
+    selectedIndex
+) {
+    isConstellationMessageOpen =
+        true;
+
+    clearConstellationHover();
+
+    const messages = [
+        "Entre todas las posibilidades del universo, mi favorita siempre será haberte encontrado.",
+
+        "Hay personas que llegan como una estrella fugaz. Tú llegaste para convertirte en todo mi cielo.",
+
+        "No sé cuántas vidas existen, pero en esta me alegra profundamente coincidir contigo.",
+
+        "Incluso cuando todo parece lejano, pensar en ti hace que el universo se sienta un poco más cerca.",
+
+        "No necesito conocer todas las estrellas. Me basta con reconocer la luz que encuentro en ti."
+    ];
+
+    constellationMessageText.textContent =
+        messages[
+            selectedIndex %
+            messages.length
+        ];
+
+    constellationMessage.classList.add(
+        "is-visible"
+    );
+
+    constellationMessage.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    constellationHint.classList.remove(
+        "is-visible"
+    );
+
+    constellationHint.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    updateStatus(
+        "Se abrió un mensaje de la constelación."
+    );
+}
+
+
+/**
+ * Cierra el mensaje.
+ */
+function closeConstellationPanel() {
+    if (!isConstellationMessageOpen) {
+        return;
+    }
+
+    isConstellationMessageOpen =
+        false;
+
+    constellationMessage.classList.remove(
+        "is-visible"
+    );
+
+    constellationMessage.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    if (isConstellationVisible) {
+        constellationHint.classList.add(
+            "is-visible"
+        );
+
+        constellationHint.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+    }
+
+    updateStatus(
+        "Mensaje de la constelación cerrado."
+    );
+}
+
+
+/**
+ * Permite cerrar al tocar fuera de la tarjeta.
+ */
+function handleConstellationBackgroundClick(
+    event
+) {
+    if (
+        event.target ===
+        constellationMessage
+    ) {
+        closeConstellationPanel();
+    }
+}
 function handleResize() {
     if (!camera || !renderer) {
         return;
@@ -2281,9 +2914,9 @@ function animate() {
     animateStars(elapsedTime);
     animateNebulas(elapsedTime);
     animateAmbientGlows(elapsedTime);
-    animatePlanetSystem(elapsedTime);
-    animateCamera(elapsedTime);
-
+animatePlanetSystem(elapsedTime);
+animateConstellation(elapsedTime);
+animateCamera(elapsedTime);
     renderer.render(
         scene,
         camera
@@ -2493,7 +3126,168 @@ function animatePlanetSystem(
     ) {
         return;
     }
+/**
+ * Muestra y anima la constelación
+ * al final del recorrido.
+ */
+function animateConstellation(
+    elapsedTime
+) {
+    if (!constellationGroup) {
+        return;
+    }
 
+    const shouldReveal =
+        hasEntered &&
+        journeyProgress >=
+            CONSTELLATION_CONFIG.revealStart;
+
+    if (shouldReveal) {
+        constellationGroup.visible =
+            true;
+
+        isConstellationVisible =
+            true;
+    }
+
+    if (!constellationGroup.visible) {
+        return;
+    }
+
+    const motionMultiplier =
+        prefersReducedMotion
+            ? 0.15
+            : 1;
+
+    const revealProgress =
+        THREE.MathUtils.clamp(
+            (
+                journeyProgress -
+                CONSTELLATION_CONFIG
+                    .revealStart
+            ) /
+            (
+                1 -
+                CONSTELLATION_CONFIG
+                    .revealStart
+            ),
+            0,
+            1
+        );
+
+    const easedReveal =
+        easeInOutCubic(
+            revealProgress
+        );
+
+    constellationGroup.rotation.y =
+        Math.sin(
+            elapsedTime *
+            0.16
+        ) *
+        0.025 *
+        motionMultiplier;
+
+    constellationGroup.rotation.x =
+        Math.cos(
+            elapsedTime *
+            0.12
+        ) *
+        0.012 *
+        motionMultiplier;
+
+    constellationGroup.position.y =
+        CONSTELLATION_CONFIG
+            .position.y +
+        Math.sin(
+            elapsedTime *
+            0.3
+        ) *
+        0.08 *
+        motionMultiplier;
+
+    constellationStars.forEach(
+        (
+            star,
+            index
+        ) => {
+            const delayedReveal =
+                THREE.MathUtils.clamp(
+                    easedReveal *
+                    1.45 -
+                    index *
+                    0.035,
+                    0,
+                    1
+                );
+
+            const pulse =
+                Math.sin(
+                    elapsedTime *
+                    1.25 +
+                    star.userData.phase
+                );
+
+            const hoverScale =
+                hoveredConstellationStar ===
+                star
+                    ? 1.48
+                    : 1;
+
+            const targetScale =
+                delayedReveal *
+                hoverScale *
+                (
+                    1 +
+                    pulse *
+                    0.08 *
+                    motionMultiplier
+                );
+
+            star.scale.lerp(
+                new THREE.Vector3(
+                    targetScale,
+                    targetScale,
+                    targetScale
+                ),
+                0.12
+            );
+
+            const glow =
+                star.userData.glow;
+
+            if (glow?.material) {
+                glow.material.opacity =
+                    0.64 +
+                    pulse *
+                    0.16 *
+                    motionMultiplier;
+            }
+        }
+    );
+
+    if (
+        constellationLines?.material
+    ) {
+        constellationLines.material.opacity =
+            easedReveal *
+            0.42;
+    }
+
+    if (
+        revealProgress > 0.86 &&
+        !isConstellationMessageOpen
+    ) {
+        constellationHint.classList.add(
+            "is-visible"
+        );
+
+        constellationHint.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+    }
+}
     const motionMultiplier =
         prefersReducedMotion
             ? 0.16
@@ -3340,12 +4134,15 @@ function cleanUp() {
         glowGroup
     );
 
-    disposeObject3D(
-        planetSystem
-    );
+   disposeObject3D(
+    planetSystem
+);
 
-    renderer?.dispose();
-}
+disposeObject3D(
+    constellationGroup
+);
+
+renderer?.dispose();
 
 
 function disposePoints(points) {
