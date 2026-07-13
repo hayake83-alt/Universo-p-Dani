@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#02030a">
+  <meta name="description" content="Una experiencia interactiva creada para Dani.">
+
+  <title>Para Dani ✦</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main id="app" aria-label="Universo interactivo para Dani">
+    <canvas id="universe" aria-hidden="true"></canvas>
+
+    <section class="intro" id="intro">
+      <p class="eyebrow">Un pequeño universo</p>
+      <h1>Para Dani</h1>
+      <p class="subtitle">Todo comienza aquí.</p>
+      <button id="startButton" type="button">Entrar</button>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite">
+      Cargando el universo…
+    </div>
+
+    <noscript>
+      <div class="fatal-error">
+        Este regalo necesita JavaScript activado para funcionar.
+      </div>
+    </noscript>
+  </main>
+
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
