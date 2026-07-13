@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   ETAPA 11: REALISMO GALÁCTICO Y MENSAJE OCULTO
+   ETAPA 13: UNIVERSO PULIDO Y FINAL EMOCIONAL
    ========================================================= */
 
 
@@ -107,6 +107,51 @@ const hiddenBirthdayHint =
         "hiddenBirthdayHint"
     );
 
+const backgroundMusic =
+    document.getElementById(
+        "backgroundMusic"
+    );
+
+const audioControl =
+    document.getElementById(
+        "audioControl"
+    );
+
+const audioControlIcon =
+    document.getElementById(
+        "audioControlIcon"
+    );
+
+const audioControlText =
+    document.getElementById(
+        "audioControlText"
+    );
+
+const audioStatus =
+    document.getElementById(
+        "audioStatus"
+    );
+
+const finalScene =
+    document.getElementById(
+        "finalScene"
+    );
+
+const finalSceneMessage =
+    document.getElementById(
+        "finalSceneMessage"
+    );
+
+const replayJourneyButton =
+    document.getElementById(
+        "replayJourneyButton"
+    );
+
+const continueExploringButton =
+    document.getElementById(
+        "continueExploringButton"
+    );
+
 /* ---------------------------------------------------------
    VARIABLES PRINCIPALES
 --------------------------------------------------------- */
@@ -189,6 +234,27 @@ let universeYaw = 0;
 let universePitch = 0;
 let targetUniverseYaw = 0;
 let targetUniversePitch = 0;
+
+let isAudioAvailable = true;
+let isAudioPlaying = false;
+let isAudioFading = false;
+let audioFadeFrame = null;
+let userRequestedAudio = false;
+
+let galacticBandGroup;
+let galacticBandLayers = [];
+
+let deepStarField;
+let deepStarTwinkleData = [];
+
+let solarCoronaGroup;
+let solarCoronaLayers = [];
+let solarFlareGroup;
+let solarFlares = [];
+
+let finalSceneShown = false;
+let finalSceneTimeout = null;
+let finalSceneDismissed = false;
 
 const cosmicRaycaster = new THREE.Raycaster();
 const cosmicPointer = new THREE.Vector2();
@@ -384,10 +450,10 @@ const CONSTELLATION_DATA = [
 --------------------------------------------------------- */
 
 const STAR_CONFIG = {
-    mainCount: isSmallScreen ? 1350 : 2500,
-    distantCount: isSmallScreen ? 800 : 1500,
-    coloredCount: isSmallScreen ? 170 : 340,
-    closeCount: isSmallScreen ? 110 : 220,
+    mainCount: isSmallScreen ? 1900 : 3600,
+    distantCount: isSmallScreen ? 1250 : 2600,
+    coloredCount: isSmallScreen ? 260 : 520,
+    closeCount: isSmallScreen ? 150 : 300,
 
     mainSpread: 115,
     distantSpread: 175,
@@ -447,6 +513,20 @@ const REALISM_CONFIG = {
     detailedStarCount: isSmallScreen ? 16 : 28,
     birthdayRevealDragDistance: isSmallScreen ? 520 : 760,
     birthdayHoldDuration: 7.5
+};
+
+const AUDIO_CONFIG = {
+    targetVolume: 0.42,
+    fadeDuration: 1800,
+    storageKey: "universoDaniAudioEnabled"
+};
+
+const POLISH_CONFIG = {
+    deepStarCount: isSmallScreen ? 3200 : 6200,
+    galacticBandParticleCount: isSmallScreen ? 950 : 1850,
+    galacticBandLayerCount: isSmallScreen ? 3 : 5,
+    solarFlareCount: isSmallScreen ? 7 : 12,
+    finalSceneDelay: 2400
 };
 
 /* ---------------------------------------------------------
@@ -516,6 +596,14 @@ createGalaxies();
 createAsteroidField();
 createDistantSun();
 createHiddenBirthdayMessage();
+
+updateLoaderText("Dando profundidad al universo…");
+
+createDeepStarField();
+createGalacticBand();
+enhanceDistantSun();
+
+initializeAudio();
 
 createEventListeners();
         handleResize();
@@ -3244,6 +3332,308 @@ function resetInteractiveStar(
 }
 
 
+
+/* ---------------------------------------------------------
+   MÚSICA Y AMBIENTE SONORO
+--------------------------------------------------------- */
+
+function initializeAudio() {
+    if (!backgroundMusic) {
+        return;
+    }
+
+    backgroundMusic.volume = 0;
+    backgroundMusic.loop = true;
+    backgroundMusic.preload = "metadata";
+
+    const storedPreference =
+        window.localStorage.getItem(
+            AUDIO_CONFIG.storageKey
+        );
+
+    userRequestedAudio =
+        storedPreference === "true";
+
+    updateAudioControl(
+        false,
+        "Activar música"
+    );
+}
+
+
+async function toggleBackgroundMusic() {
+    if (!isAudioAvailable) {
+        showAudioStatus(
+            "Agrega el archivo musica.mp3 al repositorio."
+        );
+
+        return;
+    }
+
+    if (isAudioPlaying) {
+        userRequestedAudio = false;
+
+        window.localStorage.setItem(
+            AUDIO_CONFIG.storageKey,
+            "false"
+        );
+
+        fadeOutBackgroundMusic();
+
+        return;
+    }
+
+    userRequestedAudio = true;
+
+    window.localStorage.setItem(
+        AUDIO_CONFIG.storageKey,
+        "true"
+    );
+
+    await playBackgroundMusic();
+}
+
+
+async function playBackgroundMusic() {
+    if (
+        !backgroundMusic ||
+        !isAudioAvailable ||
+        isAudioFading
+    ) {
+        return;
+    }
+
+    try {
+        backgroundMusic.volume = 0;
+
+        await backgroundMusic.play();
+
+        fadeAudioTo(
+            AUDIO_CONFIG.targetVolume,
+            AUDIO_CONFIG.fadeDuration
+        );
+
+        showAudioStatus(
+            "Música activada"
+        );
+    } catch (error) {
+        console.warn(
+            "El navegador bloqueó el audio:",
+            error
+        );
+
+        updateAudioControl(
+            false,
+            "Toca para activar"
+        );
+
+        showAudioStatus(
+            "Toca nuevamente para iniciar la música."
+        );
+    }
+}
+
+
+function fadeOutBackgroundMusic() {
+    if (!backgroundMusic) {
+        return;
+    }
+
+    fadeAudioTo(
+        0,
+        900,
+        () => {
+            backgroundMusic.pause();
+            backgroundMusic.currentTime =
+                backgroundMusic.currentTime;
+        }
+    );
+
+    showAudioStatus(
+        "Música en silencio"
+    );
+}
+
+
+function fadeAudioTo(
+    targetVolume,
+    duration,
+    onComplete = null
+) {
+    if (!backgroundMusic) {
+        return;
+    }
+
+    if (audioFadeFrame !== null) {
+        window.cancelAnimationFrame(
+            audioFadeFrame
+        );
+    }
+
+    isAudioFading = true;
+
+    const initialVolume =
+        backgroundMusic.volume;
+
+    const startTime =
+        performance.now();
+
+    const animateFade =
+        (currentTime) => {
+            const progress =
+                THREE.MathUtils.clamp(
+                    (
+                        currentTime -
+                        startTime
+                    ) /
+                    duration,
+                    0,
+                    1
+                );
+
+            const easedProgress =
+                1 -
+                Math.pow(
+                    1 -
+                    progress,
+                    3
+                );
+
+            backgroundMusic.volume =
+                THREE.MathUtils.lerp(
+                    initialVolume,
+                    targetVolume,
+                    easedProgress
+                );
+
+            if (progress < 1) {
+                audioFadeFrame =
+                    window.requestAnimationFrame(
+                        animateFade
+                    );
+
+                return;
+            }
+
+            isAudioFading = false;
+            audioFadeFrame = null;
+
+            if (
+                typeof onComplete ===
+                "function"
+            ) {
+                onComplete();
+            }
+        };
+
+    audioFadeFrame =
+        window.requestAnimationFrame(
+            animateFade
+        );
+}
+
+
+function handleAudioPlaying() {
+    isAudioPlaying = true;
+
+    updateAudioControl(
+        true,
+        "Silenciar música"
+    );
+}
+
+
+function handleAudioPaused() {
+    isAudioPlaying = false;
+
+    updateAudioControl(
+        false,
+        "Activar música"
+    );
+}
+
+
+function handleAudioCanPlay() {
+    isAudioAvailable = true;
+
+    audioControl.disabled = false;
+}
+
+
+function handleAudioError() {
+    isAudioAvailable = false;
+    isAudioPlaying = false;
+
+    audioControl.disabled = false;
+
+    updateAudioControl(
+        false,
+        "Sin archivo de música"
+    );
+
+    showAudioStatus(
+        "No se encontró musica.mp3"
+    );
+}
+
+
+function updateAudioControl(
+    playing,
+    label
+) {
+    if (
+        !audioControl ||
+        !audioControlIcon ||
+        !audioControlText
+    ) {
+        return;
+    }
+
+    audioControl.classList.toggle(
+        "is-playing",
+        playing
+    );
+
+    audioControl.setAttribute(
+        "aria-pressed",
+        String(playing)
+    );
+
+    audioControlIcon.textContent =
+        playing
+            ? "♫"
+            : "♪";
+
+    audioControlText.textContent =
+        label;
+}
+
+
+function showAudioStatus(
+    message
+) {
+    if (!audioStatus) {
+        return;
+    }
+
+    audioStatus.textContent =
+        message;
+
+    audioStatus.classList.add(
+        "is-visible"
+    );
+
+    window.setTimeout(
+        () => {
+            audioStatus.classList.remove(
+                "is-visible"
+            );
+        },
+        2400
+    );
+}
+
+
 /* ---------------------------------------------------------
    REALISMO GALÁCTICO
 --------------------------------------------------------- */
@@ -4183,6 +4573,991 @@ function scatterHiddenBirthdayMessage() {
 }
 
 
+
+/* ---------------------------------------------------------
+   PROFUNDIDAD Y REALISMO DEL UNIVERSO
+--------------------------------------------------------- */
+
+function createDeepStarField() {
+    const count =
+        POLISH_CONFIG.deepStarCount;
+
+    const geometry =
+        new THREE.BufferGeometry();
+
+    const positions =
+        new Float32Array(
+            count *
+            3
+        );
+
+    const colors =
+        new Float32Array(
+            count *
+            3
+        );
+
+    deepStarTwinkleData = [];
+
+    for (
+        let index = 0;
+        index < count;
+        index += 1
+    ) {
+        const offset =
+            index *
+            3;
+
+        const radius =
+            randomBetween(
+                75,
+                230
+            );
+
+        const theta =
+            randomBetween(
+                0,
+                Math.PI *
+                2
+            );
+
+        const phi =
+            Math.acos(
+                randomBetween(
+                    -1,
+                    1
+                )
+            );
+
+        positions[offset] =
+            radius *
+            Math.sin(phi) *
+            Math.cos(theta);
+
+        positions[offset + 1] =
+            radius *
+            Math.sin(phi) *
+            Math.sin(theta);
+
+        positions[offset + 2] =
+            radius *
+            Math.cos(phi);
+
+        const temperature =
+            Math.random();
+
+        if (
+            temperature <
+            0.64
+        ) {
+            colors[offset] =
+                randomBetween(
+                    0.72,
+                    1
+                );
+
+            colors[offset + 1] =
+                randomBetween(
+                    0.76,
+                    1
+                );
+
+            colors[offset + 2] =
+                1;
+        } else if (
+            temperature <
+            0.86
+        ) {
+            colors[offset] =
+                1;
+
+            colors[offset + 1] =
+                randomBetween(
+                    0.72,
+                    0.92
+                );
+
+            colors[offset + 2] =
+                randomBetween(
+                    0.58,
+                    0.78
+                );
+        } else {
+            colors[offset] =
+                randomBetween(
+                    0.7,
+                    0.88
+                );
+
+            colors[offset + 1] =
+                randomBetween(
+                    0.82,
+                    0.96
+                );
+
+            colors[offset + 2] =
+                1;
+        }
+
+        deepStarTwinkleData.push({
+            phase:
+                randomBetween(
+                    0,
+                    Math.PI *
+                    2
+                ),
+            speed:
+                randomBetween(
+                    0.2,
+                    1.1
+                )
+        });
+    }
+
+    geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(
+            positions,
+            3
+        )
+    );
+
+    geometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(
+            colors,
+            3
+        )
+    );
+
+    const material =
+        new THREE.PointsMaterial({
+            size:
+                isSmallScreen
+                    ? 0.22
+                    : 0.17,
+
+            map:
+                createStarTexture(),
+
+            alphaMap:
+                createStarTexture(),
+
+            transparent: true,
+            opacity: 0.68,
+            vertexColors: true,
+            sizeAttenuation: true,
+            depthWrite: false,
+            blending:
+                THREE.AdditiveBlending
+        });
+
+    deepStarField =
+        new THREE.Points(
+            geometry,
+            material
+        );
+
+    deepStarField.name =
+        "DeepStarField";
+
+    scene.add(
+        deepStarField
+    );
+}
+
+
+function createGalacticBandTexture(
+    colorA,
+    colorB,
+    dustColor
+) {
+    const textureCanvas =
+        document.createElement(
+            "canvas"
+        );
+
+    textureCanvas.width =
+        1024;
+
+    textureCanvas.height =
+        256;
+
+    const context =
+        textureCanvas.getContext(
+            "2d"
+        );
+
+    context.clearRect(
+        0,
+        0,
+        1024,
+        256
+    );
+
+    const bandGradient =
+        context.createLinearGradient(
+            0,
+            0,
+            0,
+            256
+        );
+
+    bandGradient.addColorStop(
+        0,
+        "rgba(0,0,0,0)"
+    );
+
+    bandGradient.addColorStop(
+        0.28,
+        colorA
+    );
+
+    bandGradient.addColorStop(
+        0.5,
+        colorB
+    );
+
+    bandGradient.addColorStop(
+        0.72,
+        colorA
+    );
+
+    bandGradient.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    context.fillStyle =
+        bandGradient;
+
+    context.fillRect(
+        0,
+        0,
+        1024,
+        256
+    );
+
+    for (
+        let index = 0;
+        index < 420;
+        index += 1
+    ) {
+        const x =
+            randomBetween(
+                0,
+                1024
+            );
+
+        const y =
+            randomBetween(
+                58,
+                198
+            );
+
+        const radius =
+            randomBetween(
+                0.5,
+                2.8
+            );
+
+        context.globalAlpha =
+            randomBetween(
+                0.14,
+                0.65
+            );
+
+        context.fillStyle =
+            index % 3 === 0
+                ? "#ffffff"
+                : index % 3 === 1
+                    ? "#c9d7ff"
+                    : "#f0c7e8";
+
+        context.beginPath();
+
+        context.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI *
+            2
+        );
+
+        context.fill();
+    }
+
+    for (
+        let index = 0;
+        index < 36;
+        index += 1
+    ) {
+        const x =
+            randomBetween(
+                0,
+                1024
+            );
+
+        const y =
+            randomBetween(
+                88,
+                168
+            );
+
+        const width =
+            randomBetween(
+                50,
+                190
+            );
+
+        const height =
+            randomBetween(
+                5,
+                18
+            );
+
+        context.globalAlpha =
+            randomBetween(
+                0.04,
+                0.13
+            );
+
+        context.fillStyle =
+            dustColor;
+
+        context.beginPath();
+
+        context.ellipse(
+            x,
+            y,
+            width,
+            height,
+            randomBetween(
+                -0.25,
+                0.25
+            ),
+            0,
+            Math.PI *
+            2
+        );
+
+        context.fill();
+    }
+
+    context.globalAlpha =
+        1;
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    return texture;
+}
+
+
+function createGalacticBand() {
+    galacticBandGroup =
+        new THREE.Group();
+
+    galacticBandGroup.name =
+        "GalacticBandGroup";
+
+    galacticBandLayers = [];
+
+    const textures = [
+        createGalacticBandTexture(
+            "rgba(74,98,190,0.08)",
+            "rgba(160,185,255,0.18)",
+            "rgba(8,8,22,0.8)"
+        ),
+        createGalacticBandTexture(
+            "rgba(130,72,160,0.07)",
+            "rgba(230,156,210,0.14)",
+            "rgba(12,7,20,0.82)"
+        ),
+        createGalacticBandTexture(
+            "rgba(78,112,170,0.05)",
+            "rgba(188,205,255,0.1)",
+            "rgba(5,8,20,0.82)"
+        )
+    ];
+
+    for (
+        let index = 0;
+        index < POLISH_CONFIG
+            .galacticBandLayerCount;
+        index += 1
+    ) {
+        const material =
+            new THREE.SpriteMaterial({
+                map:
+                    textures[
+                        index %
+                        textures.length
+                    ],
+
+                transparent: true,
+                opacity:
+                    randomBetween(
+                        0.16,
+                        0.31
+                    ),
+
+                depthWrite: false,
+
+                blending:
+                    THREE.AdditiveBlending
+            });
+
+        const layer =
+            new THREE.Sprite(
+                material
+            );
+
+        layer.position.set(
+            randomBetween(
+                -8,
+                8
+            ),
+            randomBetween(
+                -4,
+                4
+            ),
+            -110 -
+            index *
+            12
+        );
+
+        const width =
+            185 +
+            index *
+            16;
+
+        layer.scale.set(
+            width,
+            38 +
+            index *
+            7,
+            1
+        );
+
+        layer.material.rotation =
+            -0.34 +
+            randomBetween(
+                -0.05,
+                0.05
+            );
+
+        layer.userData = {
+            baseOpacity:
+                material.opacity,
+
+            phase:
+                index *
+                0.9,
+
+            rotationSpeed:
+                randomBetween(
+                    -0.00012,
+                    0.00012
+                )
+        };
+
+        galacticBandLayers.push(
+            layer
+        );
+
+        galacticBandGroup.add(
+            layer
+        );
+    }
+
+    galacticBandGroup.rotation.z =
+        -0.16;
+
+    scene.add(
+        galacticBandGroup
+    );
+}
+
+
+function createSolarCoronaTexture() {
+    const textureCanvas =
+        document.createElement(
+            "canvas"
+        );
+
+    textureCanvas.width =
+        512;
+
+    textureCanvas.height =
+        512;
+
+    const context =
+        textureCanvas.getContext(
+            "2d"
+        );
+
+    const gradient =
+        context.createRadialGradient(
+            256,
+            256,
+            0,
+            256,
+            256,
+            256
+        );
+
+    gradient.addColorStop(
+        0,
+        "rgba(255,255,255,1)"
+    );
+
+    gradient.addColorStop(
+        0.09,
+        "rgba(255,244,203,0.98)"
+    );
+
+    gradient.addColorStop(
+        0.22,
+        "rgba(255,187,86,0.78)"
+    );
+
+    gradient.addColorStop(
+        0.48,
+        "rgba(255,112,34,0.24)"
+    );
+
+    gradient.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    context.fillStyle =
+        gradient;
+
+    context.fillRect(
+        0,
+        0,
+        512,
+        512
+    );
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    return texture;
+}
+
+
+function createSolarFlareTexture() {
+    const textureCanvas =
+        document.createElement(
+            "canvas"
+        );
+
+    textureCanvas.width =
+        256;
+
+    textureCanvas.height =
+        128;
+
+    const context =
+        textureCanvas.getContext(
+            "2d"
+        );
+
+    const gradient =
+        context.createLinearGradient(
+            0,
+            64,
+            256,
+            64
+        );
+
+    gradient.addColorStop(
+        0,
+        "rgba(255,230,150,0)"
+    );
+
+    gradient.addColorStop(
+        0.25,
+        "rgba(255,205,110,0.28)"
+    );
+
+    gradient.addColorStop(
+        0.58,
+        "rgba(255,124,38,0.5)"
+    );
+
+    gradient.addColorStop(
+        1,
+        "rgba(255,90,18,0)"
+    );
+
+    context.fillStyle =
+        gradient;
+
+    context.beginPath();
+
+    context.ellipse(
+        128,
+        64,
+        118,
+        26,
+        0,
+        0,
+        Math.PI *
+        2
+    );
+
+    context.fill();
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    return texture;
+}
+
+
+function enhanceDistantSun() {
+    if (!distantSun) {
+        return;
+    }
+
+    distantSun.material.dispose();
+
+    const sunTextureCanvas =
+        document.createElement(
+            "canvas"
+        );
+
+    sunTextureCanvas.width =
+        512;
+
+    sunTextureCanvas.height =
+        256;
+
+    const context =
+        sunTextureCanvas.getContext(
+            "2d"
+        );
+
+    const baseGradient =
+        context.createLinearGradient(
+            0,
+            0,
+            512,
+            256
+        );
+
+    baseGradient.addColorStop(
+        0,
+        "#ff8a2d"
+    );
+
+    baseGradient.addColorStop(
+        0.32,
+        "#ffc45c"
+    );
+
+    baseGradient.addColorStop(
+        0.58,
+        "#fff1af"
+    );
+
+    baseGradient.addColorStop(
+        1,
+        "#ff982e"
+    );
+
+    context.fillStyle =
+        baseGradient;
+
+    context.fillRect(
+        0,
+        0,
+        512,
+        256
+    );
+
+    for (
+        let index = 0;
+        index < 210;
+        index += 1
+    ) {
+        const x =
+            randomBetween(
+                0,
+                512
+            );
+
+        const y =
+            randomBetween(
+                0,
+                256
+            );
+
+        const radius =
+            randomBetween(
+                2,
+                17
+            );
+
+        context.globalAlpha =
+            randomBetween(
+                0.03,
+                0.17
+            );
+
+        context.fillStyle =
+            index % 2 === 0
+                ? "#fff8d8"
+                : "#e97020";
+
+        context.beginPath();
+
+        context.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI *
+            2
+        );
+
+        context.fill();
+    }
+
+    context.globalAlpha =
+        1;
+
+    const surfaceTexture =
+        new THREE.CanvasTexture(
+            sunTextureCanvas
+        );
+
+    surfaceTexture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    surfaceTexture.wrapS =
+        THREE.RepeatWrapping;
+
+    distantSun.material =
+        new THREE.MeshBasicMaterial({
+            map:
+                surfaceTexture,
+
+            color:
+                0xffffff
+        });
+
+    solarCoronaGroup =
+        new THREE.Group();
+
+    solarCoronaGroup.position.copy(
+        distantSun.position
+    );
+
+    solarCoronaLayers = [];
+
+    const coronaTexture =
+        createSolarCoronaTexture();
+
+    for (
+        let index = 0;
+        index < 4;
+        index += 1
+    ) {
+        const corona =
+            new THREE.Sprite(
+                new THREE.SpriteMaterial({
+                    map:
+                        coronaTexture,
+
+                    color:
+                        index < 2
+                            ? 0xffb24f
+                            : 0xff6f2f,
+
+                    transparent: true,
+
+                    opacity:
+                        0.22 -
+                        index *
+                        0.035,
+
+                    depthWrite: false,
+
+                    blending:
+                        THREE.AdditiveBlending
+                })
+            );
+
+        const scale =
+            17 +
+            index *
+            7;
+
+        corona.scale.set(
+            scale,
+            scale,
+            1
+        );
+
+        corona.userData = {
+            baseScale:
+                scale,
+
+            baseOpacity:
+                corona.material.opacity,
+
+            phase:
+                index *
+                0.8
+        };
+
+        solarCoronaLayers.push(
+            corona
+        );
+
+        solarCoronaGroup.add(
+            corona
+        );
+    }
+
+    solarFlareGroup =
+        new THREE.Group();
+
+    solarFlareGroup.position.copy(
+        distantSun.position
+    );
+
+    solarFlares = [];
+
+    const flareTexture =
+        createSolarFlareTexture();
+
+    for (
+        let index = 0;
+        index < POLISH_CONFIG
+            .solarFlareCount;
+        index += 1
+    ) {
+        const flare =
+            new THREE.Sprite(
+                new THREE.SpriteMaterial({
+                    map:
+                        flareTexture,
+
+                    color:
+                        index % 2 === 0
+                            ? 0xffb34f
+                            : 0xff7f36,
+
+                    transparent: true,
+
+                    opacity:
+                        randomBetween(
+                            0.12,
+                            0.29
+                        ),
+
+                    depthWrite: false,
+
+                    blending:
+                        THREE.AdditiveBlending
+                })
+            );
+
+        const angle =
+            (
+                index /
+                POLISH_CONFIG
+                    .solarFlareCount
+            ) *
+            Math.PI *
+            2;
+
+        const radius =
+            randomBetween(
+                3.8,
+                5.8
+            );
+
+        flare.position.set(
+            Math.cos(angle) *
+                radius,
+            Math.sin(angle) *
+                radius,
+            0
+        );
+
+        flare.material.rotation =
+            angle;
+
+        const width =
+            randomBetween(
+                4.5,
+                8.5
+            );
+
+        flare.scale.set(
+            width,
+            randomBetween(
+                0.8,
+                1.9
+            ),
+            1
+        );
+
+        flare.userData = {
+            baseOpacity:
+                flare.material
+                    .opacity,
+
+            phase:
+                index *
+                0.73,
+
+            orbitSpeed:
+                randomBetween(
+                    -0.00045,
+                    0.00045
+                )
+        };
+
+        solarFlares.push(
+            flare
+        );
+
+        solarFlareGroup.add(
+            flare
+        );
+    }
+
+    scene.add(
+        solarCoronaGroup,
+        solarFlareGroup
+    );
+}
+
+
 /* ---------------------------------------------------------
    EVENTOS
 --------------------------------------------------------- */
@@ -4246,6 +5621,46 @@ nextConstellationButton.addEventListener(
 journeyFinalMessage.addEventListener(
     "click",
     hideJourneyFinalMessage
+);
+
+audioControl.addEventListener(
+    "click",
+    toggleBackgroundMusic
+);
+
+backgroundMusic.addEventListener(
+    "playing",
+    handleAudioPlaying
+);
+
+backgroundMusic.addEventListener(
+    "pause",
+    handleAudioPaused
+);
+
+backgroundMusic.addEventListener(
+    "error",
+    handleAudioError
+);
+
+backgroundMusic.addEventListener(
+    "canplay",
+    handleAudioCanPlay
+);
+
+replayJourneyButton.addEventListener(
+    "click",
+    replayJourney
+);
+
+continueExploringButton.addEventListener(
+    "click",
+    hideFinalScene
+);
+
+finalScene.addEventListener(
+    "click",
+    handleFinalSceneBackgroundClick
 );
 
 constellationMessage.addEventListener(
@@ -4654,6 +6069,7 @@ function openConstellationPanel(
         messages[selectedIndex % messages.length];
 
     hideJourneyFinalMessage();
+    hideFinalScene();
 
     constellationMessage.classList.add("is-visible");
     constellationMessage.setAttribute("aria-hidden", "false");
@@ -4801,6 +6217,13 @@ function enterUniverse() {
         "Comienza el recorrido por el universo."
     );
 
+    if (
+        userRequestedAudio &&
+        isAudioAvailable
+    ) {
+        playBackgroundMusic();
+    }
+
     window.setTimeout(
         () => {
             intro.setAttribute(
@@ -4859,9 +6282,12 @@ animateShootingStars(elapsedTime);
 animateInteractiveStars(elapsedTime);
 animateStardust(elapsedTime);
 animateDetailedStars(elapsedTime);
+animateDeepStarField(elapsedTime);
+animateGalacticBand(elapsedTime);
 animateGalaxies(elapsedTime);
 animateAsteroids(elapsedTime);
 animateDistantSun(elapsedTime);
+animateEnhancedSun(elapsedTime);
 animateHiddenBirthdayMessage(elapsedTime);
 applyUniverseNavigation();
 animateConstellation(elapsedTime);
@@ -6605,6 +8031,284 @@ function animateHiddenBirthdayMessage(
 }
 
 
+
+function animateDeepStarField(
+    elapsedTime
+) {
+    if (!deepStarField) {
+        return;
+    }
+
+    deepStarField.rotation.y +=
+        0.000018;
+
+    deepStarField.rotation.x =
+        Math.sin(
+            elapsedTime *
+            0.025
+        ) *
+        0.008;
+
+    deepStarField.material.opacity =
+        0.62 +
+        Math.sin(
+            elapsedTime *
+            0.17
+        ) *
+        0.06;
+}
+
+
+function animateGalacticBand(
+    elapsedTime
+) {
+    if (!galacticBandGroup) {
+        return;
+    }
+
+    galacticBandGroup.rotation.y =
+        Math.sin(
+            elapsedTime *
+            0.018
+        ) *
+        0.025;
+
+    galacticBandLayers.forEach(
+        (
+            layer,
+            index
+        ) => {
+            layer.material.rotation +=
+                layer.userData
+                    .rotationSpeed;
+
+            layer.material.opacity =
+                layer.userData
+                    .baseOpacity +
+                Math.sin(
+                    elapsedTime *
+                    0.11 +
+                    layer.userData
+                        .phase
+                ) *
+                0.025;
+
+            layer.position.y +=
+                Math.sin(
+                    elapsedTime *
+                    0.035 +
+                    index
+                ) *
+                0.0008;
+        }
+    );
+}
+
+
+function animateEnhancedSun(
+    elapsedTime
+) {
+    if (
+        !solarCoronaGroup ||
+        !solarFlareGroup
+    ) {
+        return;
+    }
+
+    solarCoronaLayers.forEach(
+        (
+            corona,
+            index
+        ) => {
+            const pulse =
+                1 +
+                Math.sin(
+                    elapsedTime *
+                    (
+                        0.34 +
+                        index *
+                        0.08
+                    ) +
+                    corona.userData
+                        .phase
+                ) *
+                0.055;
+
+            const scale =
+                corona.userData
+                    .baseScale *
+                pulse;
+
+            corona.scale.set(
+                scale,
+                scale,
+                1
+            );
+
+            corona.material.opacity =
+                corona.userData
+                    .baseOpacity +
+                Math.sin(
+                    elapsedTime *
+                    0.41 +
+                    corona.userData
+                        .phase
+                ) *
+                0.025;
+        }
+    );
+
+    solarFlareGroup.rotation.z +=
+        0.00026;
+
+    solarFlares.forEach(
+        (flare) => {
+            flare.material.rotation +=
+                flare.userData
+                    .orbitSpeed;
+
+            flare.material.opacity =
+                flare.userData
+                    .baseOpacity +
+                Math.sin(
+                    elapsedTime *
+                    0.72 +
+                    flare.userData
+                        .phase
+                ) *
+                0.05;
+        }
+    );
+
+    if (
+        distantSun.material?.map
+    ) {
+        distantSun.material.map.offset.x =
+            (
+                distantSun.material
+                    .map.offset.x +
+                0.00018
+            ) %
+            1;
+    }
+
+    distantSun.rotation.y +=
+        0.0007;
+}
+
+
+function showFinalScene() {
+    if (
+        !finalScene ||
+        isConstellationMessageOpen
+    ) {
+        return;
+    }
+
+    hideJourneyFinalMessage();
+
+    finalScene.classList.add(
+        "is-visible"
+    );
+
+    finalScene.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+}
+
+
+function hideFinalScene() {
+    if (!finalScene) {
+        return;
+    }
+
+    finalSceneDismissed =
+        true;
+
+    finalScene.classList.remove(
+        "is-visible"
+    );
+
+    finalScene.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+
+function handleFinalSceneBackgroundClick(
+    event
+) {
+    if (
+        event.target ===
+        finalScene
+    ) {
+        hideFinalScene();
+    }
+}
+
+
+function replayJourney() {
+    hideFinalScene();
+
+    finalSceneDismissed =
+        false;
+
+    finalSceneShown =
+        false;
+
+    finalJourneyMessageShown =
+        false;
+
+    lastJourneyCaptionStage =
+        -1;
+
+    journeyStartTime =
+        clock
+            ? clock.getElapsedTime()
+            : 0;
+
+    journeyProgress =
+        0;
+
+    currentJourneyStage =
+        1;
+
+    camera.position.set(
+        0,
+        0,
+        18
+    );
+
+    cameraTarget.set(
+        0,
+        0,
+        0
+    );
+
+    desiredCameraPosition.set(
+        0,
+        0,
+        18
+    );
+
+    desiredLookTarget.set(
+        0,
+        0,
+        0
+    );
+
+    journeyProgressBar.style
+        .transform =
+        "scaleX(0)";
+
+    showJourneyCaption(
+        JOURNEY_SCENES[0]
+    );
+}
+
+
 /* ---------------------------------------------------------
    NARRATIVA DEL RECORRIDO
 --------------------------------------------------------- */
@@ -6662,6 +8366,21 @@ function updateJourneyNarrative() {
             showJourneyFinalMessage,
             1000
         );
+
+        if (
+            !finalSceneShown &&
+            !finalSceneDismissed
+        ) {
+            finalSceneShown =
+                true;
+
+            finalSceneTimeout =
+                window.setTimeout(
+                    showFinalScene,
+                    POLISH_CONFIG
+                        .finalSceneDelay
+                );
+        }
     }
 }
 
@@ -6932,6 +8651,22 @@ disposeObject3D(
 );
 
 disposeObject3D(
+    deepStarField
+);
+
+disposeObject3D(
+    galacticBandGroup
+);
+
+disposeObject3D(
+    solarCoronaGroup
+);
+
+disposeObject3D(
+    solarFlareGroup
+);
+
+disposeObject3D(
     distantSun
 );
 
@@ -6942,6 +8677,29 @@ if (distantSunGlow) {
 
     distantSunGlow.material
         ?.dispose();
+}
+
+if (audioFadeFrame !== null) {
+    window.cancelAnimationFrame(
+        audioFadeFrame
+    );
+
+    audioFadeFrame = null;
+}
+
+if (finalSceneTimeout !== null) {
+    window.clearTimeout(
+        finalSceneTimeout
+    );
+
+    finalSceneTimeout = null;
+}
+
+if (backgroundMusic) {
+    backgroundMusic.pause();
+    backgroundMusic.removeAttribute(
+        "src"
+    );
 }
 
 renderer?.dispose();
