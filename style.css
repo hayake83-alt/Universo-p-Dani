@@ -832,3 +832,382 @@ body.has-entered .vignette {
         transition-duration: 0.01ms !important;
     }
 }
+/* =========================================================
+   ETAPA 6
+   Constelación interactiva
+   ========================================================= */
+
+
+/* ------------------------------
+   Instrucción de interacción
+------------------------------ */
+
+.constellation-hint {
+    position: fixed;
+
+    left: 50%;
+    bottom: max(
+        30px,
+        env(safe-area-inset-bottom)
+    );
+
+    z-index: 6;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    padding: 11px 18px;
+
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+
+    background: rgba(8, 9, 24, 0.52);
+
+    color: rgba(255, 250, 245, 0.72);
+
+    font-size: 0.68rem;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+
+    text-transform: uppercase;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transform:
+        translateX(-50%)
+        translateY(18px);
+
+    pointer-events: none;
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    transition:
+        opacity 0.8s ease,
+        visibility 0.8s ease,
+        transform 0.8s ease;
+}
+
+.constellation-hint.is-visible {
+    opacity: 1;
+    visibility: visible;
+
+    transform:
+        translateX(-50%)
+        translateY(0);
+}
+
+.constellation-hint__star {
+    color: #d4ddff;
+
+    font-size: 0.95rem;
+
+    text-shadow:
+        0 0 10px rgba(180, 200, 255, 0.72),
+        0 0 20px rgba(150, 120, 255, 0.42);
+
+    animation:
+        constellation-hint-pulse
+        1.8s
+        ease-in-out
+        infinite;
+}
+
+
+/* ------------------------------
+   Fondo del mensaje
+------------------------------ */
+
+.constellation-message {
+    position: fixed;
+    inset: 0;
+
+    z-index: 15;
+
+    display: grid;
+    place-items: center;
+
+    padding:
+        max(22px, env(safe-area-inset-top))
+        max(18px, env(safe-area-inset-right))
+        max(22px, env(safe-area-inset-bottom))
+        max(18px, env(safe-area-inset-left));
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(20, 23, 55, 0.28),
+            rgba(2, 3, 10, 0.8)
+        );
+
+    opacity: 0;
+    visibility: hidden;
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.8s ease,
+        visibility 0.8s ease;
+}
+
+.constellation-message.is-visible {
+    opacity: 1;
+    visibility: visible;
+
+    pointer-events: auto;
+}
+
+
+/* ------------------------------
+   Tarjeta del mensaje
+------------------------------ */
+
+.constellation-message__card {
+    position: relative;
+
+    width: min(570px, 100%);
+
+    padding:
+        clamp(34px, 7vw, 58px)
+        clamp(26px, 7vw, 54px);
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 28px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.018)
+        ),
+        rgba(7, 8, 24, 0.8);
+
+    text-align: center;
+
+    box-shadow:
+        0 35px 100px rgba(0, 0, 0, 0.58),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 60px rgba(95, 110, 255, 0.08);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    opacity: 0;
+
+    transform:
+        translateY(24px)
+        scale(0.96);
+
+    transition:
+        opacity 0.9s ease,
+        transform 0.9s
+        cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.constellation-message.is-visible
+.constellation-message__card {
+    opacity: 1;
+
+    transform:
+        translateY(0)
+        scale(1);
+}
+
+
+/* ------------------------------
+   Botón de cerrar
+------------------------------ */
+
+.constellation-message__close {
+    position: absolute;
+
+    top: 16px;
+    right: 16px;
+
+    display: grid;
+    place-items: center;
+
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.04);
+
+    color: rgba(255, 255, 255, 0.76);
+
+    font-size: 1.55rem;
+    font-weight: 300;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background 0.3s ease,
+        border-color 0.3s ease,
+        transform 0.3s ease;
+}
+
+.constellation-message__close:hover {
+    border-color: rgba(255, 255, 255, 0.42);
+
+    background: rgba(255, 255, 255, 0.1);
+
+    transform: rotate(8deg);
+}
+
+.constellation-message__close:active {
+    transform: scale(0.94);
+}
+
+.constellation-message__close:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.9);
+    outline-offset: 4px;
+}
+
+
+/* ------------------------------
+   Texto del mensaje
+------------------------------ */
+
+.constellation-message__eyebrow {
+    margin: 0 0 14px;
+
+    color: rgba(255, 250, 245, 0.52);
+
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0.28em;
+
+    text-transform: uppercase;
+}
+
+.constellation-message__title {
+    margin: 0;
+
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+
+    font-size: clamp(3.3rem, 11vw, 5.6rem);
+    font-weight: 300;
+    line-height: 0.95;
+
+    color: #fffaf5;
+
+    text-shadow:
+        0 0 24px rgba(255, 255, 255, 0.16),
+        0 0 50px rgba(130, 145, 255, 0.13);
+}
+
+.constellation-message__line {
+    width: min(210px, 65%);
+    height: 1px;
+
+    margin: 28px auto;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.58),
+            transparent
+        );
+}
+
+.constellation-message__text {
+    max-width: 430px;
+
+    margin: 0 auto;
+
+    color: rgba(255, 250, 245, 0.76);
+
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+
+    font-size: clamp(1.25rem, 4vw, 1.65rem);
+    font-weight: 300;
+    line-height: 1.55;
+}
+
+.constellation-message__signature {
+    margin: 28px 0 0;
+
+    color: rgba(190, 205, 255, 0.68);
+
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+
+    text-transform: uppercase;
+}
+
+
+/* ------------------------------
+   Cursor de interacción
+------------------------------ */
+
+body.constellation-hover {
+    cursor: pointer;
+}
+
+
+/* ------------------------------
+   Animación
+------------------------------ */
+
+@keyframes constellation-hint-pulse {
+    0%,
+    100% {
+        opacity: 0.55;
+        transform: scale(0.9) rotate(0deg);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.14) rotate(16deg);
+    }
+}
+
+
+/* ------------------------------
+   Teléfonos pequeños
+------------------------------ */
+
+@media (max-width: 600px) {
+    .constellation-hint {
+        bottom: max(
+            20px,
+            env(safe-area-inset-bottom)
+        );
+
+        max-width: calc(100% - 32px);
+
+        padding: 10px 15px;
+
+        font-size: 0.61rem;
+        letter-spacing: 0.1em;
+
+        white-space: nowrap;
+    }
+
+    .constellation-message__card {
+        border-radius: 24px;
+    }
+
+    .constellation-message__close {
+        top: 13px;
+        right: 13px;
+
+        width: 38px;
+        height: 38px;
+    }
+}
