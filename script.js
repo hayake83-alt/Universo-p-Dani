@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   VERSIÓN FINAL B: UNIVERSO PROCEDIMENTAL
+   VERSIÓN FINAL A: UNIVERSO DE PARTÍCULAS
    ========================================================= */
 
 
@@ -256,10 +256,6 @@ let finalSceneShown = false;
 let finalSceneTimeout = null;
 let finalSceneDismissed = false;
 
-let proceduralUniverseMesh;
-let proceduralUniverseMaterial;
-
-
 const cosmicRaycaster = new THREE.Raycaster();
 const cosmicPointer = new THREE.Vector2();
 
@@ -454,10 +450,10 @@ const CONSTELLATION_DATA = [
 --------------------------------------------------------- */
 
 const STAR_CONFIG = {
-    mainCount: isSmallScreen ? 1200 : 2200,
-    distantCount: isSmallScreen ? 700 : 1400,
-    coloredCount: isSmallScreen ? 160 : 300,
-    closeCount: isSmallScreen ? 100 : 180,
+    mainCount: isSmallScreen ? 2200 : 4200,
+    distantCount: isSmallScreen ? 1600 : 3200,
+    coloredCount: isSmallScreen ? 320 : 680,
+    closeCount: isSmallScreen ? 190 : 380,
 
     mainSpread: 115,
     distantSpread: 175,
@@ -526,9 +522,9 @@ const AUDIO_CONFIG = {
 };
 
 const POLISH_CONFIG = {
-    deepStarCount: isSmallScreen ? 1600 : 3200,
+    deepStarCount: isSmallScreen ? 3800 : 7600,
     galacticBandParticleCount: isSmallScreen ? 950 : 1850,
-    galacticBandLayerCount: isSmallScreen ? 2 : 3,
+    galacticBandLayerCount: isSmallScreen ? 3 : 5,
     solarFlareCount: isSmallScreen ? 7 : 12,
     finalSceneDelay: 2400
 };
@@ -568,7 +564,6 @@ async function initializeUniverse() {
         createScene();
         createCamera();
         createRenderer();
-        createProceduralUniverse();
         createLights();
 
         updateLoaderText("Creando estrellas…");
@@ -753,306 +748,6 @@ function createRenderer() {
 }
 
 
-
-/* ---------------------------------------------------------
-   FONDO PROCEDIMENTAL
---------------------------------------------------------- */
-
-function createProceduralUniverse() {
-    const geometry =
-        new THREE.SphereGeometry(
-            240,
-            isSmallScreen ? 48 : 72,
-            isSmallScreen ? 32 : 48
-        );
-
-    proceduralUniverseMaterial =
-        new THREE.ShaderMaterial({
-            side: THREE.BackSide,
-            depthWrite: false,
-            transparent: false,
-            uniforms: {
-                uTime: {
-                    value: 0
-                },
-                uResolution: {
-                    value: new THREE.Vector2(
-                        window.innerWidth,
-                        window.innerHeight
-                    )
-                }
-            },
-            vertexShader: `
-                varying vec3 vWorldPosition;
-
-                void main() {
-                    vec4 worldPosition =
-                        modelMatrix *
-                        vec4(position, 1.0);
-
-                    vWorldPosition =
-                        worldPosition.xyz;
-
-                    gl_Position =
-                        projectionMatrix *
-                        viewMatrix *
-                        worldPosition;
-                }
-            `,
-            fragmentShader: `
-                precision highp float;
-
-                uniform float uTime;
-                varying vec3 vWorldPosition;
-
-                float hash(vec3 p) {
-                    p = fract(
-                        p * 0.3183099 +
-                        vec3(0.1, 0.2, 0.3)
-                    );
-
-                    p *= 17.0;
-
-                    return fract(
-                        p.x * p.y * p.z *
-                        (p.x + p.y + p.z)
-                    );
-                }
-
-                float noise(vec3 p) {
-                    vec3 i = floor(p);
-                    vec3 f = fract(p);
-
-                    f = f * f *
-                        (3.0 - 2.0 * f);
-
-                    return mix(
-                        mix(
-                            mix(
-                                hash(i + vec3(0.0,0.0,0.0)),
-                                hash(i + vec3(1.0,0.0,0.0)),
-                                f.x
-                            ),
-                            mix(
-                                hash(i + vec3(0.0,1.0,0.0)),
-                                hash(i + vec3(1.0,1.0,0.0)),
-                                f.x
-                            ),
-                            f.y
-                        ),
-                        mix(
-                            mix(
-                                hash(i + vec3(0.0,0.0,1.0)),
-                                hash(i + vec3(1.0,0.0,1.0)),
-                                f.x
-                            ),
-                            mix(
-                                hash(i + vec3(0.0,1.0,1.0)),
-                                hash(i + vec3(1.0,1.0,1.0)),
-                                f.x
-                            ),
-                            f.y
-                        ),
-                        f.z
-                    );
-                }
-
-                float fbm(vec3 p) {
-                    float value = 0.0;
-                    float amplitude = 0.5;
-
-                    for (int i = 0; i < 5; i++) {
-                        value +=
-                            amplitude *
-                            noise(p);
-
-                        p =
-                            p * 2.03 +
-                            vec3(11.7, 7.3, 5.1);
-
-                        amplitude *= 0.5;
-                    }
-
-                    return value;
-                }
-
-                void main() {
-                    vec3 direction =
-                        normalize(vWorldPosition);
-
-                    vec3 p =
-                        direction * 3.4;
-
-                    p +=
-                        vec3(
-                            uTime * 0.008,
-                            -uTime * 0.004,
-                            uTime * 0.006
-                        );
-
-                    float cloudA =
-                        fbm(p);
-
-                    float cloudB =
-                        fbm(
-                            p * 1.8 +
-                            vec3(4.0, -2.0, 3.0)
-                        );
-
-                    float band =
-                        exp(
-                            -pow(
-                                abs(direction.y * 2.8 +
-                                direction.x * 0.75),
-                                2.0
-                            ) * 3.5
-                        );
-
-                    vec3 deepColor =
-                        vec3(
-                            0.006,
-                            0.008,
-                            0.025
-                        );
-
-                    vec3 blueNebula =
-                        vec3(
-                            0.12,
-                            0.20,
-                            0.55
-                        );
-
-                    vec3 violetNebula =
-                        vec3(
-                            0.42,
-                            0.12,
-                            0.50
-                        );
-
-                    vec3 pinkNebula =
-                        vec3(
-                            0.52,
-                            0.12,
-                            0.34
-                        );
-
-                    vec3 color =
-                        deepColor;
-
-                    color +=
-                        blueNebula *
-                        smoothstep(
-                            0.48,
-                            0.84,
-                            cloudA
-                        ) *
-                        0.65;
-
-                    color +=
-                        violetNebula *
-                        smoothstep(
-                            0.55,
-                            0.88,
-                            cloudB
-                        ) *
-                        0.55;
-
-                    color +=
-                        pinkNebula *
-                        band *
-                        smoothstep(
-                            0.36,
-                            0.8,
-                            cloudA + cloudB * 0.25
-                        ) *
-                        0.45;
-
-                    float dust =
-                        smoothstep(
-                            0.5,
-                            0.82,
-                            fbm(
-                                p * 3.2 +
-                                vec3(3.0)
-                            )
-                        );
-
-                    color *=
-                        1.0 -
-                        dust *
-                        band *
-                        0.48;
-
-                    float stars =
-                        step(
-                            0.9975,
-                            hash(
-                                floor(
-                                    direction *
-                                    900.0
-                                )
-                            )
-                        );
-
-                    float brightStars =
-                        step(
-                            0.99935,
-                            hash(
-                                floor(
-                                    direction *
-                                    420.0 +
-                                    17.0
-                                )
-                            )
-                        );
-
-                    color +=
-                        vec3(0.85, 0.92, 1.0) *
-                        stars *
-                        0.75;
-
-                    color +=
-                        vec3(1.0, 0.82, 0.68) *
-                        brightStars *
-                        1.35;
-
-                    gl_FragColor =
-                        vec4(
-                            color,
-                            1.0
-                        );
-                }
-            `
-        });
-
-    proceduralUniverseMesh =
-        new THREE.Mesh(
-            geometry,
-            proceduralUniverseMaterial
-        );
-
-    proceduralUniverseMesh.name =
-        "ProceduralUniverse";
-
-    scene.add(
-        proceduralUniverseMesh
-    );
-}
-
-
-function animateProceduralUniverse(
-    elapsedTime
-) {
-    if (
-        !proceduralUniverseMaterial
-    ) {
-        return;
-    }
-
-    proceduralUniverseMaterial.uniforms
-        .uTime.value =
-        elapsedTime;
-}
 /* ---------------------------------------------------------
    LUCES
 --------------------------------------------------------- */
@@ -6464,15 +6159,6 @@ function handleResize() {
         height,
         false
     );
-
-    if (proceduralUniverseMaterial) {
-        proceduralUniverseMaterial.uniforms
-            .uResolution.value
-            .set(
-                width,
-                height
-            );
-    }
 }
 
 
@@ -6596,8 +6282,7 @@ animateShootingStars(elapsedTime);
 animateInteractiveStars(elapsedTime);
 animateStardust(elapsedTime);
 animateDetailedStars(elapsedTime);
-animateProceduralUniverse(elapsedTime);
-    animateDeepStarField(elapsedTime);
+animateDeepStarField(elapsedTime);
 animateGalacticBand(elapsedTime);
 animateGalaxies(elapsedTime);
 animateAsteroids(elapsedTime);
@@ -8963,10 +8648,6 @@ disposeObject3D(
 
 disposeObject3D(
     birthdayMessageGroup
-);
-
-disposeObject3D(
-    proceduralUniverseMesh
 );
 
 disposeObject3D(
