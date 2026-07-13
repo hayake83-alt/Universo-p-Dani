@@ -8372,3 +8372,1519 @@ debug(
     "✔ Animación avanzada de constelaciones preparada"
 
 );
+/*==========================================================
+                    MÓDULO 9
+
+                PARTE 9.5
+
+       INTERACCIÓN CON CONSTELACIONES
+
+Permite tocar las constelaciones para:
+
+• Encender sus estrellas
+• Crear un pulso de luz
+• Revelar constelaciones ocultas
+• Descubrir el corazón
+• Descubrir la letra D
+• Funcionar con ratón y pantalla táctil
+
+==========================================================*/
+
+
+
+/*==========================================================
+                CONFIGURACIÓN
+==========================================================*/
+
+const CONSTELLATION_INTERACTION = {
+
+    /* Distancia máxima permitida entre
+       el inicio y el final de un toque */
+
+    tapDistance: 14,
+
+
+    /* Tiempo máximo de un toque */
+
+    tapDuration: 450,
+
+
+    /* Distancia de detección de puntos */
+
+    pointThreshold: 14,
+
+
+    /* Toques necesarios para revelar
+       la constelación del corazón */
+
+    heartTouches: 3,
+
+
+    /* Toques necesarios para revelar
+       la letra D */
+
+    letterDTouches: 6,
+
+
+    /* Duración del pulso visual */
+
+    pulseDuration: 850
+
+};
+
+
+
+/*==========================================================
+                ESTADO
+==========================================================*/
+
+let constellationTouchCount = 0;
+
+let pointerStartX = 0;
+
+let pointerStartY = 0;
+
+let pointerStartTime = 0;
+
+let pointerMoved = false;
+
+let lastConstellationTouched = null;
+
+
+
+/*==========================================================
+        CONFIGURAR EL RAYCASTER
+==========================================================*/
+
+raycaster.params.Points.threshold =
+
+    CONSTELLATION_INTERACTION.pointThreshold;
+
+
+
+/*==========================================================
+        PREPARAR OBJETOS INTERACTIVOS
+==========================================================*/
+
+function prepareConstellationInteraction(){
+
+    for(const constellation of constellations){
+
+        if(constellation.stars){
+
+            constellation.stars.userData.type =
+
+                "constellation-star";
+
+            constellation.stars.userData.constellation =
+
+                constellation;
+
+        }
+
+        if(constellation.lines){
+
+            constellation.lines.userData.type =
+
+                "constellation-line";
+
+            constellation.lines.userData.constellation =
+
+                constellation;
+
+        }
+
+        constellation.group.userData.type =
+
+            "constellation";
+
+        constellation.group.userData.constellation =
+
+            constellation;
+
+
+        /* Valores utilizados durante el pulso */
+
+        constellation.interactionPulse = 0;
+
+        constellation.targetInteractionPulse = 0;
+
+        constellation.lastTouchTime = 0;
+
+    }
+
+}
+
+
+
+/*==========================================================
+        CONVERTIR POSICIÓN DEL PUNTERO
+==========================================================*/
+
+function setPointerCoordinates(event){
+
+    const rect =
+
+        renderer.domElement.getBoundingClientRect();
+
+    mouse.x =
+
+        (
+
+            (event.clientX - rect.left) /
+
+            rect.width
+
+        ) * 2 - 1;
+
+    mouse.y =
+
+        -(
+
+            (event.clientY - rect.top) /
+
+            rect.height
+
+        ) * 2 + 1;
+
+}
+
+
+
+/*==========================================================
+        OBTENER OBJETOS INTERACTIVOS
+==========================================================*/
+
+function getConstellationInteractiveObjects(){
+
+    const interactiveObjects = [];
+
+    for(const constellation of constellations){
+
+        if(
+
+            constellation.stars &&
+
+            constellation.opacity > 0.08
+
+        ){
+
+            interactiveObjects.push(
+
+                constellation.stars
+
+            );
+
+        }
+
+    }
+
+    return interactiveObjects;
+
+}
+
+
+
+/*==========================================================
+        DETECTAR CONSTELACIÓN
+==========================================================*/
+
+function findTouchedConstellation(event){
+
+    setPointerCoordinates(event);
+
+    raycaster.setFromCamera(
+
+        mouse,
+
+        camera
+
+    );
+
+    const interactiveObjects =
+
+        getConstellationInteractiveObjects();
+
+    const intersections =
+
+        raycaster.intersectObjects(
+
+            interactiveObjects,
+
+            false
+
+        );
+
+    if(intersections.length === 0){
+
+        return null;
+
+    }
+
+    const selectedObject =
+
+        intersections[0].object;
+
+    return (
+
+        selectedObject.userData.constellation ||
+
+        null
+
+    );
+
+}
+
+
+
+/*==========================================================
+        PULSO DE UNA CONSTELACIÓN
+==========================================================*/
+
+function pulseConstellation(
+
+    constellation
+
+){
+
+    if(!constellation){
+
+        return;
+
+    }
+
+    constellation.targetInteractionPulse = 1;
+
+    constellation.lastTouchTime =
+
+        performance.now();
+
+    if(constellation.stars){
+
+        constellation.stars.material.opacity =
+
+            1;
+
+    }
+
+    if(constellation.lines){
+
+        constellation.lines.material.opacity =
+
+            Math.min(
+
+                1,
+
+                CONSTELLATION.lineOpacity * 2.2
+
+            );
+
+    }
+
+}
+
+
+
+/*==========================================================
+        REVELAR CONSTELACIONES SECRETAS
+==========================================================*/
+
+function checkSecretConstellationProgress(){
+
+    if(
+
+        constellationTouchCount >=
+
+        CONSTELLATION_INTERACTION.heartTouches
+
+    ){
+
+        if(
+
+            heartConstellation &&
+
+            !heartConstellation.active
+
+        ){
+
+            revealHeartConstellation();
+
+            pulseConstellation(
+
+                heartConstellation
+
+            );
+
+        }
+
+    }
+
+    if(
+
+        constellationTouchCount >=
+
+        CONSTELLATION_INTERACTION.letterDTouches
+
+    ){
+
+        if(
+
+            letterDConstellation &&
+
+            !letterDConstellation.active
+
+        ){
+
+            revealLetterDConstellation();
+
+            pulseConstellation(
+
+                letterDConstellation
+
+            );
+
+        }
+
+    }
+
+}
+
+
+
+/*==========================================================
+        ACTIVAR CONSTELACIÓN
+==========================================================*/
+
+function activateConstellation(
+
+    constellation
+
+){
+
+    if(!constellation){
+
+        return;
+
+    }
+
+    lastConstellationTouched =
+
+        constellation;
+
+    constellationTouchCount += 1;
+
+    pulseConstellation(
+
+        constellation
+
+    );
+
+    checkSecretConstellationProgress();
+
+    console.log(
+
+        "Constelación tocada:",
+
+        constellation.name,
+
+        "| Total:",
+
+        constellationTouchCount
+
+    );
+
+}
+
+
+
+/*==========================================================
+        ACTUALIZAR PULSO DE INTERACCIÓN
+==========================================================*/
+
+function updateConstellationInteraction(){
+
+    const currentTime =
+
+        performance.now();
+
+    for(const constellation of constellations){
+
+        if(
+
+            constellation.interactionPulse ===
+
+            undefined
+
+        ){
+
+            continue;
+
+        }
+
+        const timeSinceTouch =
+
+            currentTime -
+
+            constellation.lastTouchTime;
+
+        if(
+
+            timeSinceTouch >
+
+            CONSTELLATION_INTERACTION.pulseDuration
+
+        ){
+
+            constellation.targetInteractionPulse = 0;
+
+        }
+
+        constellation.interactionPulse =
+
+            lerp(
+
+                constellation.interactionPulse,
+
+                constellation.targetInteractionPulse,
+
+                0.08
+
+            );
+
+        const pulseScale =
+
+            1 +
+
+            constellation.interactionPulse *
+
+            0.18;
+
+        /*
+            No sustituye la pulsación del Módulo 9.4.
+            Solo añade una reacción breve al tocarla.
+        */
+
+        constellation.group.scale.multiplyScalar(
+
+            pulseScale
+
+        );
+
+        if(constellation.stars){
+
+            constellation.stars.material.opacity =
+
+                Math.min(
+
+                    1,
+
+                    constellation.stars.material.opacity +
+
+                    constellation.interactionPulse * 0.35
+
+                );
+
+        }
+
+        if(constellation.lines){
+
+            constellation.lines.material.opacity =
+
+                Math.min(
+
+                    1,
+
+                    constellation.lines.material.opacity +
+
+                    constellation.interactionPulse * 0.22
+
+                );
+
+        }
+
+    }
+
+}
+
+
+
+/*==========================================================
+        INICIO DEL TOQUE
+==========================================================*/
+
+function onConstellationPointerDown(event){
+
+    pointerStartX =
+
+        event.clientX;
+
+    pointerStartY =
+
+        event.clientY;
+
+    pointerStartTime =
+
+        performance.now();
+
+    pointerMoved = false;
+
+}
+
+
+
+/*==========================================================
+        MOVIMIENTO DEL PUNTERO
+==========================================================*/
+
+function onConstellationPointerMove(event){
+
+    const movementX =
+
+        event.clientX -
+
+        pointerStartX;
+
+    const movementY =
+
+        event.clientY -
+
+        pointerStartY;
+
+    const movementDistance =
+
+        Math.sqrt(
+
+            movementX * movementX +
+
+            movementY * movementY
+
+        );
+
+    if(
+
+        movementDistance >
+
+        CONSTELLATION_INTERACTION.tapDistance
+
+    ){
+
+        pointerMoved = true;
+
+    }
+
+}
+
+
+
+/*==========================================================
+        FINAL DEL TOQUE
+==========================================================*/
+
+function onConstellationPointerUp(event){
+
+    const touchDuration =
+
+        performance.now() -
+
+        pointerStartTime;
+
+    if(pointerMoved){
+
+        return;
+
+    }
+
+    if(
+
+        touchDuration >
+
+        CONSTELLATION_INTERACTION.tapDuration
+
+    ){
+
+        return;
+
+    }
+
+    const constellation =
+
+        findTouchedConstellation(event);
+
+    if(constellation){
+
+        activateConstellation(
+
+            constellation
+
+        );
+
+    }
+
+}
+
+
+
+/*==========================================================
+        EVENTOS
+==========================================================*/
+
+renderer.domElement.addEventListener(
+
+    "pointerdown",
+
+    onConstellationPointerDown,
+
+    { passive: true }
+
+);
+
+renderer.domElement.addEventListener(
+
+    "pointermove",
+
+    onConstellationPointerMove,
+
+    { passive: true }
+
+);
+
+renderer.domElement.addEventListener(
+
+    "pointerup",
+
+    onConstellationPointerUp,
+
+    { passive: true }
+
+);
+
+renderer.domElement.addEventListener(
+
+    "pointercancel",
+
+    () => {
+
+        pointerMoved = true;
+
+    },
+
+    { passive: true }
+
+);
+
+
+
+/*==========================================================
+        REINICIAR DESCUBRIMIENTO
+==========================================================*/
+
+function resetConstellationInteraction(){
+
+    constellationTouchCount = 0;
+
+    lastConstellationTouched = null;
+
+    hideSecretConstellations();
+
+    for(const constellation of constellations){
+
+        constellation.interactionPulse = 0;
+
+        constellation.targetInteractionPulse = 0;
+
+    }
+
+}
+
+
+
+/*==========================================================
+                INICIALIZACIÓN
+==========================================================*/
+
+prepareConstellationInteraction();
+
+
+
+debug(
+
+    "✔ Interacción con constelaciones preparada"
+
+);
+/*==========================================================
+                    MÓDULO 9
+
+                PARTE 9.6
+
+        OPTIMIZACIÓN Y FINALIZACIÓN
+            DE CONSTELACIONES
+
+Controla:
+
+• Liberación de memoria
+• Reconstrucción del sistema
+• Calidad gráfica
+• Estado de interacción
+• Depuración
+• Limpieza de eventos
+
+==========================================================*/
+
+
+
+/*==========================================================
+            ESTADO DEL SISTEMA
+==========================================================*/
+
+let constellationEventsEnabled = true;
+
+let constellationSystemDisposed = false;
+
+
+
+/*==========================================================
+        ELIMINAR UNA CONSTELACIÓN
+==========================================================*/
+
+function disposeConstellation(
+
+    constellation
+
+){
+
+    if(!constellation){
+
+        return;
+
+    }
+
+    //----------------------------------
+    // Geometría de estrellas
+    //----------------------------------
+
+    if(
+
+        constellation.stars &&
+
+        constellation.stars.geometry
+
+    ){
+
+        constellation.stars.geometry.dispose();
+
+    }
+
+    //----------------------------------
+    // Material de estrellas
+    //----------------------------------
+
+    if(
+
+        constellation.stars &&
+
+        constellation.stars.material
+
+    ){
+
+        constellation.stars.material.dispose();
+
+    }
+
+    //----------------------------------
+    // Geometría de líneas
+    //----------------------------------
+
+    if(
+
+        constellation.lines &&
+
+        constellation.lines.geometry
+
+    ){
+
+        constellation.lines.geometry.dispose();
+
+    }
+
+    //----------------------------------
+    // Material de líneas
+    //----------------------------------
+
+    if(
+
+        constellation.lines &&
+
+        constellation.lines.material
+
+    ){
+
+        constellation.lines.material.dispose();
+
+    }
+
+    //----------------------------------
+    // Eliminar del grupo principal
+    //----------------------------------
+
+    if(constellation.group){
+
+        constellationsGroup.remove(
+
+            constellation.group
+
+        );
+
+        constellation.group.clear();
+
+    }
+
+    //----------------------------------
+    // Limpiar referencias
+    //----------------------------------
+
+    constellation.stars = null;
+
+    constellation.lines = null;
+
+    constellation.group = null;
+
+    constellation.created = false;
+
+}
+
+
+
+/*==========================================================
+        ELIMINAR TODAS LAS CONSTELACIONES
+==========================================================*/
+
+function disposeConstellations(){
+
+    for(
+
+        const constellation
+
+        of
+
+        constellations
+
+    ){
+
+        disposeConstellation(
+
+            constellation
+
+        );
+
+    }
+
+    constellations.length = 0;
+
+    blueConstellation = null;
+
+    heartConstellation = null;
+
+    letterDConstellation = null;
+
+    lastConstellationTouched = null;
+
+    constellationSystemDisposed = true;
+
+}
+
+
+
+/*==========================================================
+        RECONSTRUIR CONSTELACIONES
+==========================================================*/
+
+function rebuildConstellations(){
+
+    disposeConstellations();
+
+    createMainConstellations();
+
+    prepareConstellationAnimations();
+
+    prepareConstellationInteraction();
+
+    resetConstellationInteraction();
+
+    constellationSystemDisposed = false;
+
+    debug(
+
+        "✔ Constelaciones reconstruidas"
+
+    );
+
+}
+
+
+
+/*==========================================================
+        ACTIVAR EVENTOS
+==========================================================*/
+
+function enableConstellationEvents(){
+
+    if(constellationEventsEnabled){
+
+        return;
+
+    }
+
+    renderer.domElement.addEventListener(
+
+        "pointerdown",
+
+        onConstellationPointerDown,
+
+        { passive: true }
+
+    );
+
+    renderer.domElement.addEventListener(
+
+        "pointermove",
+
+        onConstellationPointerMove,
+
+        { passive: true }
+
+    );
+
+    renderer.domElement.addEventListener(
+
+        "pointerup",
+
+        onConstellationPointerUp,
+
+        { passive: true }
+
+    );
+
+    constellationEventsEnabled = true;
+
+}
+
+
+
+/*==========================================================
+        DESACTIVAR EVENTOS
+==========================================================*/
+
+function disableConstellationEvents(){
+
+    if(!constellationEventsEnabled){
+
+        return;
+
+    }
+
+    renderer.domElement.removeEventListener(
+
+        "pointerdown",
+
+        onConstellationPointerDown
+
+    );
+
+    renderer.domElement.removeEventListener(
+
+        "pointermove",
+
+        onConstellationPointerMove
+
+    );
+
+    renderer.domElement.removeEventListener(
+
+        "pointerup",
+
+        onConstellationPointerUp
+
+    );
+
+    constellationEventsEnabled = false;
+
+}
+
+
+
+/*==========================================================
+        CALIDAD PARA TELÉFONOS
+==========================================================*/
+
+function optimizeConstellationQuality(){
+
+    const cores =
+
+        navigator.hardwareConcurrency || 4;
+
+    const mobileDevice =
+
+        window.matchMedia(
+
+            "(pointer: coarse)"
+
+        ).matches;
+
+    if(
+
+        mobileDevice ||
+
+        cores <= 4
+
+    ){
+
+        CONSTELLATION.starSize = 2.3;
+
+        CONSTELLATION.lineOpacity = 0.32;
+
+        CONSTELLATION.rotationSpeed = 0.0001;
+
+        CONSTELLATION.floatingDistance = 4;
+
+        CONSTELLATION_INTERACTION.pointThreshold = 18;
+
+        raycaster.params.Points.threshold =
+
+            CONSTELLATION_INTERACTION.pointThreshold;
+
+        console.log(
+
+            "Constelaciones: calidad móvil"
+
+        );
+
+    }else{
+
+        CONSTELLATION.starSize = 2.8;
+
+        CONSTELLATION.lineOpacity = 0.42;
+
+        CONSTELLATION.rotationSpeed = 0.00015;
+
+        CONSTELLATION.floatingDistance = 6;
+
+        CONSTELLATION_INTERACTION.pointThreshold = 14;
+
+        raycaster.params.Points.threshold =
+
+            CONSTELLATION_INTERACTION.pointThreshold;
+
+        console.log(
+
+            "Constelaciones: calidad alta"
+
+        );
+
+    }
+
+}
+
+
+
+/*==========================================================
+        ACTUALIZAR MATERIALES SEGÚN CALIDAD
+==========================================================*/
+
+function refreshConstellationMaterials(){
+
+    for(
+
+        const constellation
+
+        of
+
+        constellations
+
+    ){
+
+        if(constellation.stars){
+
+            constellation.stars.material.size =
+
+                CONSTELLATION.starSize;
+
+            constellation.stars.material.needsUpdate =
+
+                true;
+
+        }
+
+        if(constellation.lines){
+
+            constellation.baseLineOpacity =
+
+                CONSTELLATION.lineOpacity;
+
+            constellation.lines.material.opacity =
+
+                constellation.opacity *
+
+                CONSTELLATION.lineOpacity;
+
+            constellation.lines.material.needsUpdate =
+
+                true;
+
+        }
+
+    }
+
+}
+
+
+
+/*==========================================================
+        LIMITAR ANIMACIONES INVISIBLES
+==========================================================*/
+
+function shouldUpdateConstellation(
+
+    constellation
+
+){
+
+    if(!constellation){
+
+        return false;
+
+    }
+
+    if(
+
+        constellation.opacity < 0.005 &&
+
+        constellation.targetOpacity === 0
+
+    ){
+
+        return false;
+
+    }
+
+    const distance =
+
+        getConstellationCameraDistance(
+
+            constellation
+
+        );
+
+    return distance <=
+
+        CONSTELLATION.maxVisibleDistance * 1.25;
+
+}
+
+
+
+/*==========================================================
+        ACTUALIZACIÓN OPTIMIZADA
+==========================================================*/
+
+function updateOptimizedConstellations(){
+
+    if(constellationSystemDisposed){
+
+        return;
+
+    }
+
+    for(
+
+        const constellation
+
+        of
+
+        constellations
+
+    ){
+
+        if(
+
+            !shouldUpdateConstellation(
+
+                constellation
+
+            )
+
+        ){
+
+            continue;
+
+        }
+
+        constellation.update();
+
+        updateConstellationDrawing(
+
+            constellation
+
+        );
+
+    }
+
+    updateAdvancedConstellationEffects();
+
+    updateConstellationInteraction();
+
+}
+
+
+
+/*==========================================================
+        INFORMACIÓN DEL SISTEMA
+==========================================================*/
+
+function constellationInformation(){
+
+    console.log(
+
+        "%c======= CONSTELACIONES =======",
+
+        "color:#b89cff;font-weight:bold;"
+
+    );
+
+    console.log(
+
+        "Cantidad:",
+
+        constellations.length
+
+    );
+
+    console.log(
+
+        "Toques registrados:",
+
+        constellationTouchCount
+
+    );
+
+    console.log(
+
+        "Corazón revelado:",
+
+        Boolean(
+
+            heartConstellation &&
+
+            heartConstellation.active
+
+        )
+
+    );
+
+    console.log(
+
+        "Letra D revelada:",
+
+        Boolean(
+
+            letterDConstellation &&
+
+            letterDConstellation.active
+
+        )
+
+    );
+
+    console.log(
+
+        "Eventos activos:",
+
+        constellationEventsEnabled
+
+    );
+
+}
+
+
+
+/*==========================================================
+        ATAJOS DE PRUEBA
+
+C = reconstruir
+H = mostrar corazón
+D = mostrar letra D
+R = reiniciar secretos
+==========================================================*/
+
+function onConstellationDebugKey(
+
+    event
+
+){
+
+    const key =
+
+        event.key.toLowerCase();
+
+    if(key === "c"){
+
+        rebuildConstellations();
+
+    }
+
+    if(key === "h"){
+
+        revealHeartConstellation();
+
+    }
+
+    if(key === "d"){
+
+        revealLetterDConstellation();
+
+    }
+
+    if(key === "r"){
+
+        resetConstellationInteraction();
+
+    }
+
+}
+
+
+
+window.addEventListener(
+
+    "keydown",
+
+    onConstellationDebugKey
+
+);
+
+
+
+/*==========================================================
+        LIMPIEZA AL CERRAR LA PÁGINA
+==========================================================*/
+
+window.addEventListener(
+
+    "beforeunload",
+
+    () => {
+
+        disableConstellationEvents();
+
+    }
+
+);
+
+
+
+/*==========================================================
+        INICIALIZACIÓN
+==========================================================*/
+
+optimizeConstellationQuality();
+
+refreshConstellationMaterials();
+
+constellationInformation();
+
+
+
+debug(
+
+    "✔ Sistema de constelaciones finalizado"
+
+);
+/*==========================================================
+                    MÓDULO 9
+
+                PARTE 9.7
+
+        SECUENCIA CINEMATOGRÁFICA
+
+==========================================================*/
+
+const CONSTELLATION_SEQUENCE = {
+
+    started:false,
+
+    timer:0,
+
+    stage:0,
+
+    finished:false
+
+};
+
+
+
+function startConstellationSequence(){
+
+    CONSTELLATION_SEQUENCE.started = true;
+
+    CONSTELLATION_SEQUENCE.timer = 0;
+
+    CONSTELLATION_SEQUENCE.stage = 0;
+
+    CONSTELLATION_SEQUENCE.finished = false;
+
+}
+
+
+
+function updateConstellationSequence(){
+
+    if(!CONSTELLATION_SEQUENCE.started) return;
+
+    if(CONSTELLATION_SEQUENCE.finished) return;
+
+    CONSTELLATION_SEQUENCE.timer += deltaTime;
+
+
+
+    switch(CONSTELLATION_SEQUENCE.stage){
+
+        case 0:
+
+            if(CONSTELLATION_SEQUENCE.timer > 8){
+
+                revealHeartConstellation();
+
+                CONSTELLATION_SEQUENCE.stage++;
+
+            }
+
+        break;
+
+
+
+        case 1:
+
+            if(CONSTELLATION_SEQUENCE.timer > 16){
+
+                revealLetterDConstellation();
+
+                CONSTELLATION_SEQUENCE.stage++;
+
+            }
+
+        break;
+
+
+
+        case 2:
+
+            if(CONSTELLATION_SEQUENCE.timer > 24){
+
+                CONSTELLATION_SEQUENCE.finished = true;
+
+            }
+
+        break;
+
+    }
+
+}
