@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   VERSIÓN B 
+   VERSIÓN B RESTAURADA: FRASES NUEVAS Y TEXTURAS PULIDAS
    ========================================================= */
 
 
@@ -6482,6 +6482,30 @@ function createEventListeners() {
     );
 
     window.addEventListener(
+        "pointerdown",
+        handleUniverseDragStart,
+        { passive: true }
+    );
+
+    window.addEventListener(
+        "pointermove",
+        handleUniverseDragMove,
+        { passive: true }
+    );
+
+    window.addEventListener(
+        "pointerup",
+        handleUniverseDragEnd,
+        { passive: true }
+    );
+
+    window.addEventListener(
+        "pointercancel",
+        handleUniverseDragEnd,
+        { passive: true }
+    );
+
+    window.addEventListener(
         "touchmove",
         handleTouchMove,
         { passive: true }
@@ -6592,6 +6616,7 @@ function handleUniverseDragStart(
     event
 ) {
     if (
+        !hasEntered ||
         isConstellationMessageOpen ||
         event.target?.closest?.(
             "button, nav, section"
