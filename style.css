@@ -1480,3 +1480,24 @@ body.constellation-hover {
 /* Versión final B: universo procedimental */
 
 /* Versión B pulida: astros, polvo y estrellas refinadas */
+
+
+/* =========================================================
+   REPARACIÓN FINAL
+   Texturas del sol, asteroides y estabilidad
+   ========================================================= */
+
+.error-panel:not([hidden]) {
+    display: block;
+}
+
+.loader__text {
+    max-width: min(420px, calc(100% - 42px));
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .error-panel {
+        bottom: max(14px, env(safe-area-inset-bottom));
+    }
+}
