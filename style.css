@@ -1501,3 +1501,13 @@ body.constellation-hover {
         bottom: max(14px, env(safe-area-inset-bottom));
     }
 }
+
+
+/* =========================================================
+   VERSIÓN 27
+   Audio M4A y final retrasado
+   ========================================================= */
+
+.audio-status {
+    text-wrap: balance;
+}
