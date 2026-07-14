@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   VERSIÓN B RESTAURADA: FRASES NUEVAS Y TEXTURAS PULIDAS
+   VERSIÓN B 
    ========================================================= */
 
 
