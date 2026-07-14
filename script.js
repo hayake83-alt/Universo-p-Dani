@@ -374,8 +374,17 @@ const CONSTELLATION_DATA = [
             "Entre todas las posibilidades del universo, mi favorita siempre será haberte encontrado.",
             "No sé cuántos caminos pudieron alejarnos, pero agradezco el que terminó llevándome hasta ti.",
             "Hay encuentros que parecen casualidad y otros que se sienten escritos desde antes de conocerse.",
-            "Desde que llegaste, algunas canciones, algunos lugares y algunas noches llevan tu nombre.",
-            "Encontrarte fue descubrir que incluso lo improbable puede convertirse en algo hermoso."
+            "Desde que llegaste, todas las canciones de amor, todos los lugares que amo y las noches, llevan tu nombre.",
+            "Encontrarte fue como si toda la calma que una vez buscaba, tomara forma humana, quiero pensar que estaba destinada a encontrarte."
+            "Hay personas que pueden convertir el caos en un lugar en el que vale la pena quedarse, para mi, tu eres esa persona."
+            "No tienes que ser perfecto, hay cosas increibles en tu imperfeccion y eso es lo que mas amo de ti, un encuentro real es que aun viendo las heridas, la otra persona decida permanecer."
+            "Hay personas cuya ausencia demuestra lo importante que fue haberlas encontrado."
+            "El tiempo pierde importancia cuando estás conmigo."
+            "Algunas personas aparecen para quedarse en la memoria incluso cuando ya no están, siempre estaras en mis pensamientos y mi corazón."
+            "El encuentro puede llegar demasiado tarde, cuando el corazón ya conoce el dolor."
+            "Antes de ti, todo parecía un camino; después de ti, se sintió como un hogar, no digas que no hay rumbo ni direccion, pues a donde quisiera ir? Si mi lugar es contigo."
+            "No cambiaste el mundo; cambiaste la forma en que lo miro."
+            "El tiempo pierde importancia cuando estás conmigo."
         ]
     },
     {
@@ -397,6 +406,13 @@ const CONSTELLATION_DATA = [
             "No siempre necesito respuestas. A veces me basta con saber que estás ahí.",
             "Mi refugio tiene tu voz, tus brazos y la calma de compartir la vida contigo.",
             "Hay días en los que el mundo pesa menos simplemente porque puedo pensarte."
+            "El mundo puede ser inmenso, pero tus brazos pueden sentirse más grandes que cualquier universo."
+            "El refugio no siempre es un lugar; a veces es una persona que sigue creyendo en ti cuando tú ya no puedes hacerlo, tu eres mi persona."
+            "Ser comprendido puede convertirse en el hogar que nunca habías encontrado."
+            "Amar es encontrar un lugar donde el corazón finalmente puede descansar y volver a vivir."
+            "Tus brazos se convirtieron en el único lugar al que siempre quiero volver."
+            "Si el universo tiene un lugar seguro para mí, estoy convencida de que tiene tu forma, tu aroma y tu voz."
+            "Tu existencia convirtió mi caos en un lugar donde podía respirar y volver a sentirme viva."
         ]
     },
     {
@@ -419,10 +435,18 @@ const CONSTELLATION_DATA = [
             "No necesito poseer el cielo. Me basta con compartir contigo el mismo universo.",
             "Amarte se parece a mirar las estrellas: algo inmenso y, al mismo tiempo, profundamente cercano.",
             "En cualquier versión del universo, quisiera volver a elegirte."
+            "Tu existencia me hace pensar que el cielo puede sentirse aquí, en la Tierra."
+            "Contemplar el universo también es una forma de contemplar la vida y tu hermosa existencia."
+            "Incluso los recuerdos más dolorosos pueden sentirse tan hermosos como mirar el cielo al atardecer."
+            "Si el cielo pudiera tomar una forma, elegiría la de tus ojos."
+            "Hay noches en las que la luna parece hablar de ti."
+            "Quizá las estrellas brillan porque conocen tu nombre."
+            "Permiteme ver el cielo en tus ojos y probar el sabor de la vida en tus labios."
+            "Mirarte es la forma más cercana que conozco de tocar el infinito y contemplar la eternidad."
         ]
     },
     {
-        name: "Cáncer",
+        name: "Dashuri",
         color: 0x9ed7ff,
         glowColor: 0x69bfff,
         points: [
@@ -451,6 +475,15 @@ const CONSTELLATION_DATA = [
             "No me dejes volver a la oscuridad del océano; mientras esté contigo, todo estará bien.",
             "Es un dulce caos. Desde que apareciste en mi vida, mis sueños, mis metas y mi mundo entero han cambiado.",
             "Cuando me miras, el mundo se desvanece. Siempre nos recordaré así.",
+            "Think I like you best when you're just with me and no one else.",
+            "If you ever go, all the songs that we like will sound like bittersweet lullabies lost in the blue. They don't love me like you do."
+            "Querer a alguien significa desear ser suficiente para esa persona mientras aprendes a aceptarte.",
+            "Te amo de la forma en que el universo ama a las estrellas: sin pedirles que dejen de brillar.",
+            "No necesito una eternidad; me basta con que exista un 'nosotros' y un ahora.",
+            "Si algún día olvido todo lo demás, espero seguir recordando cómo se siente amarte.",
+            "My dreams are kinder than real life, they  let me have you. No lies, no waiting, just sken and breath and the quiet promise of staying.",
+            "El tiempo podrá cambiarlo todo, menos la forma en que te ama mi alma.",
+            "Te volvería a escoger en cada vida, incluso si tuviera que empezar desde cero.",
             "Think I like you best when you're just with me and no one else.",
             "If you ever go, all the songs that we like will sound like bittersweet lullabies lost in the blue. They don't love me like you do."
         ]
