@@ -365,133 +365,151 @@ const CONSTELLATION_DATA = [
         color: 0xaec4ff,
         glowColor: 0x9fbbff,
         points: [
-            [-3.4, 1.1, 0], [-2.1, 2.3, 0.15], [-0.7, 1.55, -0.1],
-            [0.45, 2.65, 0.1], [1.85, 1.75, 0], [3.25, 2.35, -0.15],
-            [2.55, 0.55, 0.1], [1.15, -0.4, 0], [-0.3, 0.25, 0.12],
-            [-1.8, -0.55, -0.1], [-2.85, -1.85, 0],
-            [-0.55, -2.05, 0.1], [1.65, -1.75, -0.1], [3.15, -0.95, 0]
-        ],
+                    [-3.4, 1.1, 0],
+                    [-2.1, 2.3, 0.15],
+                    [-0.7, 1.55, -0.1],
+                    [0.45, 2.65, 0.1],
+                    [1.85, 1.75, 0],
+                    [3.25, 2.35, -0.15],
+                    [2.55, 0.55, 0.1],
+                    [1.15, -0.4, 0],
+                    [-0.3, 0.25, 0.12],
+                    [-1.8, -0.55, -0.1],
+                    [-2.85, -1.85, 0],
+                    [-0.55, -2.05, 0.1],
+                    [1.65, -1.75, -0.1],
+                    [3.15, -0.95, 0]
+                ],
         connections: [
-            [0,1],[1,2],[2,3],[3,4],[4,5],[4,6],[6,7],[7,8],
-            [8,2],[8,9],[9,10],[9,11],[11,12],[12,13],[13,6]
-        ],
-        messages: [
-            "Entre todas las posibilidades del universo, mi favorita siempre será haberte encontrado.",
-            "No sé cuántos caminos pudieron alejarnos, pero agradezco el que terminó llevándome hasta ti.",
-            "Hay encuentros que parecen casualidad y otros que se sienten escritos desde antes de conocerse.",
-            "Desde que llegaste, todas las canciones de amor, todos los lugares que amo y las noches, llevan tu nombre.",
-            "Encontrarte fue como si toda la calma que una vez buscaba, tomara forma humana, quiero pensar que estaba destinada a encontrarte."
-            "Hay personas que pueden convertir el caos en un lugar en el que vale la pena quedarse, para mi, tu eres esa persona."
-            "No tienes que ser perfecto, hay cosas increibles en tu imperfeccion y eso es lo que mas amo de ti, un encuentro real es que aun viendo las heridas, la otra persona decida permanecer."
-            "Hay personas cuya ausencia demuestra lo importante que fue haberlas encontrado."
-            "El tiempo pierde importancia cuando estás conmigo."
-            "Algunas personas aparecen para quedarse en la memoria incluso cuando ya no están, siempre estaras en mis pensamientos y mi corazón."
-            "El encuentro puede llegar demasiado tarde, cuando el corazón ya conoce el dolor."
-            "Antes de ti, todo parecía un camino; después de ti, se sintió como un hogar, no digas que no hay rumbo ni direccion, pues a donde quisiera ir? Si mi lugar es contigo."
-            "No cambiaste el mundo; cambiaste la forma en que lo miro."
-            "El tiempo pierde importancia cuando estás conmigo."
-        ]
+                    [0, 1],
+                    [1, 2],
+                    [2, 3],
+                    [3, 4],
+                    [4, 5],
+                    [4, 6],
+                    [6, 7],
+                    [7, 8],
+                    [8, 2],
+                    [8, 9],
+                    [9, 10],
+                    [9, 11],
+                    [11, 12],
+                    [12, 13],
+                    [13, 6]
+                ],
+        messages: ["Entre todas las posibilidades del universo, mi favorita siempre será haberte encontrado.", "No sé cuántos caminos pudieron alejarnos, pero agradezco el que terminó llevándome hasta ti.", "Hay encuentros que parecen casualidad y otros que se sienten escritos desde antes de conocerse.", "Desde que llegaste, todas las canciones de amor, todos los lugares que amo y las noches llevan tu nombre.", "Encontrarte fue como si toda la calma que una vez buscaba tomara forma humana; quiero pensar que estaba destinada a encontrarte.", "Hay personas que pueden convertir el caos en un lugar en el que vale la pena quedarse. Para mí, tú eres esa persona.", "No tienes que ser perfecta. Hay cosas increíbles en tu imperfección y eso es lo que más amo de ti; un encuentro real es que, aun viendo las heridas, la otra persona decida permanecer.", "Hay personas cuya ausencia demuestra lo importante que fue haberlas encontrado.", "El tiempo pierde importancia cuando estás conmigo.", "Algunas personas aparecen para quedarse en la memoria incluso cuando ya no están. Siempre estarás en mis pensamientos y en mi corazón.", "El encuentro puede llegar demasiado tarde, cuando el corazón ya conoce el dolor.", "Antes de ti, todo parecía un camino; después de ti, se sintió como un hogar. No digas que no hay rumbo ni dirección, pues ¿a dónde quisiera ir si mi lugar es contigo?", "No cambiaste el mundo; cambiaste la forma en que lo miro."]
     },
     {
         name: "Refugio",
         color: 0xe0b1ff,
         glowColor: 0xd59cff,
         points: [
-            [-3.5,0.2,0],[-2.8,1.7,0.1],[-1.45,2.45,-0.1],[0,1.6,0.12],
-            [1.45,2.45,-0.1],[2.8,1.7,0.1],[3.5,0.2,0],[2.35,-1.15,0.1],
-            [1.1,-2.2,-0.12],[0,-1.15,0.15],[-1.1,-2.2,-0.12],[-2.35,-1.15,0.1]
-        ],
+                    [-3.5, 0.2, 0],
+                    [-2.8, 1.7, 0.1],
+                    [-1.45, 2.45, -0.1],
+                    [0, 1.6, 0.12],
+                    [1.45, 2.45, -0.1],
+                    [2.8, 1.7, 0.1],
+                    [3.5, 0.2, 0],
+                    [2.35, -1.15, 0.1],
+                    [1.1, -2.2, -0.12],
+                    [0, -1.15, 0.15],
+                    [-1.1, -2.2, -0.12],
+                    [-2.35, -1.15, 0.1]
+                ],
         connections: [
-            [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],
-            [7,8],[8,9],[9,10],[10,11],[11,0],[3,9]
-        ],
-        messages: [
-            "Hay lugares que se sienten como hogar. Para mí, uno de ellos siempre será estar cerca de ti.",
-            "Tu presencia tiene una forma hermosa de hacer que todo parezca un poco menos difícil.",
-            "No siempre necesito respuestas. A veces me basta con saber que estás ahí.",
-            "Mi refugio tiene tu voz, tus brazos y la calma de compartir la vida contigo.",
-            "Hay días en los que el mundo pesa menos simplemente porque puedo pensarte."
-            "El mundo puede ser inmenso, pero tus brazos pueden sentirse más grandes que cualquier universo."
-            "El refugio no siempre es un lugar; a veces es una persona que sigue creyendo en ti cuando tú ya no puedes hacerlo, tu eres mi persona."
-            "Ser comprendido puede convertirse en el hogar que nunca habías encontrado."
-            "Amar es encontrar un lugar donde el corazón finalmente puede descansar y volver a vivir."
-            "Tus brazos se convirtieron en el único lugar al que siempre quiero volver."
-            "Si el universo tiene un lugar seguro para mí, estoy convencida de que tiene tu forma, tu aroma y tu voz."
-            "Tu existencia convirtió mi caos en un lugar donde podía respirar y volver a sentirme viva."
-        ]
+                    [0, 1],
+                    [1, 2],
+                    [2, 3],
+                    [3, 4],
+                    [4, 5],
+                    [5, 6],
+                    [6, 7],
+                    [7, 8],
+                    [8, 9],
+                    [9, 10],
+                    [10, 11],
+                    [11, 0],
+                    [3, 9]
+                ],
+        messages: ["Hay lugares que se sienten como hogar. Para mí, uno de ellos siempre será estar cerca de ti.", "Tu presencia tiene una forma hermosa de hacer que todo parezca un poco menos difícil.", "No siempre necesito respuestas. A veces me basta con saber que estás ahí.", "Mi refugio tiene tu voz, tus brazos y la calma de compartir la vida contigo.", "Hay días en los que el mundo pesa menos simplemente porque puedo pensarte.", "El mundo puede ser inmenso, pero tus brazos pueden sentirse más grandes que cualquier universo.", "El refugio no siempre es un lugar; a veces es una persona que sigue creyendo en ti cuando tú ya no puedes hacerlo. Tú eres mi persona.", "Ser comprendida puede convertirse en el hogar que nunca habías encontrado.", "Amar es encontrar un lugar donde el corazón finalmente puede descansar y volver a vivir.", "Tus brazos se convirtieron en el único lugar al que siempre quiero volver.", "Si el universo tiene un lugar seguro para mí, estoy convencida de que tiene tu forma, tu aroma y tu voz.", "Tu existencia convirtió mi caos en un lugar donde podía respirar y volver a sentirme viva."]
     },
     {
         name: "Cielo",
         color: 0xffb5d9,
         glowColor: 0xf29ccc,
         points: [
-            [-3.7,1.8,0],[-2.3,0.9,0.1],[-1.15,2.2,-0.1],[0,0.8,0.12],
-            [1.15,2.2,-0.1],[2.3,0.9,0.1],[3.7,1.8,0],[2.75,-0.25,0.12],
-            [1.6,-1.7,-0.08],[0,-0.7,0.15],[-1.6,-1.7,-0.08],
-            [-2.75,-0.25,0.12],[0,-2.45,0]
-        ],
+                    [-3.7, 1.8, 0],
+                    [-2.3, 0.9, 0.1],
+                    [-1.15, 2.2, -0.1],
+                    [0, 0.8, 0.12],
+                    [1.15, 2.2, -0.1],
+                    [2.3, 0.9, 0.1],
+                    [3.7, 1.8, 0],
+                    [2.75, -0.25, 0.12],
+                    [1.6, -1.7, -0.08],
+                    [0, -0.7, 0.15],
+                    [-1.6, -1.7, -0.08],
+                    [-2.75, -0.25, 0.12],
+                    [0, -2.45, 0]
+                ],
         connections: [
-            [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],
-            [7,8],[8,9],[9,10],[10,11],[11,0],[3,9],[9,12]
-        ],
-        messages: [
-            "Si el cielo pudiera llevar un nombre, algunas noches estoy seguro de que llevaría el tuyo.",
-            "Entre millones de luces, seguiría reconociendo la forma en la que tú iluminas mi vida.",
-            "No necesito poseer el cielo. Me basta con compartir contigo el mismo universo.",
-            "Amarte se parece a mirar las estrellas: algo inmenso y, al mismo tiempo, profundamente cercano.",
-            "En cualquier versión del universo, quisiera volver a elegirte."
-            "Tu existencia me hace pensar que el cielo puede sentirse aquí, en la Tierra."
-            "Contemplar el universo también es una forma de contemplar la vida y tu hermosa existencia."
-            "Incluso los recuerdos más dolorosos pueden sentirse tan hermosos como mirar el cielo al atardecer."
-            "Si el cielo pudiera tomar una forma, elegiría la de tus ojos."
-            "Hay noches en las que la luna parece hablar de ti."
-            "Quizá las estrellas brillan porque conocen tu nombre."
-            "Permiteme ver el cielo en tus ojos y probar el sabor de la vida en tus labios."
-            "Mirarte es la forma más cercana que conozco de tocar el infinito y contemplar la eternidad."
-        ]
+                    [0, 1],
+                    [1, 2],
+                    [2, 3],
+                    [3, 4],
+                    [4, 5],
+                    [5, 6],
+                    [6, 7],
+                    [7, 8],
+                    [8, 9],
+                    [9, 10],
+                    [10, 11],
+                    [11, 0],
+                    [3, 9],
+                    [9, 12]
+                ],
+        messages: ["Si el cielo pudiera llevar un nombre, algunas noches estoy segura de que llevaría el tuyo.", "Entre millones de luces, seguiría reconociendo la forma en la que tú iluminas mi vida.", "No necesito poseer el cielo. Me basta con compartir contigo el mismo universo.", "Amarte se parece a mirar las estrellas: algo inmenso y, al mismo tiempo, profundamente cercano.", "En cualquier versión del universo, quisiera volver a elegirte.", "Tu existencia me hace pensar que el cielo puede sentirse aquí, en la Tierra.", "Contemplar el universo también es una forma de contemplar la vida y tu hermosa existencia.", "Incluso los recuerdos más dolorosos pueden sentirse tan hermosos como mirar el cielo al atardecer.", "Si el cielo pudiera tomar una forma, elegiría la de tus ojos.", "Hay noches en las que la luna parece hablar de ti.", "Quizá las estrellas brillan porque conocen tu nombre.", "Permíteme ver el cielo en tus ojos y probar el sabor de la vida en tus labios.", "Mirarte es la forma más cercana que conozco de tocar el infinito y contemplar la eternidad."]
     },
     {
         name: "Dashuri",
         color: 0x9ed7ff,
         glowColor: 0x69bfff,
         points: [
-            [-3.35, 1.4, 0],
-            [-2.2, 2.15, 0.08],
-            [-1.05, 1.35, -0.08],
-            [0, 2.35, 0.1],
-            [1.05, 1.35, -0.08],
-            [2.2, 2.15, 0.08],
-            [3.35, 1.4, 0],
-            [2.55, 0.25, 0.08],
-            [1.35, -0.4, -0.08],
-            [0, 0.25, 0.12],
-            [-1.35, -0.4, -0.08],
-            [-2.55, 0.25, 0.08],
-            [0, -1.55, 0],
-            [-1.55, -2.2, 0.08],
-            [1.55, -2.2, 0.08]
-        ],
+                    [-3.35, 1.4, 0],
+                    [-2.2, 2.15, 0.08],
+                    [-1.05, 1.35, -0.08],
+                    [0, 2.35, 0.1],
+                    [1.05, 1.35, -0.08],
+                    [2.2, 2.15, 0.08],
+                    [3.35, 1.4, 0],
+                    [2.55, 0.25, 0.08],
+                    [1.35, -0.4, -0.08],
+                    [0, 0.25, 0.12],
+                    [-1.35, -0.4, -0.08],
+                    [-2.55, 0.25, 0.08],
+                    [0, -1.55, 0],
+                    [-1.55, -2.2, 0.08],
+                    [1.55, -2.2, 0.08]
+                ],
         connections: [
-            [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],
-            [6,7],[7,8],[8,9],[9,10],[10,11],[11,0],
-            [9,12],[12,13],[12,14]
-        ],
-        messages: [
-            "No me dejes volver a la oscuridad del océano; mientras esté contigo, todo estará bien.",
-            "Es un dulce caos. Desde que apareciste en mi vida, mis sueños, mis metas y mi mundo entero han cambiado.",
-            "Cuando me miras, el mundo se desvanece. Siempre nos recordaré así.",
-            "Think I like you best when you're just with me and no one else.",
-            "If you ever go, all the songs that we like will sound like bittersweet lullabies lost in the blue. They don't love me like you do."
-            "Querer a alguien significa desear ser suficiente para esa persona mientras aprendes a aceptarte.",
-            "Te amo de la forma en que el universo ama a las estrellas: sin pedirles que dejen de brillar.",
-            "No necesito una eternidad; me basta con que exista un 'nosotros' y un ahora.",
-            "Si algún día olvido todo lo demás, espero seguir recordando cómo se siente amarte.",
-            "My dreams are kinder than real life, they  let me have you. No lies, no waiting, just sken and breath and the quiet promise of staying.",
-            "El tiempo podrá cambiarlo todo, menos la forma en que te ama mi alma.",
-            "Te volvería a escoger en cada vida, incluso si tuviera que empezar desde cero.",
-            "Think I like you best when you're just with me and no one else.",
-            "If you ever go, all the songs that we like will sound like bittersweet lullabies lost in the blue. They don't love me like you do."
-        ]
+                    [0, 1],
+                    [1, 2],
+                    [2, 3],
+                    [3, 4],
+                    [4, 5],
+                    [5, 6],
+                    [6, 7],
+                    [7, 8],
+                    [8, 9],
+                    [9, 10],
+                    [10, 11],
+                    [11, 0],
+                    [9, 12],
+                    [12, 13],
+                    [12, 14]
+                ],
+        messages: ["No me dejes volver a la oscuridad del océano; mientras esté contigo, todo estará bien.", "Es un dulce caos. Desde que apareciste en mi vida, mis sueños, mis metas y mi mundo entero han cambiado.", "Cuando me miras, el mundo se desvanece. Siempre nos recordaré así.", "Think I like you best when you're just with me and no one else.", "If you ever go, all the songs that we like will sound like bittersweet lullabies lost in the blue. They don't love me like you do.", "Querer a alguien significa desear ser suficiente para esa persona mientras aprendes a aceptarte.", "Te amo de la forma en que el universo ama a las estrellas: sin pedirles que dejen de brillar.", "No necesito una eternidad; me basta con que exista un nosotros y un ahora.", "Si algún día olvido todo lo demás, espero seguir recordando cómo se siente amarte.", "My dreams are kinder than real life; they let me have you. No lies, no waiting, just skin and breath and the quiet promise of staying.", "El tiempo podrá cambiarlo todo, menos la forma en que te ama mi alma.", "Te volvería a escoger en cada vida, incluso si tuviera que empezar desde cero."]
     }
 ];
 /* ---------------------------------------------------------
@@ -560,7 +578,7 @@ const REALISM_CONFIG = {
     galaxyCount: isSmallScreen ? 2 : 3,
     asteroidCount: isSmallScreen ? 18 : 32,
     detailedStarCount: isSmallScreen ? 16 : 28,
-    birthdayRevealDragDistance: isSmallScreen ? 520 : 760,
+    birthdayRevealDragDistance: isSmallScreen ? 1200 : 1800,
     birthdayHoldDuration: 7.5
 };
 
@@ -575,7 +593,7 @@ const POLISH_CONFIG = {
     galacticBandParticleCount: isSmallScreen ? 950 : 1850,
     galacticBandLayerCount: isSmallScreen ? 2 : 3,
     solarFlareCount: isSmallScreen ? 7 : 12,
-    finalSceneDelay: 2400
+    finalSceneDelay: 120000
 };
 
 const REFINED_COSMIC_CONFIG = {
@@ -3722,7 +3740,7 @@ function initializeAudio() {
 async function toggleBackgroundMusic() {
     if (!isAudioAvailable) {
         showAudioStatus(
-            "Agrega el archivo musica.mp3 al repositorio."
+            "Agrega el archivo musica.m4a al repositorio."
         );
 
         return;
@@ -3930,7 +3948,7 @@ function handleAudioError() {
     );
 
     showAudioStatus(
-        "No se encontró musica.mp3"
+        "No se encontró musica.m4a"
     );
 }
 
