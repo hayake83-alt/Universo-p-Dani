@@ -8820,11 +8820,9 @@ function applyUniverseNavigation() {
     const groups = [
         detailedStarGroup,
         galaxyGroup,
-        asteroidGroup,
         shootingStarGroup,
         interactiveStarGroup,
         birthdayMessageGroup,
-        milkyWayRibbonGroup,
         cosmicDustGroup,
         starShockwaveGroup
     ];
