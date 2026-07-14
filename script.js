@@ -3,7 +3,7 @@ import * as THREE from "https://unpkg.com/three@0.166.1/build/three.module.js";
 
 /* =========================================================
    UNIVERSO PARA DANI
-   VERSIÓN B PULIDA: UNIVERSO PROCEDIMENTAL REALISTA
+   VERSIÓN B RESTAURADA: FRASES NUEVAS Y TEXTURAS PULIDAS
    ========================================================= */
 
 
@@ -265,6 +265,11 @@ let cosmicDustGroup;
 let cosmicDustLayers = [];
 let starShockwaveGroup;
 let starShockwaves = [];
+
+let sharedRefinedStarTexture;
+let asteroidSurfaceTexture;
+let asteroidBumpTexture;
+let sunSurfaceLight;
 
 
 const cosmicRaycaster = new THREE.Raycaster();
@@ -681,27 +686,54 @@ createEventListeners();
 
 function validateRequiredElements() {
     const requiredElements = [
-    canvas,
-    intro,
-    startButton,
-    loader,
-    loaderText,
-    statusElement,
-    errorPanel,
-    errorMessage,
-    constellationMessage,
-    constellationMessageText,
-    closeConstellationMessage,
-    constellationHint
-];
+        canvas,
+        intro,
+        startButton,
+        loader,
+        loaderText,
+        statusElement,
+        errorPanel,
+        errorMessage,
+        constellationMessage,
+        constellationMessageText,
+        constellationMessageTitle,
+        closeConstellationMessage,
+        constellationHint,
+        constellationNavigation,
+        previousConstellationButton,
+        nextConstellationButton,
+        constellationNameElement,
+        constellationCounterElement,
+        journeyCaption,
+        journeyCaptionTitle,
+        journeyCaptionText,
+        journeyProgressBar,
+        journeyFinalMessage,
+        cosmicNavigationHint,
+        hiddenBirthdayHint,
+        backgroundMusic,
+        audioControl,
+        audioControlIcon,
+        audioControlText,
+        audioStatus,
+        finalScene,
+        finalSceneMessage,
+        replayJourneyButton,
+        continueExploringButton
+    ];
 
-    const missingElement = requiredElements.some(
-        (element) => !element
-    );
+    const missingElements =
+        requiredElements.filter(
+            (element) => !element
+        );
 
-    if (missingElement) {
+    if (
+        missingElements.length >
+        0
+    ) {
         throw new Error(
-            "Falta uno o más elementos necesarios en index.html."
+            "Faltan elementos necesarios en index.html. " +
+            "Reemplaza también index.html con el archivo corregido."
         );
     }
 }
@@ -1103,18 +1135,162 @@ function animateProceduralUniverse(
 }
 
 function createRefinedStarTexture() {
-    const c=document.createElement("canvas"); c.width=256; c.height=256;
-    const x=c.getContext("2d");
-    const g=x.createRadialGradient(128,128,0,128,128,128);
-    g.addColorStop(0,"rgba(255,255,255,1)"); g.addColorStop(0.055,"rgba(255,255,255,1)");
-    g.addColorStop(0.14,"rgba(222,235,255,0.92)"); g.addColorStop(0.34,"rgba(130,175,255,0.32)");
-    g.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=g; x.fillRect(0,0,256,256);
-    x.save(); x.translate(128,128);
-    const b=x.createLinearGradient(-128,0,128,0);
-    b.addColorStop(0,"rgba(255,255,255,0)"); b.addColorStop(0.46,"rgba(220,235,255,0.08)");
-    b.addColorStop(0.5,"rgba(255,255,255,0.86)"); b.addColorStop(0.54,"rgba(220,235,255,0.08)"); b.addColorStop(1,"rgba(255,255,255,0)");
-    x.fillStyle=b; x.fillRect(-128,-2,256,4); x.rotate(Math.PI/2); x.fillRect(-128,-1.3,256,2.6); x.restore();
-    const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t;
+    if (sharedRefinedStarTexture) {
+        return sharedRefinedStarTexture;
+    }
+
+    const textureCanvas =
+        document.createElement("canvas");
+
+    textureCanvas.width = 256;
+    textureCanvas.height = 256;
+
+    const context =
+        textureCanvas.getContext("2d");
+
+    if (!context) {
+        throw new Error(
+            "No se pudo crear la textura refinada de las estrellas."
+        );
+    }
+
+    const radial =
+        context.createRadialGradient(
+            128,
+            128,
+            0,
+            128,
+            128,
+            128
+        );
+
+    radial.addColorStop(
+        0,
+        "rgba(255,255,255,1)"
+    );
+
+    radial.addColorStop(
+        0.045,
+        "rgba(255,255,255,1)"
+    );
+
+    radial.addColorStop(
+        0.13,
+        "rgba(224,238,255,0.94)"
+    );
+
+    radial.addColorStop(
+        0.31,
+        "rgba(132,176,255,0.34)"
+    );
+
+    radial.addColorStop(
+        0.58,
+        "rgba(90,130,255,0.09)"
+    );
+
+    radial.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    context.fillStyle = radial;
+
+    context.fillRect(
+        0,
+        0,
+        256,
+        256
+    );
+
+    context.save();
+
+    context.translate(
+        128,
+        128
+    );
+
+    const beam =
+        context.createLinearGradient(
+            -128,
+            0,
+            128,
+            0
+        );
+
+    beam.addColorStop(
+        0,
+        "rgba(255,255,255,0)"
+    );
+
+    beam.addColorStop(
+        0.46,
+        "rgba(220,235,255,0.08)"
+    );
+
+    beam.addColorStop(
+        0.5,
+        "rgba(255,255,255,0.88)"
+    );
+
+    beam.addColorStop(
+        0.54,
+        "rgba(220,235,255,0.08)"
+    );
+
+    beam.addColorStop(
+        1,
+        "rgba(255,255,255,0)"
+    );
+
+    context.fillStyle = beam;
+
+    context.fillRect(
+        -128,
+        -2,
+        256,
+        4
+    );
+
+    context.rotate(
+        Math.PI / 2
+    );
+
+    context.fillRect(
+        -128,
+        -1.3,
+        256,
+        2.6
+    );
+
+    context.rotate(
+        Math.PI / 4
+    );
+
+    context.globalAlpha =
+        0.22;
+
+    context.fillRect(
+        -96,
+        -0.7,
+        192,
+        1.4
+    );
+
+    context.restore();
+
+    const texture =
+        new THREE.CanvasTexture(
+            textureCanvas
+        );
+
+    texture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    sharedRefinedStarTexture =
+        texture;
+
+    return texture;
 }
 
 function createMilkyWayRibbonTexture() {
@@ -4283,6 +4459,239 @@ function createGalaxies() {
 }
 
 
+
+function createAsteroidTextures() {
+    if (
+        asteroidSurfaceTexture &&
+        asteroidBumpTexture
+    ) {
+        return {
+            surface:
+                asteroidSurfaceTexture,
+            bump:
+                asteroidBumpTexture
+        };
+    }
+
+    const surfaceCanvas =
+        document.createElement("canvas");
+
+    surfaceCanvas.width = 512;
+    surfaceCanvas.height = 512;
+
+    const surfaceContext =
+        surfaceCanvas.getContext("2d");
+
+    const bumpCanvas =
+        document.createElement("canvas");
+
+    bumpCanvas.width = 512;
+    bumpCanvas.height = 512;
+
+    const bumpContext =
+        bumpCanvas.getContext("2d");
+
+    const baseGradient =
+        surfaceContext.createLinearGradient(
+            0,
+            0,
+            512,
+            512
+        );
+
+    baseGradient.addColorStop(
+        0,
+        "#756b69"
+    );
+
+    baseGradient.addColorStop(
+        0.45,
+        "#4f4c54"
+    );
+
+    baseGradient.addColorStop(
+        1,
+        "#2e3038"
+    );
+
+    surfaceContext.fillStyle =
+        baseGradient;
+
+    surfaceContext.fillRect(
+        0,
+        0,
+        512,
+        512
+    );
+
+    bumpContext.fillStyle =
+        "#7f7f7f";
+
+    bumpContext.fillRect(
+        0,
+        0,
+        512,
+        512
+    );
+
+    for (
+        let index = 0;
+        index < 310;
+        index += 1
+    ) {
+        const x =
+            randomBetween(
+                0,
+                512
+            );
+
+        const y =
+            randomBetween(
+                0,
+                512
+            );
+
+        const radius =
+            randomBetween(
+                3,
+                31
+            );
+
+        const darkness =
+            Math.floor(
+                randomBetween(
+                    22,
+                    80
+                )
+            );
+
+        surfaceContext.fillStyle =
+            `rgba(${darkness},${darkness},${darkness + 4},${randomBetween(0.05, 0.2)})`;
+
+        surfaceContext.beginPath();
+
+        surfaceContext.ellipse(
+            x,
+            y,
+            radius,
+            radius *
+            randomBetween(
+                0.45,
+                1
+            ),
+            randomBetween(
+                0,
+                Math.PI
+            ),
+            0,
+            Math.PI * 2
+        );
+
+        surfaceContext.fill();
+
+        const bumpShade =
+            Math.floor(
+                randomBetween(
+                    18,
+                    115
+                )
+            );
+
+        bumpContext.fillStyle =
+            `rgb(${bumpShade},${bumpShade},${bumpShade})`;
+
+        bumpContext.beginPath();
+
+        bumpContext.ellipse(
+            x,
+            y,
+            radius,
+            radius *
+            randomBetween(
+                0.45,
+                1
+            ),
+            randomBetween(
+                0,
+                Math.PI
+            ),
+            0,
+            Math.PI * 2
+        );
+
+        bumpContext.fill();
+    }
+
+    for (
+        let index = 0;
+        index < 700;
+        index += 1
+    ) {
+        const shade =
+            Math.floor(
+                randomBetween(
+                    80,
+                    190
+                )
+            );
+
+        surfaceContext.fillStyle =
+            `rgba(${shade},${shade - 5},${shade - 8},${randomBetween(0.015, 0.07)})`;
+
+        surfaceContext.fillRect(
+            randomBetween(
+                0,
+                512
+            ),
+            randomBetween(
+                0,
+                512
+            ),
+            randomBetween(
+                1,
+                4
+            ),
+            randomBetween(
+                1,
+                4
+            )
+        );
+    }
+
+    asteroidSurfaceTexture =
+        new THREE.CanvasTexture(
+            surfaceCanvas
+        );
+
+    asteroidSurfaceTexture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    asteroidSurfaceTexture.wrapS =
+        THREE.RepeatWrapping;
+
+    asteroidSurfaceTexture.wrapT =
+        THREE.RepeatWrapping;
+
+    asteroidBumpTexture =
+        new THREE.CanvasTexture(
+            bumpCanvas
+        );
+
+    asteroidBumpTexture.wrapS =
+        THREE.RepeatWrapping;
+
+    asteroidBumpTexture.wrapT =
+        THREE.RepeatWrapping;
+
+    return {
+        surface:
+            asteroidSurfaceTexture,
+        bump:
+            asteroidBumpTexture
+    };
+}
+
+
 function createAsteroidField() {
     asteroidGroup =
         new THREE.Group();
@@ -4291,6 +4700,9 @@ function createAsteroidField() {
         "AsteroidGroup";
 
     asteroids = [];
+
+    const asteroidTextures =
+        createAsteroidTextures();
 
     for (
         let index = 0;
@@ -4301,10 +4713,10 @@ function createAsteroidField() {
         const geometry =
             new THREE.IcosahedronGeometry(
                 randomBetween(
-                    0.18,
-                    0.72
+                    0.2,
+                    0.78
                 ),
-                1
+                2
             );
 
         const positionAttribute =
@@ -4314,20 +4726,42 @@ function createAsteroidField() {
 
         for (
             let vertexIndex = 0;
-            vertexIndex < positionAttribute.count;
+            vertexIndex <
+            positionAttribute.count;
             vertexIndex += 1
         ) {
-            const factor =
+            const x =
+                positionAttribute.getX(
+                    vertexIndex
+                );
+
+            const y =
+                positionAttribute.getY(
+                    vertexIndex
+                );
+
+            const z =
+                positionAttribute.getZ(
+                    vertexIndex
+                );
+
+            const irregularity =
                 randomBetween(
-                    0.78,
-                    1.18
+                    0.72,
+                    1.23
+                );
+
+            const flattening =
+                randomBetween(
+                    0.82,
+                    1.08
                 );
 
             positionAttribute.setXYZ(
                 vertexIndex,
-                positionAttribute.getX(vertexIndex) * factor,
-                positionAttribute.getY(vertexIndex) * factor,
-                positionAttribute.getZ(vertexIndex) * factor
+                x * irregularity,
+                y * irregularity * flattening,
+                z * irregularity
             );
         }
 
@@ -4338,12 +4772,36 @@ function createAsteroidField() {
 
         const material =
             new THREE.MeshStandardMaterial({
+                map:
+                    asteroidTextures.surface,
+
+                bumpMap:
+                    asteroidTextures.bump,
+
+                bumpScale:
+                    randomBetween(
+                        0.08,
+                        0.2
+                    ),
+
                 color:
-                    index % 2 === 0
-                        ? 0x3f4250
-                        : 0x5b5361,
-                roughness: 0.94,
-                metalness: 0.08
+                    index % 3 === 0
+                        ? 0x92827b
+                        : index % 3 === 1
+                            ? 0x686671
+                            : 0x827477,
+
+                roughness:
+                    randomBetween(
+                        0.78,
+                        0.98
+                    ),
+
+                metalness:
+                    randomBetween(
+                        0.01,
+                        0.12
+                    )
             });
 
         const asteroid =
@@ -4361,19 +4819,19 @@ function createAsteroidField() {
         const radius =
             randomBetween(
                 12,
-                28
+                30
             );
 
         asteroid.position.set(
             Math.cos(angle) *
                 radius,
             randomBetween(
-                -11,
-                12
+                -12,
+                13
             ),
             randomBetween(
                 -18,
-                -68
+                -72
             )
         );
 
@@ -4392,30 +4850,46 @@ function createAsteroidField() {
             )
         );
 
+        asteroid.scale.set(
+            randomBetween(
+                0.8,
+                1.3
+            ),
+            randomBetween(
+                0.65,
+                1.15
+            ),
+            randomBetween(
+                0.75,
+                1.25
+            )
+        );
+
         asteroid.userData = {
             rotationSpeed:
                 new THREE.Vector3(
                     randomBetween(
-                        -0.006,
-                        0.006
-                    ),
-                    randomBetween(
-                        -0.008,
-                        0.008
-                    ),
-                    randomBetween(
                         -0.005,
                         0.005
+                    ),
+                    randomBetween(
+                        -0.007,
+                        0.007
+                    ),
+                    randomBetween(
+                        -0.004,
+                        0.004
                     )
                 ),
+
             drift:
                 randomBetween(
-                    0.0008,
-                    0.0024
+                    0.0006,
+                    0.002
                 ),
+
             phase:
-                index *
-                0.71
+                index * 0.71
         };
 
         asteroids.push(
@@ -4433,7 +4907,284 @@ function createAsteroidField() {
 }
 
 
-function createDistantSun(){ const radius=isSmallScreen?3.2:4.2;const c=document.createElement("canvas");c.width=512;c.height=256;const x=c.getContext("2d");const g=x.createLinearGradient(0,0,512,256);g.addColorStop(0,"#ff7a1f");g.addColorStop(0.26,"#ffb234");g.addColorStop(0.52,"#fff2a6");g.addColorStop(0.76,"#ffc14a");g.addColorStop(1,"#ff6e1c");x.fillStyle=g;x.fillRect(0,0,512,256);for(let i=0;i<260;i++){x.globalAlpha=randomBetween(0.025,0.16);x.fillStyle=i%3===0?"#fff8d7":i%3===1?"#f06c1b":"#ffd46c";x.beginPath();x.arc(randomBetween(0,512),randomBetween(0,256),randomBetween(2,16),0,Math.PI*2);x.fill();}x.globalAlpha=1;const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=THREE.RepeatWrapping;distantSun=new THREE.Mesh(new THREE.SphereGeometry(radius,64,48),new THREE.MeshBasicMaterial({map:tex,color:0xffffff}));distantSun.position.set(-34,18,-105);distantSunGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:createSolarCoronaTexture(),color:0xffaa42,transparent:true,opacity:0.42,depthWrite:false,blending:THREE.AdditiveBlending}));distantSunGlow.position.copy(distantSun.position);distantSunGlow.scale.set(25,25,1);scene.add(distantSun,distantSunGlow);}
+function createDistantSun() {
+    const sunRadius =
+        isSmallScreen
+            ? 3.1
+            : 4.15;
+
+    const surfaceCanvas =
+        document.createElement("canvas");
+
+    surfaceCanvas.width = 1024;
+    surfaceCanvas.height = 512;
+
+    const context =
+        surfaceCanvas.getContext("2d");
+
+    const background =
+        context.createLinearGradient(
+            0,
+            0,
+            1024,
+            512
+        );
+
+    background.addColorStop(
+        0,
+        "#d84b16"
+    );
+
+    background.addColorStop(
+        0.18,
+        "#ff7a1f"
+    );
+
+    background.addColorStop(
+        0.42,
+        "#ffc24f"
+    );
+
+    background.addColorStop(
+        0.56,
+        "#fff3ad"
+    );
+
+    background.addColorStop(
+        0.76,
+        "#ffae34"
+    );
+
+    background.addColorStop(
+        1,
+        "#d94413"
+    );
+
+    context.fillStyle =
+        background;
+
+    context.fillRect(
+        0,
+        0,
+        1024,
+        512
+    );
+
+    for (
+        let layer = 0;
+        layer < 5;
+        layer += 1
+    ) {
+        for (
+            let index = 0;
+            index < 120;
+            index += 1
+        ) {
+            const x =
+                randomBetween(
+                    0,
+                    1024
+                );
+
+            const y =
+                randomBetween(
+                    0,
+                    512
+                );
+
+            const width =
+                randomBetween(
+                    8,
+                    85
+                );
+
+            const height =
+                randomBetween(
+                    3,
+                    27
+                );
+
+            const opacity =
+                randomBetween(
+                    0.025,
+                    0.13
+                );
+
+            context.fillStyle =
+                layer % 2 === 0
+                    ? `rgba(255,248,199,${opacity})`
+                    : `rgba(176,47,13,${opacity})`;
+
+            context.beginPath();
+
+            context.ellipse(
+                x,
+                y,
+                width,
+                height,
+                randomBetween(
+                    -0.4,
+                    0.4
+                ),
+                0,
+                Math.PI * 2
+            );
+
+            context.fill();
+        }
+    }
+
+    for (
+        let index = 0;
+        index < 95;
+        index += 1
+    ) {
+        const x =
+            randomBetween(
+                0,
+                1024
+            );
+
+        const y =
+            randomBetween(
+                0,
+                512
+            );
+
+        const radius =
+            randomBetween(
+                4,
+                24
+            );
+
+        const spot =
+            context.createRadialGradient(
+                x,
+                y,
+                0,
+                x,
+                y,
+                radius
+            );
+
+        spot.addColorStop(
+            0,
+            "rgba(110,28,10,0.26)"
+        );
+
+        spot.addColorStop(
+            0.45,
+            "rgba(150,42,12,0.12)"
+        );
+
+        spot.addColorStop(
+            1,
+            "rgba(0,0,0,0)"
+        );
+
+        context.fillStyle =
+            spot;
+
+        context.beginPath();
+
+        context.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI * 2
+        );
+
+        context.fill();
+    }
+
+    const surfaceTexture =
+        new THREE.CanvasTexture(
+            surfaceCanvas
+        );
+
+    surfaceTexture.colorSpace =
+        THREE.SRGBColorSpace;
+
+    surfaceTexture.wrapS =
+        THREE.RepeatWrapping;
+
+    surfaceTexture.anisotropy =
+        Math.min(
+            renderer.capabilities
+                .getMaxAnisotropy(),
+            8
+        );
+
+    distantSun =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                sunRadius,
+                72,
+                52
+            ),
+            new THREE.MeshBasicMaterial({
+                map:
+                    surfaceTexture,
+                color:
+                    0xffffff
+            })
+        );
+
+    distantSun.position.set(
+        -34,
+        18,
+        -105
+    );
+
+    const coronaTexture =
+        createSolarCoronaTexture();
+
+    distantSunGlow =
+        new THREE.Sprite(
+            new THREE.SpriteMaterial({
+                map:
+                    coronaTexture,
+                color:
+                    0xff9e3d,
+                transparent: true,
+                opacity: 0.5,
+                depthWrite: false,
+                blending:
+                    THREE.AdditiveBlending
+            })
+        );
+
+    distantSunGlow.position.copy(
+        distantSun.position
+    );
+
+    distantSunGlow.scale.set(
+        28,
+        28,
+        1
+    );
+
+    sunSurfaceLight =
+        new THREE.PointLight(
+            0xffa24f,
+            isSmallScreen
+                ? 18
+                : 26,
+            120,
+            2
+        );
+
+    sunSurfaceLight.position.copy(
+        distantSun.position
+    );
+
+    scene.add(
+        distantSun,
+        distantSunGlow,
+        sunSurfaceLight
+    );
+}
 
 
 function createHiddenBirthdayMessage() {
@@ -8865,7 +9616,18 @@ if (backgroundMusic) {
     );
 }
 
-renderer?.dispose();
+
+    asteroidSurfaceTexture?.dispose();
+    asteroidBumpTexture?.dispose();
+    sharedRefinedStarTexture?.dispose();
+
+    if (sunSurfaceLight) {
+        scene?.remove(
+            sunSurfaceLight
+        );
+    }
+
+    renderer?.dispose();
 }
 
 
