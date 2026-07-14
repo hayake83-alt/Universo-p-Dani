@@ -576,7 +576,7 @@ const JOURNEY_SCENES = [
 
 const REALISM_CONFIG = {
     galaxyCount: isSmallScreen ? 2 : 3,
-    asteroidCount: isSmallScreen ? 18 : 32,
+    asteroidCount: isSmallScreen ? 16 : 24,
     detailedStarCount: isSmallScreen ? 16 : 28,
     birthdayRevealDragDistance: isSmallScreen ? 1200 : 1800,
     birthdayHoldDuration: 7.5
@@ -589,7 +589,7 @@ const AUDIO_CONFIG = {
 };
 
 const POLISH_CONFIG = {
-    deepStarCount: isSmallScreen ? 1600 : 3200,
+    deepStarCount: isSmallScreen ? 1400 : 2600,
     galacticBandParticleCount: isSmallScreen ? 950 : 1850,
     galacticBandLayerCount: isSmallScreen ? 2 : 3,
     solarFlareCount: isSmallScreen ? 7 : 12,
@@ -625,13 +625,6 @@ async function initializeUniverse() {
 
         updateStatus("Comprobando el navegador…");
         updateLoaderText("Preparando el espacio…");
-
-        if (!supportsWebGL()) {
-            throw new Error(
-                "WebGL no está disponible. Abre la página con Chrome, " +
-                "Edge, Firefox o Safari actualizado."
-            );
-        }
 
         createScene();
         createCamera();
@@ -759,18 +752,33 @@ function validateRequiredElements() {
 
 function supportsWebGL() {
     try {
-        const testCanvas = document.createElement("canvas");
+        const testCanvas =
+            document.createElement(
+                "canvas"
+            );
 
-        const context =
-            testCanvas.getContext("webgl2") ||
-            testCanvas.getContext("webgl") ||
-            testCanvas.getContext("experimental-webgl");
-
-        return Boolean(context);
-
+        return Boolean(
+            testCanvas.getContext(
+                "webgl2",
+                {
+                    failIfMajorPerformanceCaveat:
+                        false
+                }
+            ) ||
+            testCanvas.getContext(
+                "webgl",
+                {
+                    failIfMajorPerformanceCaveat:
+                        false
+                }
+            ) ||
+            testCanvas.getContext(
+                "experimental-webgl"
+            )
+        );
     } catch (error) {
-        console.error(
-            "Error al comprobar WebGL:",
+        console.warn(
+            "La comprobación de WebGL falló:",
             error
         );
 
@@ -814,40 +822,70 @@ function createCamera() {
 
 
 function createRenderer() {
-    renderer = new THREE.WebGLRenderer({
-        canvas,
-        antialias: !isSmallScreen,
-        alpha: false,
-        powerPreference: "high-performance",
-        preserveDrawingBuffer: false
-    });
+    try {
+        renderer =
+            new THREE.WebGLRenderer({
+                canvas,
+                antialias:
+                    !isSmallScreen,
+                alpha: false,
+                powerPreference:
+                    "high-performance",
+                preserveDrawingBuffer:
+                    false,
+                failIfMajorPerformanceCaveat:
+                    false
+            });
 
-    renderer.setPixelRatio(
-        Math.min(
-            window.devicePixelRatio || 1,
-            isSmallScreen ? 1.6 : 2
-        )
-    );
+        const context =
+            renderer.getContext();
 
-    renderer.setSize(
-        window.innerWidth,
-        window.innerHeight,
-        false
-    );
+        if (!context) {
+            throw new Error(
+                "No se pudo crear el contexto WebGL."
+            );
+        }
 
-    renderer.outputColorSpace =
-        THREE.SRGBColorSpace;
+        renderer.setPixelRatio(
+            Math.min(
+                window.devicePixelRatio ||
+                1,
+                isSmallScreen
+                    ? 1.45
+                    : 1.8
+            )
+        );
 
-    renderer.toneMapping =
-        THREE.ACESFilmicToneMapping;
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight,
+            false
+        );
 
-    renderer.toneMappingExposure =
-        1.08;
+        renderer.outputColorSpace =
+            THREE.SRGBColorSpace;
 
-    renderer.setClearColor(
-        0x02030a,
-        1
-    );
+        renderer.toneMapping =
+            THREE.ACESFilmicToneMapping;
+
+        renderer.toneMappingExposure =
+            1.05;
+
+        renderer.setClearColor(
+            0x02030a,
+            1
+        );
+    } catch (error) {
+        console.error(
+            "No se pudo iniciar WebGL:",
+            error
+        );
+
+        throw new Error(
+            "El navegador no pudo iniciar la aceleración gráfica. " +
+            "Activa la aceleración por hardware y vuelve a abrir la página."
+        );
+    }
 }
 
 
